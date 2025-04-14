@@ -11,14 +11,6 @@ class ForneInsumoModel {
     required this.telefone,
   });
 
-  Map<String, dynamic> toMap() {
-    return {
-      'nome': nome,
-      'cnpj': cnpj,
-      'telefone': telefone,
-    };
-  }
-
   factory ForneInsumoModel.fromJson(Map<String, dynamic> map) {
     return ForneInsumoModel(
       id: map['id'],
@@ -28,8 +20,16 @@ class ForneInsumoModel {
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toJsonForCreate() {
     return {
+      'nome': nome,
+      'cnpj': cnpj,
+      'telefone': telefone,
+    };
+  }
+  Map<String, dynamic> toJsonForUpdate() {
+    return {
+      'id':id,
       'nome': nome,
       'cnpj': cnpj,
       'telefone': telefone,

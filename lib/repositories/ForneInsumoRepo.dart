@@ -18,13 +18,13 @@ class ForneInsumoRepo {
   }
 
   Future<void> create(ForneInsumoModel forneInsumo) async {
-    await ApiService.post('/FornecedorInsumos', jsonEncode(forneInsumo.toJson()));
+    await ApiService.post('/FornecedorInsumos', jsonEncode(forneInsumo.toJsonForCreate()));
   }
 
   Future<void> update(ForneInsumoModel forneInsumo) async {
     await ApiService.put(
       '/FornecedorInsumos/${forneInsumo.id}',
-      jsonEncode(forneInsumo.toJson()),
+      jsonEncode(forneInsumo.toJsonForUpdate()),
     );
   }
 

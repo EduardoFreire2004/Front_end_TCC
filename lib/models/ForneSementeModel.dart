@@ -28,8 +28,17 @@ class ForneSementeModel {
     );
   }
 
-  Map<String, dynamic> toJson() {
+   Map<String, dynamic> toJsonForCreate() {
     return {
+      'nome': nome,
+      'cnpj': cnpj,
+      'telefone': telefone,
+    };
+  }
+
+  Map<String, dynamic> toJsonForUpdate() {
+    return {
+      'id': id,
       'nome': nome,
       'cnpj': cnpj,
       'telefone': telefone,

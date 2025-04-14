@@ -18,13 +18,13 @@ class ColheitaRepo {
   }
 
   Future<void> create(ColheitaModel colheita) async {
-    await ApiService.post('/Colheitas', jsonEncode(colheita.toJson()));
+    await ApiService.post('/Colheitas', jsonEncode(colheita.toJsonForCreate()));
   }
 
   Future<void> update(ColheitaModel colheita) async {
     await ApiService.put(
       '/Colheitas/${colheita.id}',
-      jsonEncode(colheita.toJson()),
+      jsonEncode(colheita.toJsonForUpdate()),
     );
   }
 

@@ -11,14 +11,6 @@ class ColheitaModel {
     this.descricao,
   });
 
-  Map<String, dynamic> toMap() {
-    return {
-      'tipo': tipo,
-      'dataHora': dataHora.toIso8601String(),
-      'descricao': descricao,
-    };
-  }
-
   factory ColheitaModel.fromJson(Map<String, dynamic> map) {
     return ColheitaModel(
       id: map['id'],
@@ -28,8 +20,17 @@ class ColheitaModel {
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toJsonForCreate() {
     return {
+      'tipo': tipo,
+      'dataHora': dataHora.toIso8601String(), 
+      'descricao': descricao,
+    };
+  }
+
+  Map<String, dynamic> toJsonForUpdate() {
+    return {
+      'id':id,
       'tipo': tipo,
       'dataHora': dataHora.toIso8601String(), 
       'descricao': descricao,

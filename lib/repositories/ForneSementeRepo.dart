@@ -18,13 +18,13 @@ class ForneSementeRepo {
   }
 
   Future<void> create(ForneSementeModel forneSemente) async {
-    await ApiService.post('/FornecedorSementes', jsonEncode(forneSemente.toJson()));
+    await ApiService.post('/FornecedorSementes', jsonEncode(forneSemente.toJsonForCreate()));
   }
 
   Future<void> update(ForneSementeModel forneSemente) async {
     await ApiService.put(
       '/FornecedorSementes/${forneSemente.id}',
-      jsonEncode(forneSemente.toJson()),
+      jsonEncode(forneSemente.toJsonForUpdate()),
     );
   }
 
