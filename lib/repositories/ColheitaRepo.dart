@@ -3,7 +3,6 @@ import '../models/ColheitaModel.dart';
 import '../services/api_service.dart';
 
 class ColheitaRepo {
-
   Future<List<ColheitaModel>> getAll() async {
     final response = await ApiService.get('/Colheitas');
 

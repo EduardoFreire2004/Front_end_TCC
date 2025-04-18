@@ -1,28 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'viewmodels/ColheitaViewmodel.dart';
-import 'pages/ColheitaPage.dart';
+
+import 'viewmodels/agrotoxicoViewmodel.dart';
+import 'pages/AgrotoxicoPage.dart'; // Sua página de cadastro
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AgrotoxicoViewModel()),
+        // aqui você pode adicionar mais ViewModels se tiver
+      ],
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => ColheitaViewmodel())],
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'Gerenciador de Colheitas',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
-          useMaterial3: true,
-        ),
-        home: const ColheitaPage(),
-      ),
+    return MaterialApp(
+      title: 'Gestão de Agrotóxicos',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(primarySwatch: Colors.green),
+      home: AgrotoxicoView(), // <- Aqui define a página que abre primeiro
+      routes: {'/Agrotoxico': (_) => AgrotoxicoView()},
     );
   }
 }
