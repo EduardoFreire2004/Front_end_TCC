@@ -2,35 +2,34 @@ import 'package:flutter/material.dart';
 import '../models/TipoAgrotoxicoModel.dart';
 import '../repositories/TipoAgrotoxicoRepo.dart';
 
-class TipoAgrotoxicoViewmodel extends ChangeNotifier {
+class TipoAgrotoxicoViewModel extends ChangeNotifier {
   final TipoAgrotoxicoRepo _repository = TipoAgrotoxicoRepo();
-  List<TipoAgrotoxicoModel> _tipoAgrotoxico = [];
 
-  List<TipoAgrotoxicoModel> get tipoAgrotoxico => _tipoAgrotoxico;
+  List<TipoAgrotoxicoModel> _tipos = [];
+  bool isLoading = false;
 
-  Future<void> loadTipoAgrotoxico() async {
-    _tipoAgrotoxico = await _repository.getAll();
+  List<TipoAgrotoxicoModel> get tipos => _tipos;
+
+  Future<void> fetch() async {
+    isLoading = true;
+    notifyListeners();
+    _tipos = await _repository.getAll();
+    isLoading = false;
     notifyListeners();
   }
 
-  Future<void> addTipoAgrotoxico(TipoAgrotoxicoModel nova) async {
-    await _repository.create(nova);
-    await loadTipoAgrotoxico();
+  Future<void> addTipo(TipoAgrotoxicoModel tipo) async {
+    await _repository.create(tipo);
+    await fetch();
   }
 
-  Future<void> updateTipoAgrotoxico(TipoAgrotoxicoModel nova) async {
-    await _repository.update(nova);
-    await loadTipoAgrotoxico();
+  Future<void> updateTipo(TipoAgrotoxicoModel tipo) async {
+    await _repository.update(tipo);
+    await fetch();
   }
 
-  Future<void> deleteTipoAgrotoxico(int id) async {
+  Future<void> deleteTipo(int id) async {
     await _repository.delete(id);
-    await loadTipoAgrotoxico();
+    await fetch();
   }
-
-  Future<void> buscarPorDescricao(String descricao) async {
-  _tipoAgrotoxico = await _repository.buscarPorDescricao(descricao);
-  notifyListeners();
-}
-
 }

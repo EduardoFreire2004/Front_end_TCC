@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../pages/homePage.dart';
 
 class NavBar extends StatelessWidget {
   const NavBar({super.key});
@@ -22,14 +21,7 @@ class NavBar extends StatelessWidget {
               ),
             ),
           ),
-          ListTile(
-            leading: const Icon(Icons.home),
-            title: const Text('Home'),
-            onTap: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => const HomePage()));
-            },
-          ),
+          
           ListTile(
             leading: const Icon(Icons.settings),
             title: const Text('Configurações'),

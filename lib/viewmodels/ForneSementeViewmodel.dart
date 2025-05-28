@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fgl_1/models/ForneSementeModel.dart';
 import '../repositories/ForneSementeRepo.dart';
 
-class ForneInsumoViewmodel extends ChangeNotifier {
+class ForneSementeViewmodel extends ChangeNotifier {
   final ForneSementeRepo _repository = ForneSementeRepo();
   List<ForneSementeModel> _forneSemente = [];
 

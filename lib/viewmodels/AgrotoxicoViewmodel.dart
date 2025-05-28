@@ -1,65 +1,34 @@
 import 'package:flutter/material.dart';
-import '../repositories/ForneAgrotoxicoRepo.dart';
-import '../repositories/TipoAgrotoxicoRepo.dart';
-import '../repositories/AgrotoxicoRepo.dart';
-import '../models/AgrotoxicoModel.dart';
-import '../models/ForneAgrotoxicoModel.dart';
-import '../models/TipoAgrotoxicoModel.dart';
+import '../../models/AgrotoxicoModel.dart';
+import '../../repositories/AgrotoxicoRepo.dart';
 
 class AgrotoxicoViewModel extends ChangeNotifier {
-  final ForneAgrotoxicoRepo forneRepo = ForneAgrotoxicoRepo();
-  final TipoAgrotoxicoRepo tipoRepo = TipoAgrotoxicoRepo();
-  final AgrotoxicoRepo agrotoxicoRepo = AgrotoxicoRepo();
+  final AgrotoxicoRepo _repository = AgrotoxicoRepo();
+  List<AgrotoxicoModel> _lista = [];
+  bool isLoading = false;
 
-  List<AgrotoxicoModel> _agrotoxico = [];
-  List<ForneAgrotoxicoModel> fornecedores = [];
-  List<TipoAgrotoxicoModel> tipos = [];
+  List<AgrotoxicoModel> get lista => _lista;
 
-  bool carregando = false;
-
-  Future<void> buscarFornecedores(String nome) async {
-    carregando = true;
+  Future<void> fetch() async {
+    isLoading = true;
     notifyListeners();
-
-    try {
-      fornecedores = await forneRepo.buscarPorNome(nome);
-    } catch (e) {
-      fornecedores = [];
-    } finally {
-      carregando = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> loadAgrotoxico() async {
-    _agrotoxico = await agrotoxicoRepo.getAll();
+    _lista = await _repository.getAll();
+    isLoading = false;
     notifyListeners();
   }
 
-  Future<void> buscarTipos(String descricao) async {
-    carregando = true;
-    notifyListeners();
-
-    try {
-      tipos = await tipoRepo.buscarPorDescricao(descricao);
-    } catch (e) {
-      tipos = [];
-    } finally {
-      carregando = false;
-      notifyListeners();
-    }
+  Future<void> add(AgrotoxicoModel model) async {
+    await _repository.create(model);
+    await fetch();
   }
 
-  Future<void> salvarAgrotoxico(AgrotoxicoModel agrotoxico) async {
-    await agrotoxicoRepo.create(agrotoxico);
-    await loadAgrotoxico();
+  Future<void> update(AgrotoxicoModel model) async {
+    await _repository.update(model);
+    await fetch();
   }
 
-  Future<void> cadastrarFornecedor(ForneAgrotoxicoModel fornecedor) async {
-    await forneRepo.create(fornecedor);
-  }
-
-  Future<void> cadastrarTipo(TipoAgrotoxicoModel tipo) async {
-    await tipoRepo.create(tipo);
+  Future<void> delete(int id) async {
+    await _repository.delete(id);
+    await fetch();
   }
 }

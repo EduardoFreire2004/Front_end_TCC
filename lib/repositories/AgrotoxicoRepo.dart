@@ -17,13 +17,16 @@ class AgrotoxicoRepo {
   }
 
   Future<void> create(AgrotoxicoModel agrotoxico) async {
-    await ApiService.post('/Agrotoxicos', jsonEncode(agrotoxico.toJsonForCreate()));
+    await ApiService.post(
+      '/Agrotoxicos',
+      jsonEncode(agrotoxico.toJson()),
+    );
   }
 
   Future<void> update(AgrotoxicoModel agrotoxico) async {
     await ApiService.put(
       '/Agrotoxicos/${agrotoxico.id}',
-      jsonEncode(agrotoxico.toJsonForUpdate()),
+      jsonEncode(agrotoxico.toJson()),
     );
   }
 

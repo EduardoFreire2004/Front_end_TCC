@@ -1,36 +1,35 @@
 import 'package:flutter/material.dart';
-import '../models/ForneAgrotoxicoModel.dart';
-import '../repositories/ForneAgrotoxicoRepo.dart';
+import '../../models/ForneAgrotoxicoModel.dart';
+import '../../repositories/ForneAgrotoxicoRepo.dart';
 
-class ForneAgrotoxicoViewmodel extends ChangeNotifier {
+class FornecedorAgrotoxicoViewModel extends ChangeNotifier {
   final ForneAgrotoxicoRepo _repository = ForneAgrotoxicoRepo();
-  List<ForneAgrotoxicoModel> _forneAgrotoxico = [];
 
-  List<ForneAgrotoxicoModel> get forneAgrotoxico => _forneAgrotoxico;
+  List<ForneAgrotoxicoModel> _fornecedores = [];
+  bool isLoading = false;
 
-  Future<void> loadForneAgrotoxico() async {
-    _forneAgrotoxico = await _repository.getAll();
+  List<ForneAgrotoxicoModel> get fornecedores => _fornecedores;
+
+  Future<void> fetch() async {
+    isLoading = true;
+    notifyListeners();
+    _fornecedores = await _repository.getAll();
+    isLoading = false;
     notifyListeners();
   }
 
-  Future<void> addForneAgrotoxico(ForneAgrotoxicoModel nova) async {
-    await _repository.create(nova);
-    await loadForneAgrotoxico();
+  Future<void> addFornecedor(ForneAgrotoxicoModel fornecedor) async {
+    await _repository.create(fornecedor);
+    await fetch();
   }
 
-  Future<void> updateForneAgrotoxico(ForneAgrotoxicoModel nova) async {
-    await _repository.update(nova);
-    await loadForneAgrotoxico();
+  Future<void> updateFornecedor(ForneAgrotoxicoModel fornecedor) async {
+    await _repository.update(fornecedor);
+    await fetch();
   }
 
-  Future<void> deleteForneAgrotoxico(int id) async {
+  Future<void> deleteFornecedor(int id) async {
     await _repository.delete(id);
-    await loadForneAgrotoxico();
+    await fetch();
   }
-
-  Future<void> buscarPorNome(String nome) async {
-  _forneAgrotoxico = await _repository.buscarPorNome(nome);
-  notifyListeners();
-}
-
 }

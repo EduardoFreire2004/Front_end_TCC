@@ -1,30 +1,34 @@
 import 'package:flutter/material.dart';
-import '../models/CategoriaInsumoModel.dart';
-import '../repositories/CategoriaInsumoRepo.dart';
+import 'package:flutter_fgl_1/repositories/CategoriaInsumoRepo.dart';
+import '../../models/CategoriaInsumoModel.dart';
 
-class CategoriaInsumoViewmodel extends ChangeNotifier {
+class CategoriaInsumoViewModel extends ChangeNotifier {
   final CategoriaInsumoRepo _repository = CategoriaInsumoRepo();
-  List<CategoriaInsumoModel> _categoriaInsumo = [];
+  List<CategoriaInsumoModel> _categorias = [];
+  bool isLoading = false;
 
-  List<CategoriaInsumoModel> get categoriaInsumo => _categoriaInsumo;
+  List<CategoriaInsumoModel> get categorias => _categorias;
 
-  Future<void> loadCategoriaInsumo() async {
-    _categoriaInsumo = await _repository.getAll();
+  Future<void> fetch() async {
+    isLoading = true;
+    notifyListeners();
+    _categorias = await _repository.getAll();
+    isLoading = false;
     notifyListeners();
   }
 
-  Future<void> addCategoriaInsumo(CategoriaInsumoModel nova) async {
-    await _repository.create(nova);
-    await loadCategoriaInsumo();
+  Future<void> add(CategoriaInsumoModel model) async {
+    await _repository.create(model);
+    await fetch();
   }
 
-  Future<void> updateCategoriaInsumo(CategoriaInsumoModel nova) async {
-    await _repository.update(nova);
-    await loadCategoriaInsumo();
+  Future<void> update(CategoriaInsumoModel model) async {
+    await _repository.update(model);
+    await fetch();
   }
 
-  Future<void> deleteCategoriaInsumo(int id) async {
+  Future<void> delete(int id) async {
     await _repository.delete(id);
-    await loadCategoriaInsumo();
+    await fetch();
   }
 }

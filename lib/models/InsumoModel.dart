@@ -1,27 +1,27 @@
-class AgrotoxicoModel {
+class InsumoModel {
   int? id;
+  int categoriaID;
   int fornecedorID;
-  int tipoID;
   String nome;
   String unidade_Medida;
   DateTime data_Cadastro;
   double qtde;
 
-  AgrotoxicoModel({
+  InsumoModel({
     this.id,
+    required this.categoriaID,
     required this.fornecedorID,
-    required this.tipoID,
     required this.nome,
     required this.unidade_Medida,
     required this.data_Cadastro,
     required this.qtde,
   });
 
-  factory AgrotoxicoModel.fromJson(Map<String, dynamic> map) {
-    return AgrotoxicoModel(
+  factory InsumoModel.fromJson(Map<String, dynamic> map) {
+    return InsumoModel(
       id: map['id'],
+      categoriaID: map['categoriaID'],
       fornecedorID: map['fornecedorID'],
-      tipoID: map['tipoID'],
       nome: map['nome'],
       unidade_Medida: map['unidade_Medida'],
       data_Cadastro: DateTime.parse(map['data_Cadastro']),
@@ -32,8 +32,8 @@ class AgrotoxicoModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id ?? 0,
+      'categoriaID': categoriaID,
       'fornecedorID': fornecedorID,
-      'tipoID': tipoID,
       'nome': nome,
       'unidade_Medida': unidade_Medida,
       'data_Cadastro': data_Cadastro.toIso8601String(),

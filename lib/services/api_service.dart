@@ -2,7 +2,7 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   static const String baseUrl =
-      'http://172.100.125.138:5209/api';
+      'http://localhost:5209/api';
 
   static Future<http.Response> get(String endpoint) async {
     return await http.get(Uri.parse('$baseUrl$endpoint'));
