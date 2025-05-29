@@ -20,8 +20,8 @@ class InsumoModel {
   factory InsumoModel.fromJson(Map<String, dynamic> map) {
     return InsumoModel(
       id: map['id'],
-      categoriaID: map['categoriaID'],
-      fornecedorID: map['fornecedorID'],
+      categoriaID: map['categoriaInsumoID'],
+      fornecedorID: map['fornecedorInsumoID'],
       nome: map['nome'],
       unidade_Medida: map['unidade_Medida'],
       data_Cadastro: DateTime.parse(map['data_Cadastro']),
@@ -32,8 +32,8 @@ class InsumoModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id ?? 0,
-      'categoriaID': categoriaID,
-      'fornecedorID': fornecedorID,
+      'categoriaInsumoID': categoriaID,
+      'fornecedorInsumoID': fornecedorID,
       'nome': nome,
       'unidade_Medida': unidade_Medida,
       'data_Cadastro': data_Cadastro.toIso8601String(),

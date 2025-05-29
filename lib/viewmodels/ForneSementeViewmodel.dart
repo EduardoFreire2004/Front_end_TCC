@@ -1,30 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fgl_1/models/ForneSementeModel.dart';
-import '../repositories/ForneSementeRepo.dart';
+import 'package:flutter_fgl_1/repositories/ForneSementeRepo.dart';
 
-class ForneSementeViewmodel extends ChangeNotifier {
+class FornecedorSementeViewModel extends ChangeNotifier {
   final ForneSementeRepo _repository = ForneSementeRepo();
-  List<ForneSementeModel> _forneSemente = [];
+  List<ForneSementeModel> _sementes = [];
+  bool isLoading = false;
 
-  List<ForneSementeModel> get forneSemente => _forneSemente;
+  List<ForneSementeModel> get sementes => _sementes;
 
-  Future<void> loadForneSemente() async {
-    _forneSemente = await _repository.getAll();
+  Future<void> fetch() async {
+    isLoading = true;
+    notifyListeners();
+    _sementes = await _repository.getAll();
+    isLoading = false;
     notifyListeners();
   }
 
-  Future<void> addForneSemente(ForneSementeModel nova) async {
-    await _repository.create(nova);
-    await loadForneSemente();
+  Future<void> add(ForneSementeModel model) async {
+    await _repository.create(model);
+    await fetch();
   }
 
-  Future<void> updateColheita(ForneSementeModel nova) async {
-    await _repository.update(nova);
-    await loadForneSemente();
+  Future<void> update(ForneSementeModel model) async {
+    await _repository.update(model);
+    await fetch();
   }
 
-  Future<void> deleteForneSemente(int id) async {
+  Future<void> delete(int id) async {
     await _repository.delete(id);
-    await loadForneSemente();
+    await fetch();
   }
 }

@@ -4,7 +4,6 @@ import 'package:flutter_fgl_1/views/insumo/insumoFormView.dart';
 import 'package:provider/provider.dart';
 
 class InsumoListView extends StatelessWidget {
-  const InsumoListView({super.key});
 
   @override
   Widget build(BuildContext context) {
