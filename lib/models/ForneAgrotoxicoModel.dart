@@ -20,19 +20,12 @@ class ForneAgrotoxicoModel {
     );
   }
 
-  Map<String, dynamic> toJsonForCreate() {
+  Map<String, dynamic> toJson() {
     return {
+      'id': id ?? 0,
       'nome': nome,
       'cnpj': cnpj,
       'telefone': telefone,
     };
-  }
-  Map<String, dynamic> toJsonForUpdate() {
-    return {
-      'id':id,
-      'nome': nome,
-      'cnpj': cnpj,
-      'telefone': telefone,
-    };
-  }
+  } 
 }

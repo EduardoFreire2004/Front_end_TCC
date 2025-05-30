@@ -20,20 +20,13 @@ class ColheitaModel {
     );
   }
 
-  Map<String, dynamic> toJsonForCreate() {
+  Map<String, dynamic> toJson() {
     return {
+      'id': id ?? 0,
       'tipo': tipo,
       'dataHora': dataHora.toIso8601String(), 
       'descricao': descricao,
     };
   }
 
-  Map<String, dynamic> toJsonForUpdate() {
-    return {
-      'id':id,
-      'tipo': tipo,
-      'dataHora': dataHora.toIso8601String(), 
-      'descricao': descricao,
-    };
-  }
 }

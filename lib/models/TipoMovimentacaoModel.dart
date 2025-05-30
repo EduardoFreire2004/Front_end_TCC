@@ -14,14 +14,9 @@ class TipoMovimentacaoModel {
     );
   }
 
-  Map<String, dynamic> toJsonForCreate() {
+  Map<String, dynamic> toJson() {
     return {
-      'descricao': descricao,
-    };
-  }
-  Map<String, dynamic> toJsonForUpdate() {
-    return {
-      'id':id,
+      'id': id ?? 0,
       'descricao': descricao,
     };
   }

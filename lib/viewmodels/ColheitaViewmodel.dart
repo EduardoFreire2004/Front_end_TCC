@@ -10,7 +10,7 @@ class ColheitaViewmodel extends ChangeNotifier {
   List<ColheitaModel> get colheita => _colheita;
   bool get isLoading => _isLoading;
 
-  Future<void> loadColheita() async {
+  Future<void> fetch() async {
     _isLoading = true;
     notifyListeners();
 
@@ -22,39 +22,39 @@ class ColheitaViewmodel extends ChangeNotifier {
     }
   }
 
-  Future<void> addColheita(ColheitaModel nova) async {
+  Future<void> add(ColheitaModel nova) async {
     _isLoading = true;
     notifyListeners();
 
     try {
       await _repository.create(nova);
-      await loadColheita();
+      await fetch();
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<void> updateColheita(ColheitaModel nova) async {
+  Future<void> update(ColheitaModel nova) async {
     _isLoading = true;
     notifyListeners();
 
     try {
       await _repository.update(nova);
-      await loadColheita();
+      await fetch();
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<void> deleteColheita(int id) async {
+  Future<void> delete(int id) async {
     _isLoading = true;
     notifyListeners();
 
     try {
       await _repository.delete(id);
-      await loadColheita();
+      await fetch();
     } finally {
       _isLoading = false;
       notifyListeners();

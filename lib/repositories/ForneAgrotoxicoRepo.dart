@@ -1,45 +1,84 @@
 import 'dart:convert';
+import 'dart:io';
+import 'dart:async';
 import '../models/ForneAgrotoxicoModel.dart';
 import '../services/api_service.dart';
 
 class ForneAgrotoxicoRepo {
-
   Future<List<ForneAgrotoxicoModel>> getAll() async {
-    final response = await ApiService.get('/FornecedorAgrotoxicos');
+    try {
+      final response = await ApiService.get('/FornecedorAgrotoxicos');
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data
-          .map((item) => ForneAgrotoxicoModel.fromJson(item as Map<String, dynamic>))
-          .toList();
-    } else {
-      throw Exception('Erro ao carregar fornecedor de agrotoxicos');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data
+            .map((item) => ForneAgrotoxicoModel.fromJson(item as Map<String, dynamic>))
+            .toList();
+      } else {
+        throw Exception('Erro ${response.statusCode}: Não foi possível carregar os fornecedores.');
+      }
+    } on SocketException {
+      throw Exception('Sem conexão com a internet. Verifique sua rede.');
+    } on TimeoutException {
+      throw Exception('Tempo de resposta da API excedido.');
+    } on FormatException {
+      throw Exception('Erro ao interpretar os dados recebidos.');
+    } catch (e) {
+      throw Exception('Erro inesperado: $e');
     }
   }
 
-  Future<List<ForneAgrotoxicoModel>> buscarPorNome(String nome) async {
-  final response = await ApiService.get('/FornecedorAgrotoxicos?nome=$nome');
+  Future<void> create(ForneAgrotoxicoModel fornecedor) async {
+    try {
+      final response = await ApiService.post(
+        '/FornecedorAgrotoxicos',
+        jsonEncode(fornecedor.toJson()),
+      );
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.map((item) => ForneAgrotoxicoModel.fromJson(item as Map<String, dynamic>)).toList();
-    } else {
-      throw Exception('Erro ao buscar fornecedor pelo nome');
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw Exception('Erro ao criar fornecedor (${response.statusCode}).');
+      }
+    } on SocketException {
+      throw Exception('Sem conexão com a internet ao tentar criar.');
+    } on TimeoutException {
+      throw Exception('Tempo de resposta excedido ao tentar criar.');
+    } catch (e) {
+      throw Exception('Erro ao criar fornecedor: $e');
     }
   }
 
-  Future<void> create(ForneAgrotoxicoModel forneAgrotoxico) async {
-    await ApiService.post('/FornecedorAgrotoxicos', jsonEncode(forneAgrotoxico.toJsonForCreate()));
-  }
+  Future<void> update(ForneAgrotoxicoModel fornecedor) async {
+    try {
+      final response = await ApiService.put(
+        '/FornecedorAgrotoxicos/${fornecedor.id}',
+        jsonEncode(fornecedor.toJson()),
+      );
 
-  Future<void> update(ForneAgrotoxicoModel forneAgrotoxicos) async {
-    await ApiService.put(
-      '/FornecedorAgrotoxicos/${forneAgrotoxicos.id}',
-      jsonEncode(forneAgrotoxicos.toJsonForUpdate()),
-    );
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        throw Exception('Erro ao atualizar fornecedor (${response.statusCode}).');
+      }
+    } on SocketException {
+      throw Exception('Sem conexão com a internet ao atualizar.');
+    } on TimeoutException {
+      throw Exception('Tempo excedido ao atualizar.');
+    } catch (e) {
+      throw Exception('Erro ao atualizar fornecedor: $e');
+    }
   }
 
   Future<void> delete(int id) async {
-    await ApiService.delete('/FornecedorAgrotoxicos/$id');
+    try {
+      final response = await ApiService.delete('/FornecedorAgrotoxicos/$id');
+
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        throw Exception('Erro ao deletar fornecedor (${response.statusCode}).');
+      }
+    } on SocketException {
+      throw Exception('Sem internet ao tentar deletar.');
+    } on TimeoutException {
+      throw Exception('Tempo excedido ao tentar deletar.');
+    } catch (e) {
+      throw Exception('Erro ao deletar fornecedor: $e');
+    }
   }
 }
