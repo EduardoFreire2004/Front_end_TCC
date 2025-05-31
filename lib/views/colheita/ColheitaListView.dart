@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fgl_1/viewmodels/ColheitaViewmodel.dart';
-import 'package:flutter_fgl_1/views/colheita/ColheitaFormView.dart';
+import 'package:flutter_fgl_1/views/Colheita/ColheitaFormView.dart';
 import 'package:provider/provider.dart';
 
 class ColheitaListView extends StatefulWidget {
@@ -15,13 +15,13 @@ class _ColheitaListViewState extends State<ColheitaListView> {
   void initState() {
     super.initState();
     Future.microtask(() {
-      Provider.of<ColheitaViewmodel>(context, listen: false).fetch();
+      Provider.of<ColheitaViewModel>(context, listen: false).fetch();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = Provider.of<ColheitaViewmodel>(context);
+    final viewModel = Provider.of<ColheitaViewModel>(context);
 
     return Scaffold(
       appBar: AppBar(title: Text('Colheitas')),

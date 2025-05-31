@@ -66,9 +66,9 @@ class AplicacaoListView extends StatelessWidget {
                 )
             )
             : ListView.builder(
-                itemCount: viewModel.aplicacoes.length,
+                itemCount: viewModel.aplicacao.length,
                 itemBuilder: (context, index) {
-                  final aplicacao = viewModel.aplicacoes[index];
+                  final aplicacao = viewModel.aplicacao[index];
                   return Card(
                     margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     elevation: 2,

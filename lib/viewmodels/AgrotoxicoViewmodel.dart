@@ -6,29 +6,72 @@ class AgrotoxicoViewModel extends ChangeNotifier {
   final AgrotoxicoRepo _repository = AgrotoxicoRepo();
   List<AgrotoxicoModel> _lista = [];
   bool isLoading = false;
+  String? errorMessage;
 
   List<AgrotoxicoModel> get lista => _lista;
 
   Future<void> fetch() async {
     isLoading = true;
+    errorMessage = null;
     notifyListeners();
-    _lista = await _repository.getAll();
-    isLoading = false;
-    notifyListeners();
+
+    try {
+      _lista = await _repository.getAll();
+    } catch (e) {
+      _lista = [];
+      errorMessage = e.toString();
+      debugPrint('Erro em fetch(): $e');
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> add(AgrotoxicoModel model) async {
-    await _repository.create(model);
-    await fetch();
+    isLoading = true;
+    notifyListeners();
+
+    try {
+      await _repository.create(model);
+      await fetch(); 
+    } catch (e) {
+      errorMessage = 'Erro ao adicionar: $e';
+      debugPrint(errorMessage);
+      isLoading = false;
+      notifyListeners();
+      rethrow; 
+    }
   }
 
   Future<void> update(AgrotoxicoModel model) async {
-    await _repository.update(model);
-    await fetch();
+    isLoading = true;
+    notifyListeners();
+
+    try {
+      await _repository.update(model);
+      await fetch();
+    } catch (e) {
+      errorMessage = 'Erro ao atualizar: $e';
+      debugPrint(errorMessage);
+      isLoading = false;
+      notifyListeners();
+      rethrow;
+    }
   }
 
   Future<void> delete(int id) async {
-    await _repository.delete(id);
-    await fetch();
+    isLoading = true;
+    notifyListeners();
+
+    try {
+      await _repository.delete(id);
+      await fetch();
+    } catch (e) {
+      errorMessage = 'Erro ao excluir: $e';
+      debugPrint(errorMessage);
+      isLoading = false;
+      notifyListeners();
+      rethrow;
+    }
   }
 }

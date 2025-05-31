@@ -41,7 +41,7 @@ class _ColheitaFormViewState extends State<ColheitaFormView> {
       dataHora: _dataSelecionada,
     );
 
-    final viewModel = Provider.of<ColheitaViewmodel>(context, listen: false);
+    final viewModel = Provider.of<ColheitaViewModel>(context, listen: false);
     widget.colheita == null ? viewModel.add(model) : viewModel.update(model);
 
     Navigator.pop(context);

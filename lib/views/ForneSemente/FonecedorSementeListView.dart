@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_fgl_1/views/forne_insumo/ForneInsumoFormView.dart';
+import 'package:flutter_fgl_1/viewmodels/ForneSementeViewModel.dart';
+import 'package:flutter_fgl_1/views/ForneSemente/FornecedorSementeFormView.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_fgl_1/viewmodels/ForneInsumoViewmodel.dart';
 
-class FornecedorInsumoListView extends StatelessWidget {
-  const FornecedorInsumoListView({super.key});
+class FornecedorSementeListView extends StatelessWidget {
+  const FornecedorSementeListView({super.key});
 
   Widget _buildDetailItem(IconData icon, String text) {
     return Padding(
@@ -60,7 +60,7 @@ class FornecedorInsumoListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = Provider.of<FornecedorInsumoViewModel>(context);
+    final viewModel = Provider.of<ForneSementeViewModel>(context);
 
     return Scaffold(
       backgroundColor: Color(0xFFE8F5E9), // Verde água claro
@@ -80,9 +80,9 @@ class FornecedorInsumoListView extends StatelessWidget {
                 )
               )
             : ListView.builder(
-                itemCount: viewModel.fornecedores.length,
+                itemCount: viewModel.forneSemente.length,
                 itemBuilder: (context, index) {
-                  final fornecedor = viewModel.fornecedores[index];
+                  final fornecedor = viewModel.forneSemente[index];
                   return Card(
                     margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     elevation: 2,
@@ -151,7 +151,7 @@ class FornecedorInsumoListView extends StatelessWidget {
                                 onPressed: () => Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => FornecedorInsumoFormView(fornecedor: fornecedor),
+                                    builder: (_) => FornecedorSementeFormView(fornecedor: fornecedor),
                                   ),
                                 ),
                               ),
@@ -167,7 +167,7 @@ class FornecedorInsumoListView extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => FornecedorInsumoFormView()),
+          MaterialPageRoute(builder: (_) => FornecedorSementeFormView()),
         ),
         child: Icon(Icons.add, color: Colors.white),
         backgroundColor: Color(0xFF2E7D2), // Verde

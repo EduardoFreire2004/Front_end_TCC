@@ -4,7 +4,7 @@ import '../../../models/AplicacaoModel.dart';
 import '../../../models/AgrotoxicoModel.dart';
 import '../../../repositories/AgrotoxicoRepo.dart';
 import '../../viewmodels/AplicacacaoViewmodel.dart';
-import '../agrotoxico/AgrotoxicoFormView.dart';
+import '../Agrotoxico/AgrotoxicoFormView.dart';
 
 class AplicacaoFormView extends StatefulWidget {
   final AplicacaoModel? aplicacao;

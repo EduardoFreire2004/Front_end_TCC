@@ -1,25 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_fgl_1/viewmodels/CategoriaInsumoViewModel.dart';
+import 'package:flutter_fgl_1/views/CategoriaInsumo/CategoriaInsumoFormView.dart';
 import 'package:provider/provider.dart';
-import '../../../viewmodels/ForneAgrotoxicoViewmodel.dart';
-import 'FornecedorAgrotoxicoFormView.dart';
 
-class FornecedorAgrotoxicoListView extends StatelessWidget {
+class CategoriaInsumoListView extends StatelessWidget {
+  const CategoriaInsumoListView({super.key});
+
   @override
   Widget build(BuildContext context) {
-    final viewModel = Provider.of<FornecedorAgrotoxicoViewModel>(context);
+    final viewModel = Provider.of<CategoriaInsumoViewModel>(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text('Fornecedores de Agrotóxicos')),
+      appBar: AppBar(title: Text('Categorias de Insumo')),
       body: RefreshIndicator(
-        onRefresh: () => viewModel.fetch(),
+        onRefresh: viewModel.fetch,
         child: viewModel.isLoading
             ? Center(child: CircularProgressIndicator())
             : ListView.builder(
-                itemCount: viewModel.fornecedores.length,
+                itemCount: viewModel.categoriaInsumo.length,
                 itemBuilder: (context, index) {
-                  final fornecedor = viewModel.fornecedores[index];
+                  final categoria = viewModel.categoriaInsumo[index];
                   return Dismissible(
-                    key: Key(fornecedor.id.toString()),
+                    key: Key(categoria.id.toString()),
                     background: Container(
                       color: Colors.red,
                       alignment: Alignment.centerRight,
@@ -27,16 +29,16 @@ class FornecedorAgrotoxicoListView extends StatelessWidget {
                       child: Icon(Icons.delete, color: Colors.white),
                     ),
                     direction: DismissDirection.endToStart,
-                    onDismissed: (_) => viewModel.deleteFornecedor(fornecedor.id!),
+                    onDismissed: (_) => viewModel.delete(categoria.id!),
                     child: ListTile(
-                      title: Text(fornecedor.nome),
-                      subtitle: Text('CNPJ: ${fornecedor.cnpj}'),
+                      title: Text(categoria.descricao),
                       trailing: IconButton(
                         icon: Icon(Icons.edit),
                         onPressed: () => Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => FornecedorAgrotoxicoFormView(fornecedor: fornecedor),
+                            builder: (_) =>
+                                CategoriaInsumoFormView(categoria: categoria),
                           ),
                         ),
                       ),
@@ -48,7 +50,7 @@ class FornecedorAgrotoxicoListView extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => FornecedorAgrotoxicoFormView()),
+          MaterialPageRoute(builder: (_) => CategoriaInsumoFormView()),
         ),
         child: Icon(Icons.add),
       ),

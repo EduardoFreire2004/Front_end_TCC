@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fgl_1/models/ForneSementeModel.dart';
 import 'package:flutter_fgl_1/repositories/ForneSementeRepo.dart';
 import 'package:flutter_fgl_1/viewmodels/SementeViewmodel.dart';
-import 'package:flutter_fgl_1/views/forne_semente/FornecedorSementeFormView.dart';
+import 'package:flutter_fgl_1/views/ForneSemente/FornecedorSementeFormView.dart';
 import 'package:provider/provider.dart';
 import '../../../models/SementeModel.dart';
 

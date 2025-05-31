@@ -3,7 +3,7 @@ import 'package:flutter_fgl_1/models/AgrotoxicoModel.dart';
 import 'package:flutter_fgl_1/viewmodels/ForneInsumoViewmodel.dart';
 import 'package:provider/provider.dart';
 import '../../../viewmodels/AgrotoxicoViewmodel.dart';
-import '../../../views/agrotoxico/AgrotoxicoFormView.dart';
+import 'AgrotoxicoFormView.dart';
 
 class AgrotoxicoListView extends StatelessWidget {
   @override
@@ -55,6 +55,13 @@ class AgrotoxicoListView extends StatelessWidget {
       );
     }
 
+     if (viewModel.errorMessage != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(viewModel.errorMessage!)),
+        );
+      });
+    }
 
     return Scaffold(
       backgroundColor: Colors.white,

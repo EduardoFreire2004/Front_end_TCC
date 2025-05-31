@@ -1,34 +1,77 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_fgl_1/repositories/ForneInsumoRepo.dart';
 import '../../models/ForneInsumoModel.dart';
+import '../../repositories/ForneInsumoRepo.dart';
 
-class FornecedorInsumoViewModel extends ChangeNotifier {
+class ForneInsumoViewModel extends ChangeNotifier {
   final ForneInsumoRepo _repository = ForneInsumoRepo();
-  List<ForneInsumoModel> _fornecedores = [];
+  List<ForneInsumoModel> _forneInsumo = [];
   bool isLoading = false;
+  String? errorMessage;
 
-  List<ForneInsumoModel> get fornecedores => _fornecedores;
+  List<ForneInsumoModel> get forneInsumo => _forneInsumo;
 
   Future<void> fetch() async {
     isLoading = true;
+    errorMessage = null;
     notifyListeners();
-    _fornecedores = await _repository.getAll();
-    isLoading = false;
-    notifyListeners();
+
+    try {
+      _forneInsumo = await _repository.getAll();
+    } catch (e) {
+      _forneInsumo = [];
+      errorMessage = e.toString();
+      debugPrint('Erro em fetch(): $e');
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> add(ForneInsumoModel model) async {
-    await _repository.create(model);
-    await fetch();
+    isLoading = true;
+    notifyListeners();
+
+    try {
+      await _repository.create(model);
+      await fetch(); 
+    } catch (e) {
+      errorMessage = 'Erro ao adicionar: $e';
+      debugPrint(errorMessage);
+      isLoading = false;
+      notifyListeners();
+      rethrow; 
+    }
   }
 
   Future<void> update(ForneInsumoModel model) async {
-    await _repository.update(model);
-    await fetch();
+    isLoading = true;
+    notifyListeners();
+
+    try {
+      await _repository.update(model);
+      await fetch();
+    } catch (e) {
+      errorMessage = 'Erro ao atualizar: $e';
+      debugPrint(errorMessage);
+      isLoading = false;
+      notifyListeners();
+      rethrow;
+    }
   }
 
   Future<void> delete(int id) async {
-    await _repository.delete(id);
-    await fetch();
+    isLoading = true;
+    notifyListeners();
+
+    try {
+      await _repository.delete(id);
+      await fetch();
+    } catch (e) {
+      errorMessage = 'Erro ao excluir: $e';
+      debugPrint(errorMessage);
+      isLoading = false;
+      notifyListeners();
+      rethrow;
+    }
   }
 }

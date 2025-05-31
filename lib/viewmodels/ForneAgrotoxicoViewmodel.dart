@@ -2,34 +2,76 @@ import 'package:flutter/material.dart';
 import '../../models/ForneAgrotoxicoModel.dart';
 import '../../repositories/ForneAgrotoxicoRepo.dart';
 
-class FornecedorAgrotoxicoViewModel extends ChangeNotifier {
+class ForneAgrotoxicoViewModel extends ChangeNotifier {
   final ForneAgrotoxicoRepo _repository = ForneAgrotoxicoRepo();
-
-  List<ForneAgrotoxicoModel> _fornecedores = [];
+  List<ForneAgrotoxicoModel> _forneAgrotoxico = [];
   bool isLoading = false;
+  String? errorMessage;
 
-  List<ForneAgrotoxicoModel> get fornecedores => _fornecedores;
+  List<ForneAgrotoxicoModel> get forneAgrotoxico => _forneAgrotoxico;
 
   Future<void> fetch() async {
     isLoading = true;
+    errorMessage = null;
     notifyListeners();
-    _fornecedores = await _repository.getAll();
-    isLoading = false;
+
+    try {
+      _forneAgrotoxico = await _repository.getAll();
+    } catch (e) {
+      _forneAgrotoxico = [];
+      errorMessage = e.toString();
+      debugPrint('Erro em fetch(): $e');
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> add(ForneAgrotoxicoModel model) async {
+    isLoading = true;
     notifyListeners();
+
+    try {
+      await _repository.create(model);
+      await fetch(); 
+    } catch (e) {
+      errorMessage = 'Erro ao adicionar: $e';
+      debugPrint(errorMessage);
+      isLoading = false;
+      notifyListeners();
+      rethrow; 
+    }
   }
 
-  Future<void> addFornecedor(ForneAgrotoxicoModel fornecedor) async {
-    await _repository.create(fornecedor);
-    await fetch();
+  Future<void> update(ForneAgrotoxicoModel model) async {
+    isLoading = true;
+    notifyListeners();
+
+    try {
+      await _repository.update(model);
+      await fetch();
+    } catch (e) {
+      errorMessage = 'Erro ao atualizar: $e';
+      debugPrint(errorMessage);
+      isLoading = false;
+      notifyListeners();
+      rethrow;
+    }
   }
 
-  Future<void> updateFornecedor(ForneAgrotoxicoModel fornecedor) async {
-    await _repository.update(fornecedor);
-    await fetch();
-  }
+  Future<void> delete(int id) async {
+    isLoading = true;
+    notifyListeners();
 
-  Future<void> deleteFornecedor(int id) async {
-    await _repository.delete(id);
-    await fetch();
+    try {
+      await _repository.delete(id);
+      await fetch();
+    } catch (e) {
+      errorMessage = 'Erro ao excluir: $e';
+      debugPrint(errorMessage);
+      isLoading = false;
+      notifyListeners();
+      rethrow;
+    }
   }
 }

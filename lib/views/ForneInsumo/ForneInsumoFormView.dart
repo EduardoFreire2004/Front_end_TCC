@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_fgl_1/models/ForneSementeModel.dart';
-import 'package:flutter_fgl_1/viewmodels/ForneSementeViewmodel.dart';
+import 'package:flutter_fgl_1/viewmodels/ForneInsumoViewmodel.dart';
 import 'package:provider/provider.dart';
+import '../../../models/ForneInsumoModel.dart';
 
-class FornecedorSementeFormView extends StatefulWidget {
-  final ForneSementeModel? fornecedor;
+class FornecedorInsumoFormView extends StatefulWidget {
+  final ForneInsumoModel? fornecedor;
 
-  const FornecedorSementeFormView({super.key, this.fornecedor});
+  const FornecedorInsumoFormView({super.key, this.fornecedor});
 
   @override
-  State<FornecedorSementeFormView> createState() => _FornecedorSementeFormViewState();
+  State<FornecedorInsumoFormView> createState() => _FornecedorInsumoFormViewState();
 }
 
-class _FornecedorSementeFormViewState extends State<FornecedorSementeFormView> {
+class _FornecedorInsumoFormViewState extends State<FornecedorInsumoFormView> {
   final _formKey = GlobalKey<FormState>();
   final _nomeController = TextEditingController();
   final _cnpjController = TextEditingController();
@@ -30,14 +30,14 @@ class _FornecedorSementeFormViewState extends State<FornecedorSementeFormView> {
 
   void _salvar() {
     if (_formKey.currentState!.validate()) {
-      final model = ForneSementeModel(
+      final model = ForneInsumoModel(
         id: widget.fornecedor?.id,
         nome: _nomeController.text.trim(),
         cnpj: _cnpjController.text.trim(),
         telefone: _telefoneController.text.trim(),
       );
 
-      final viewModel = Provider.of<FornecedorSementeViewModel>(context, listen: false);
+      final viewModel = Provider.of<ForneInsumoViewModel>(context, listen: false);
 
       widget.fornecedor == null ? viewModel.add(model) : viewModel.update(model);
 

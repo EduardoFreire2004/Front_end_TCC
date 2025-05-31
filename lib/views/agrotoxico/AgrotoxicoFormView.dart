@@ -7,8 +7,8 @@ import '../../../models/TipoAgrotoxicoModel.dart';
 import '../../../repositories/ForneAgrotoxicoRepo.dart';
 import '../../../repositories/TipoAgrotoxicoRepo.dart';
 import '../../../viewmodels/AgrotoxicoViewmodel.dart';
-import '../fornecedor_agrotoxico/FornecedorAgrotoxicoFormView.dart';
-import '../tipo_agrotoxico/TipoAgrotoxicoFormView.dart';
+import '../ForneAgrotoxico/FornecedorAgrotoxicoFormView.dart';
+import '../TipoAgrotoxico/TipoAgrotoxicoFormView.dart';
 
 class AgrotoxicoFormView extends StatefulWidget {
   final AgrotoxicoModel? agrotoxico;

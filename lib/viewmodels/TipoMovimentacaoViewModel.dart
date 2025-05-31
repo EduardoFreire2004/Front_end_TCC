@@ -1,30 +1,77 @@
 import 'package:flutter/material.dart';
-import '../models/TipoMovimentacaoModel.dart';
-import '../repositories/TipoMovimentacaoRepo.dart';
+import '../../models/TipoMovimentacaoModel.dart';
+import '../../repositories/TipoMovimentacaoRepo.dart';
 
-class TipoMovimentacaoViewmodel extends ChangeNotifier {
+class TipoMovimetacaoViewModel extends ChangeNotifier {
   final TipoMovimentacaoRepo _repository = TipoMovimentacaoRepo();
-  List<TipoMovimentacaoModel> _tipoMovimentacao = [];
+  List<TipoMovimentacaoModel> _tipo = [];
+  bool isLoading = false;
+  String? errorMessage;
 
-  List<TipoMovimentacaoModel> get tipoMovimentacao => _tipoMovimentacao;
+  List<TipoMovimentacaoModel> get tipo => _tipo;
 
-  Future<void> loadTipoMovimentacao() async {
-    _tipoMovimentacao = await _repository.getAll();
+  Future<void> fetch() async {
+    isLoading = true;
+    errorMessage = null;
     notifyListeners();
+
+    try {
+      _tipo = await _repository.getAll();
+    } catch (e) {
+      _tipo = [];
+      errorMessage = e.toString();
+      debugPrint('Erro em fetch(): $e');
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 
-  Future<void> addTipoMovimentacao(TipoMovimentacaoModel nova) async {
-    await _repository.create(nova);
-    await loadTipoMovimentacao();
+  Future<void> add(TipoMovimentacaoModel model) async {
+    isLoading = true;
+    notifyListeners();
+
+    try {
+      await _repository.create(model);
+      await fetch(); 
+    } catch (e) {
+      errorMessage = 'Erro ao adicionar: $e';
+      debugPrint(errorMessage);
+      isLoading = false;
+      notifyListeners();
+      rethrow; 
+    }
   }
 
-  Future<void> updateTipoMovimentacao(TipoMovimentacaoModel nova) async {
-    await _repository.update(nova);
-    await loadTipoMovimentacao();
+  Future<void> update(TipoMovimentacaoModel model) async {
+    isLoading = true;
+    notifyListeners();
+
+    try {
+      await _repository.update(model);
+      await fetch();
+    } catch (e) {
+      errorMessage = 'Erro ao atualizar: $e';
+      debugPrint(errorMessage);
+      isLoading = false;
+      notifyListeners();
+      rethrow;
+    }
   }
 
-  Future<void> deleteTipoMovimentacao(int id) async {
-    await _repository.delete(id);
-    await loadTipoMovimentacao();
+  Future<void> delete(int id) async {
+    isLoading = true;
+    notifyListeners();
+
+    try {
+      await _repository.delete(id);
+      await fetch();
+    } catch (e) {
+      errorMessage = 'Erro ao excluir: $e';
+      debugPrint(errorMessage);
+      isLoading = false;
+      notifyListeners();
+      rethrow;
+    }
   }
 }

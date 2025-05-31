@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fgl_1/viewmodels/InsumoViewmodel.dart';
-import 'package:flutter_fgl_1/views/insumo/insumoFormView.dart';
+import 'package:flutter_fgl_1/views/Insumo/insumoFormView.dart';
 import 'package:provider/provider.dart';
 
 class InsumoListView extends StatelessWidget {
@@ -16,9 +16,9 @@ class InsumoListView extends StatelessWidget {
         child: viewModel.isLoading
             ? Center(child: CircularProgressIndicator())
             : ListView.builder(
-                itemCount: viewModel.insumos.length,
+                itemCount: viewModel.insumo.length,
                 itemBuilder: (context, index) {
-                  final insumo = viewModel.insumos[index];
+                  final insumo = viewModel.insumo[index];
                   return Dismissible(
                     key: Key(insumo.id.toString()),
                     background: Container(

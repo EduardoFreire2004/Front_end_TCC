@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_fgl_1/views/aplicacao/AplicacaoListView.dart';
-import 'package:flutter_fgl_1/views/colheita/ColheitaListView.dart';
-import 'package:flutter_fgl_1/views/insumo/insumoListView.dart';
+import 'package:flutter_fgl_1/views/Aplicacao/AplicacaoListView.dart';
+import 'package:flutter_fgl_1/views/Colheita/ColheitaListView.dart';
+import 'package:flutter_fgl_1/views/Insumo/insumoListView.dart';
 import 'package:flutter_fgl_1/views/plantio/PlantioListView.dart';
 import 'package:flutter_fgl_1/views/semente/SementeListView.dart';
 import '../../../models/LavouraModel.dart';

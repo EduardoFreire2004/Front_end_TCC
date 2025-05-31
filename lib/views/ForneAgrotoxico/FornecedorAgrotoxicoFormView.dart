@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_fgl_1/viewmodels/ForneInsumoViewmodel.dart';
 import 'package:provider/provider.dart';
-import '../../../models/ForneInsumoModel.dart';
+import '../../../models/ForneAgrotoxicoModel.dart';
+import '../../viewmodels/ForneAgrotoxicoViewModel.dart';
 
-class FornecedorInsumoFormView extends StatefulWidget {
-  final ForneInsumoModel? fornecedor;
+class FornecedorAgrotoxicoFormView extends StatefulWidget {
+  final ForneAgrotoxicoModel? fornecedor;
 
-  const FornecedorInsumoFormView({super.key, this.fornecedor});
+  const FornecedorAgrotoxicoFormView({Key? key, this.fornecedor}) : super(key: key);
 
   @override
-  State<FornecedorInsumoFormView> createState() => _FornecedorInsumoFormViewState();
+  State<FornecedorAgrotoxicoFormView> createState() => _FornecedorAgrotoxicoFormViewState();
 }
 
-class _FornecedorInsumoFormViewState extends State<FornecedorInsumoFormView> {
+class _FornecedorAgrotoxicoFormViewState extends State<FornecedorAgrotoxicoFormView> {
   final _formKey = GlobalKey<FormState>();
   final _nomeController = TextEditingController();
   final _cnpjController = TextEditingController();
@@ -28,18 +28,22 @@ class _FornecedorInsumoFormViewState extends State<FornecedorInsumoFormView> {
     }
   }
 
-  void _salvar() {
+  void _save() {
     if (_formKey.currentState!.validate()) {
-      final model = ForneInsumoModel(
+      final novo = ForneAgrotoxicoModel(
         id: widget.fornecedor?.id,
         nome: _nomeController.text.trim(),
         cnpj: _cnpjController.text.trim(),
         telefone: _telefoneController.text.trim(),
       );
 
-      final viewModel = Provider.of<FornecedorInsumoViewModel>(context, listen: false);
+      final viewModel = Provider.of<ForneAgrotoxicoViewModel>(context, listen: false);
 
-      widget.fornecedor == null ? viewModel.add(model) : viewModel.update(model);
+      if (widget.fornecedor == null) {
+        viewModel.add(novo);
+      } else {
+        viewModel.update(novo);
+      }
 
       Navigator.pop(context);
     }
@@ -48,9 +52,7 @@ class _FornecedorInsumoFormViewState extends State<FornecedorInsumoFormView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.fornecedor == null ? 'Novo Fornecedor' : 'Editar Fornecedor'),
-      ),
+      appBar: AppBar(title: Text(widget.fornecedor == null ? 'Novo Fornecedor' : 'Editar Fornecedor')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -60,20 +62,23 @@ class _FornecedorInsumoFormViewState extends State<FornecedorInsumoFormView> {
               TextFormField(
                 controller: _nomeController,
                 decoration: InputDecoration(labelText: 'Nome'),
-                validator: (value) => value == null || value.isEmpty ? 'Informe o nome' : null,
+                validator: (value) => value == null || value.isEmpty ? 'Campo obrigatório' : null,
               ),
               TextFormField(
                 controller: _cnpjController,
                 decoration: InputDecoration(labelText: 'CNPJ'),
-                validator: (value) => value == null || value.isEmpty ? 'Informe o CNPJ' : null,
+                validator: (value) => value == null || value.isEmpty ? 'Informe um CNPJ válido' : null,
               ),
               TextFormField(
                 controller: _telefoneController,
                 decoration: InputDecoration(labelText: 'Telefone'),
-                validator: (value) => value == null || value.isEmpty ? 'Informe o telefone' : null,
+                validator: (value) => value == null || value.isEmpty ? 'Informe um telefone' : null,
               ),
-              const SizedBox(height: 20),
-              ElevatedButton(onPressed: _salvar, child: Text('Salvar')),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _save,
+                child: Text('Salvar'),
+              )
             ],
           ),
         ),

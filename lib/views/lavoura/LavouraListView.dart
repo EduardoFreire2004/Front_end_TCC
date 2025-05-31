@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fgl_1/models/LavouraModel.dart';
 import 'package:flutter_fgl_1/viewmodels/LavouraViewModel.dart';
-import 'package:flutter_fgl_1/views/lavoura/LavouraFormView.dart';
+import 'package:flutter_fgl_1/views/Lavoura/LavouraFormView.dart';
 import 'package:provider/provider.dart';
 
 class LavouraListView extends StatefulWidget {

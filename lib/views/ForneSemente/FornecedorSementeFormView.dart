@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_fgl_1/models/ForneSementeModel.dart';
+import 'package:flutter_fgl_1/viewmodels/ForneSementeViewModel.dart';
 import 'package:provider/provider.dart';
-import '../../../models/ForneAgrotoxicoModel.dart';
-import '../../../viewmodels/ForneAgrotoxicoViewmodel.dart';
 
-class FornecedorAgrotoxicoFormView extends StatefulWidget {
-  final ForneAgrotoxicoModel? fornecedor;
+class FornecedorSementeFormView extends StatefulWidget {
+  final ForneSementeModel? fornecedor;
 
-  const FornecedorAgrotoxicoFormView({Key? key, this.fornecedor}) : super(key: key);
+  const FornecedorSementeFormView({super.key, this.fornecedor});
 
   @override
-  State<FornecedorAgrotoxicoFormView> createState() => _FornecedorAgrotoxicoFormViewState();
+  State<FornecedorSementeFormView> createState() => _FornecedorSementeFormViewState();
 }
 
-class _FornecedorAgrotoxicoFormViewState extends State<FornecedorAgrotoxicoFormView> {
+class _FornecedorSementeFormViewState extends State<FornecedorSementeFormView> {
   final _formKey = GlobalKey<FormState>();
   final _nomeController = TextEditingController();
   final _cnpjController = TextEditingController();
@@ -28,22 +28,18 @@ class _FornecedorAgrotoxicoFormViewState extends State<FornecedorAgrotoxicoFormV
     }
   }
 
-  void _save() {
+  void _salvar() {
     if (_formKey.currentState!.validate()) {
-      final novo = ForneAgrotoxicoModel(
+      final model = ForneSementeModel(
         id: widget.fornecedor?.id,
         nome: _nomeController.text.trim(),
         cnpj: _cnpjController.text.trim(),
         telefone: _telefoneController.text.trim(),
       );
 
-      final viewModel = Provider.of<FornecedorAgrotoxicoViewModel>(context, listen: false);
+      final viewModel = Provider.of<ForneSementeViewModel>(context, listen: false);
 
-      if (widget.fornecedor == null) {
-        viewModel.addFornecedor(novo);
-      } else {
-        viewModel.updateFornecedor(novo);
-      }
+      widget.fornecedor == null ? viewModel.add(model) : viewModel.update(model);
 
       Navigator.pop(context);
     }
@@ -52,7 +48,9 @@ class _FornecedorAgrotoxicoFormViewState extends State<FornecedorAgrotoxicoFormV
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.fornecedor == null ? 'Novo Fornecedor' : 'Editar Fornecedor')),
+      appBar: AppBar(
+        title: Text(widget.fornecedor == null ? 'Novo Fornecedor' : 'Editar Fornecedor'),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -62,23 +60,20 @@ class _FornecedorAgrotoxicoFormViewState extends State<FornecedorAgrotoxicoFormV
               TextFormField(
                 controller: _nomeController,
                 decoration: InputDecoration(labelText: 'Nome'),
-                validator: (value) => value == null || value.isEmpty ? 'Campo obrigatório' : null,
+                validator: (value) => value == null || value.isEmpty ? 'Informe o nome' : null,
               ),
               TextFormField(
                 controller: _cnpjController,
                 decoration: InputDecoration(labelText: 'CNPJ'),
-                validator: (value) => value == null || value.isEmpty ? 'Informe um CNPJ válido' : null,
+                validator: (value) => value == null || value.isEmpty ? 'Informe o CNPJ' : null,
               ),
               TextFormField(
                 controller: _telefoneController,
                 decoration: InputDecoration(labelText: 'Telefone'),
-                validator: (value) => value == null || value.isEmpty ? 'Informe um telefone' : null,
+                validator: (value) => value == null || value.isEmpty ? 'Informe o telefone' : null,
               ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _save,
-                child: Text('Salvar'),
-              )
+              const SizedBox(height: 20),
+              ElevatedButton(onPressed: _salvar, child: Text('Salvar')),
             ],
           ),
         ),

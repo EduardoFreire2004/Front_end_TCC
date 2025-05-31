@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_fgl_1/viewmodels/CategoriaInsumoViewmodel.dart';
+import 'package:flutter_fgl_1/viewmodels/CategoriaInsumoViewModel.dart';
 import 'package:provider/provider.dart';
 import '../../../models/CategoriaInsumoModel.dart';
 
