@@ -35,7 +35,7 @@ class LavouraModel {
       'insumoID': insumoID,
       'aplicacaoID': aplicacaoID,
       'plantioID': aplicacaoID,
-      'colhetiaID': colheitaID,
+      'colheitaID': colheitaID,
       'nome': nome,
       'area': area,
     };

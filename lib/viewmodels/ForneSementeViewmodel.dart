@@ -74,4 +74,21 @@ class ForneSementeViewModel extends ChangeNotifier {
       rethrow;
     }
   }
+
+  Future<ForneSementeModel?> getID(int id) async {
+    try {
+      isLoading = true;
+      notifyListeners();
+
+      final fornecedor = await _repository.getID(id);
+      return fornecedor;
+    } catch (e) {
+      errorMessage = 'Erro ao buscar fornecedor: $e';
+      debugPrint(errorMessage);
+      return null;
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
 }

@@ -81,4 +81,27 @@ class AgrotoxicoRepo {
       throw Exception('Erro ao deletar agrotóxico: $e');
     }
   }
+
+  Future<AgrotoxicoModel> getID(int id) async {
+    try {
+      final response = await ApiService.getID('/Agrotoxicos/$id');
+
+      if (response.statusCode == 200) {
+        if (response.body.isNotEmpty) {
+          final jsonMap = json.decode(response.body) as Map<String, dynamic>;
+          return AgrotoxicoModel.fromJson(jsonMap);
+        } else {
+          throw Exception('Resposta vazia do servidor');
+        }
+      } else {
+        throw Exception('Erro ao buscar agrotóxico (${response.statusCode})');
+      }
+    } on SocketException {
+      throw Exception('Falha de conexão. Verifique sua internet');
+    } on TimeoutException {
+      throw Exception('Tempo de resposta excedido');
+    } catch (e) {
+      throw Exception('Erro ao buscar tipo: $e');
+    }
+  }
 }

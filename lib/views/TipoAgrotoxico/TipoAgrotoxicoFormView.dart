@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_fgl_1/models/TipoAgrotoxicoModel.dart';
+import 'package:flutter_fgl_1/viewmodels/TipoAgrotoxicoViewModel.dart';
 import 'package:provider/provider.dart';
-import '../../../models/TipoAgrotoxicoModel.dart';
-import '../../../viewmodels/TipoAgrotoxicoViewmodel.dart';
 
 class TipoAgrotoxicoFormView extends StatefulWidget {
   final TipoAgrotoxicoModel? tipo;
@@ -24,51 +25,133 @@ class _TipoAgrotoxicoFormViewState extends State<TipoAgrotoxicoFormView> {
     }
   }
 
+  @override
+  void dispose() {
+    _nomeController.dispose();
+    super.dispose();
+  }
+
   void _save() {
     if (_formKey.currentState!.validate()) {
-      final novoTipo = TipoAgrotoxicoModel(
+      final tipo = TipoAgrotoxicoModel(
         id: widget.tipo?.id,
         descricao: _nomeController.text.trim(),
       );
 
-      final viewModel = Provider.of<TipoAgrotoxicoViewModel>(context, listen: false);
+      final viewModel = Provider.of<TipoAgrotoxicoViewModel>(
+        context,
+        listen: false,
+      );
 
       if (widget.tipo == null) {
-        viewModel.addTipo(novoTipo);
+        viewModel.add(tipo);
       } else {
-        viewModel.updateTipo(novoTipo);
+        viewModel.update(tipo);
       }
 
-      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('tipo salvo com sucesso!'),
+          backgroundColor: Colors.green[600],
+        ),
+      );
+
+      if (context.mounted) {
+        Navigator.pop(context);
+      }
     }
+  }
+
+  bool _nomeJaExiste(String nome) {
+    final viewModel = Provider.of<TipoAgrotoxicoViewModel>(
+      context,
+      listen: false,
+    );
+    final lista = viewModel.tipo;
+
+    if (widget.tipo != null) {
+      return lista.any(
+        (f) =>
+            f.descricao.toLowerCase() == nome.toLowerCase() &&
+            f.id != widget.tipo!.id,
+      );
+    }
+
+    return lista.any((f) => f.descricao.toLowerCase() == nome.toLowerCase());
   }
 
   @override
   Widget build(BuildContext context) {
+    final primaryColor = Colors.green[700];
+    final errorColor = Colors.redAccent;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.tipo == null ? 'Novo Tipo' : 'Editar Tipo'),
+        title: Text(widget.tipo == null ? 'Novo tipo' : 'Editar tipo'),
+        backgroundColor: primaryColor,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
-          child: Column(
+          child: ListView(
             children: [
-              TextFormField(
+              _buildTextField(
                 controller: _nomeController,
-                decoration: InputDecoration(labelText: 'Nome do Tipo'),
-                validator: (value) => value == null || value.isEmpty ? 'Campo obrigatório' : null,
+                label: 'Nome',
+                hint: 'Nome do tipo',
+                icon: Icons.grass,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Nome é obrigatório';
+                  }
+                  if (_nomeJaExiste(value.trim())) {
+                    return 'Este nome já está cadastrado';
+                  }
+                  return null;
+                },
               ),
-              SizedBox(height: 20),
-              ElevatedButton(
+              SizedBox(height: 24),
+              ElevatedButton.icon(
                 onPressed: _save,
-                child: Text('Salvar'),
-              )
+                icon: Icon(Icons.check),
+                label: Text('Salvar'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryColor,
+                  padding: EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  elevation: 2,
+                ),
+              ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    String? Function(String?)? validator,
+    List<TextInputFormatter>? inputFormatters,
+    TextInputType? keyboardType,
+  }) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        prefixIcon: Icon(icon),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+      ),
+      validator: validator,
+      inputFormatters: inputFormatters,
+      keyboardType: keyboardType,
     );
   }
 }

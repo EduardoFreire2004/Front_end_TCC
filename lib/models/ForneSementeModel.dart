@@ -11,14 +11,7 @@ class ForneSementeModel {
     required this.telefone,
   });
 
-  Map<String, dynamic> toMap() {
-    return {
-      'nome': nome,
-      'cnpj': cnpj,
-      'telefone': telefone,
-    };
-  }
-
+  
   factory ForneSementeModel.fromJson(Map<String, dynamic> map) {
     return ForneSementeModel(
       id: map['id'],

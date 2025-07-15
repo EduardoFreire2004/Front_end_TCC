@@ -1,22 +1,22 @@
 class AplicacaoModel {
   int? id;
   int agrotoxicoID;
-  String descicao;
-  DateTime data_Hora;
+  String descricao;
+  DateTime dataHora;
 
   AplicacaoModel({
     this.id,
     required this.agrotoxicoID,
-    required this.descicao,
-    required this.data_Hora,
+    required this.descricao,
+    required this.dataHora,
   });
 
   factory AplicacaoModel.fromJson(Map<String, dynamic> map) {
     return AplicacaoModel(
       id: map['id'],
       agrotoxicoID: map['agrotoxicoID'],
-      descicao: map['descricao'],
-      data_Hora: DateTime.parse(map['data_hora']),
+      descricao: map['descricao'],
+      dataHora: DateTime.parse(map['dataHora']),
     );
   }
 
@@ -24,8 +24,8 @@ class AplicacaoModel {
     return {
       'id': id ?? 0,
       'agrotoxicoID': agrotoxicoID,
-      'descricao': descicao,
-      'data_Hora': data_Hora.toIso8601String(),
+      'descricao': descricao,
+      'dataHora': dataHora.toIso8601String(),
     };
   }
 }

@@ -33,13 +33,13 @@ class ForneAgrotoxicoViewModel extends ChangeNotifier {
 
     try {
       await _repository.create(model);
-      await fetch(); 
+      await fetch();
     } catch (e) {
       errorMessage = 'Erro ao adicionar: $e';
       debugPrint(errorMessage);
       isLoading = false;
       notifyListeners();
-      rethrow; 
+      rethrow;
     }
   }
 
@@ -72,6 +72,23 @@ class ForneAgrotoxicoViewModel extends ChangeNotifier {
       isLoading = false;
       notifyListeners();
       rethrow;
+    }
+  }
+
+  Future<ForneAgrotoxicoModel?> getID(int id) async {
+    try {
+      isLoading = true;
+      notifyListeners();
+
+      final fornecedor = await _repository.getID(id);
+      return fornecedor;
+    } catch (e) {
+      errorMessage = 'Erro ao buscar tipo: $e';
+      debugPrint(errorMessage);
+      return null;
+    } finally {
+      isLoading = false;
+      notifyListeners();
     }
   }
 }

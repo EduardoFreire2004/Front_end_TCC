@@ -11,10 +11,15 @@ class TipoAgrotoxicoRepo {
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         return data
-            .map((item) => TipoAgrotoxicoModel.fromJson(item as Map<String, dynamic>))
+            .map(
+              (item) =>
+                  TipoAgrotoxicoModel.fromJson(item as Map<String, dynamic>),
+            )
             .toList();
       } else {
-        throw Exception('Erro ${response.statusCode}: Não foi possível carregar os tipos.');
+        throw Exception(
+          'Erro ${response.statusCode}: Não foi possível carregar os tipos.',
+        );
       }
     } on SocketException {
       throw Exception('Sem conexão com a internet. Verifique sua rede.');
@@ -78,6 +83,29 @@ class TipoAgrotoxicoRepo {
       throw Exception('Tempo excedido ao tentar deletar.');
     } catch (e) {
       throw Exception('Erro ao deletar tipo: $e');
+    }
+  }
+
+  Future<TipoAgrotoxicoModel> getID(int id) async {
+    try {
+      final response = await ApiService.getID('/TipoAgrotoxicos/$id');
+
+      if (response.statusCode == 200) {
+        if (response.body.isNotEmpty) {
+          final jsonMap = json.decode(response.body) as Map<String, dynamic>;
+          return TipoAgrotoxicoModel.fromJson(jsonMap);
+        } else {
+          throw Exception('Resposta vazia do servidor');
+        }
+      } else {
+        throw Exception('Erro ao buscar tipo (${response.statusCode})');
+      }
+    } on SocketException {
+      throw Exception('Falha de conexão. Verifique sua internet');
+    } on TimeoutException {
+      throw Exception('Tempo de resposta excedido');
+    } catch (e) {
+      throw Exception('Erro ao buscar tipo: $e');
     }
   }
 }

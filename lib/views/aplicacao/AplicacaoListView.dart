@@ -1,46 +1,83 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_fgl_1/models/AgrotoxicoModel.dart';
+import 'package:flutter_fgl_1/models/AplicacaoModel.dart';
+import 'package:flutter_fgl_1/viewmodels/AgrotoxicoViewModel.dart';
+import 'package:flutter_fgl_1/viewmodels/AplicacacaoViewModel.dart';
+import 'package:flutter_fgl_1/views/Agrotoxico/AgrotoxicoListView.dart';
+import 'package:flutter_fgl_1/views/Aplicacao/AplicacaoFormView.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import '../../viewmodels/AplicacacaoViewmodel.dart';
-import 'AplicacaoFormView.dart';
 
 class AplicacaoListView extends StatelessWidget {
+  const AplicacaoListView({super.key});
+
   @override
   Widget build(BuildContext context) {
-    final viewModel = Provider.of<AplicacaoViewModel>(context);
+    final aplicacaoVM = Provider.of<AplicacaoViewModel>(context);
+    final agrotoxicoVM = Provider.of<AgrotoxicoViewModel>(context, listen: false);
 
-    void _showDetails(context, aplicacao) {
+    final Color primaryColor = Colors.green[700]!;
+    final Color titleColor = Colors.green[800]!;
+    final Color subtitleColor = Colors.grey[700]!;
+    final Color iconColor = Colors.green[700]!;
+    final Color errorColor = Colors.redAccent;
+    final Color scaffoldBgColor = Colors.grey[50]!;
+
+    void showDetailsDialog(AplicacaoModel aplicacao) {
+      String formatarDataHora(DateTime data) {
+        return DateFormat('dd/MM/yyyy HH:mm').format(data);
+      }
+
+      Widget buildDetailItem(IconData icon, String label, String value) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, size: 20, color: iconColor),
+              const SizedBox(width: 12),
+              Text("$label: ", style: TextStyle(fontWeight: FontWeight.bold, color: titleColor)),
+              Expanded(child: Text(value)),
+            ],
+          ),
+        );
+      }
+
+      Widget buildAgrotoxicoDetail(int agrotoxicoID) {
+        return FutureBuilder<AgrotoxicoModel?>(
+          future: agrotoxicoVM.getID(agrotoxicoID),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return buildDetailItem(Icons.science, 'Agrotóxico', 'Carregando...');
+            } else if (snapshot.hasError || snapshot.data == null) {
+              return buildDetailItem(Icons.science, 'Agrotóxico', 'Não encontrado');
+            } else {
+              return buildDetailItem(Icons.science, 'Agrotóxico', snapshot.data!.nome);
+            }
+          },
+        );
+      }
+
       showDialog(
         context: context,
-        builder: (context) {
+        builder: (dialogContext) {
           return AlertDialog(
-            backgroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            title: Text(
-              aplicacao.descicao,
-              style: TextStyle(
-                color: Color(0xFF2E7D32), // Verde escuro
-                fontWeight: FontWeight.bold,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            title: Text('Detalhes da Aplicação', style: TextStyle(color: titleColor)),
+            content: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  buildDetailItem(Icons.description, 'Descrição', aplicacao.descricao),
+                  buildDetailItem(Icons.calendar_today, 'Data e Hora', formatarDataHora(aplicacao.dataHora)),
+                  buildAgrotoxicoDetail(aplicacao.agrotoxicoID),
+                ],
               ),
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildDetailItem(Icons.calendar_today, 
-                    'Data: ${formatarDataHora(aplicacao.data_Hora)}'),
-                _buildDetailItem(Icons.agriculture, 
-                    'Agrotóxico ID: ${aplicacao.agrotoxicoID}'),
-              ],
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text(
-                  'Fechar',
-                  style: TextStyle(color: Color(0xFF1976D2)), // Azul
-                ),
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: Text('Fechar', style: TextStyle(color: primaryColor)),
               ),
             ],
           );
@@ -48,136 +85,157 @@ class AplicacaoListView extends StatelessWidget {
       );
     }
 
+    if (aplicacaoVM.errorMessage != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(aplicacaoVM.errorMessage!), backgroundColor: errorColor),
+        );
+      });
+    }
+
     return Scaffold(
-      backgroundColor: Color(0xFFE8F5E9), // Verde água claro
-      appBar: AppBar(
-        title: Text('Aplicações', style: TextStyle(color: Colors.white)),
-        backgroundColor: Color(0xFF2E7D32), // Verde escuro
-        iconTheme: IconThemeData(color: Colors.white),
-      ),
+      backgroundColor: scaffoldBgColor,
+      appBar: AppBar(title: const Text('Aplicações')),
       body: RefreshIndicator(
-        color: Color(0xFF2E7D32), // Verde
-        backgroundColor: Colors.white,
-        onRefresh: viewModel.fetch,
-        child: viewModel.isLoading
-            ? Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2E7D32)),
-                )
-            )
-            : ListView.builder(
-                itemCount: viewModel.aplicacao.length,
-                itemBuilder: (context, index) {
-                  final aplicacao = viewModel.aplicacao[index];
-                  return Card(
-                    margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Dismissible(
-                      key: Key(aplicacao.id.toString()),
-                      background: Container(
-                        decoration: BoxDecoration(
-                          color: Color(0xFFE53935), // Vermelho para delete
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        alignment: Alignment.centerRight,
-                        padding: EdgeInsets.only(right: 20),
-                        child: Icon(Icons.delete_forever, color: Colors.white),
+        onRefresh: () => aplicacaoVM.fetch(),
+        color: primaryColor,
+        child: aplicacaoVM.isLoading && aplicacaoVM.aplicacao.isEmpty
+            ? Center(child: CircularProgressIndicator(color: primaryColor))
+            : aplicacaoVM.aplicacao.isEmpty
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(
+                        'Nenhuma aplicação registrada.\nToque no botão "+" para adicionar.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                       ),
-                      direction: DismissDirection.endToStart,
-                      onDismissed: (_) => viewModel.delete(aplicacao.id!),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(10),
-                        onTap: () => _showDetails(context, aplicacao),
-                        child: Padding(
-                          padding: EdgeInsets.all(16),
-                          child: Row(
-                            children: [
-                              // Ícone com círculo azul
-                              Container(
-                                width: 48,
-                                height: 48,
-                                decoration: BoxDecoration(
-                                  color: Color(0xFF1976D2).withOpacity(0.1),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  Icons.agriculture,
-                                  color: Color(0xFF1976D2),
-                                  size: 24,
-                                ),
-                              ),
-                              SizedBox(width: 16),
-                              // Conteúdo
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      aplicacao.descicao,
-                                      style: TextStyle(
-                                        color: Color(0xFF2E7D32),
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    SizedBox(height: 4),
-                                    Text(
-                                      formatarDataHora(aplicacao.data_Hora),
-                                      style: TextStyle(
-                                        color: Color(0xFF1976D2),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              // Botão de edição
-                              IconButton(
-                                icon: Icon(Icons.edit, color: Color(0xFF2E7D32)),
-                                onPressed: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => AplicacaoFormView(aplicacao: aplicacao),
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.all(8.0),
+                    itemCount: aplicacaoVM.aplicacao.length,
+                    itemBuilder: (context, index) {
+                      final item = aplicacaoVM.aplicacao[index];
+                      return Dismissible(
+                        key: Key(item.id.toString()),
+                        direction: DismissDirection.endToStart,
+                        background: Container(
+                          decoration: BoxDecoration(
+                            color: errorColor,
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                          child: const Icon(Icons.delete_sweep, color: Colors.white, size: 28),
+                        ),
+                        confirmDismiss: (_) async {
+                          return await showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Confirmar exclusão'),
+                              content: Text('Deseja realmente excluir esta aplicação?'),
+                              actions: [
+                                TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancelar')),
+                                TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Excluir', style: TextStyle(color: Colors.red))),
+                              ],
+                            ),
+                          );
+                        },
+                        onDismissed: (_) {
+                          if (item.id != null) {
+                            aplicacaoVM.delete(item.id!);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Aplicação excluída.'), backgroundColor: errorColor),
+                            );
+                          }
+                        },
+                        child: Card(
+                          margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                          elevation: 3.0,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(8.0),
+                            onTap: () => showDetailsDialog(item),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    backgroundColor: iconColor.withOpacity(0.1),
+                                    child: Icon(Icons.local_florist, color: iconColor),
                                   ),
-                                ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          item.descricao,
+                                          style: TextStyle(
+                                            fontSize: 18.0,
+                                            fontWeight: FontWeight.bold,
+                                            color: titleColor,
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 4.0),
+                                        Text(
+                                          DateFormat('dd/MM/yyyy HH:mm').format(item.dataHora),
+                                          style: TextStyle(fontSize: 14, color: subtitleColor),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Icons.edit, color: Colors.blueGrey[600]),
+                                    tooltip: 'Editar Aplicação',
+                                    onPressed: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => AplicacaoFormView(aplicacao: item),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                  );
-                },
-              ),
+                      );
+                    },
+                  ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => AplicacaoFormView()),
-        ),
-        child: Icon(Icons.add, color: Colors.white),
-        backgroundColor: Color(0xFF2E7D32), // Verde
-        elevation: 2,
-      ),
-    );
-  }
-
-  Widget _buildDetailItem(IconData icon, String text) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Icon(icon, size: 20, color: Color(0xFF1976D2)), // Azul
-          SizedBox(width: 8),
-          Text(text, style: TextStyle(color: Color(0xFF2E7D32))), // Verde
+          FloatingActionButton(
+            heroTag: 'agrotoxicoFAB',
+            mini: true,
+            backgroundColor: Colors.orange[600],
+            tooltip: 'Ver Agrotóxicos',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AgrotoxicoListView()),
+              );
+            },
+            child: const Icon(Icons.science_outlined),
+          ),
+          const SizedBox(height: 12),
+          FloatingActionButton(
+            heroTag: 'addFAB',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AplicacaoFormView()),
+            ),
+            child: const Icon(Icons.add),
+          ),
         ],
       ),
     );
-  }
-
-  String formatarDataHora(DateTime dataHora) {
-    return '${dataHora.day.toString().padLeft(2, '0')}/${dataHora.month.toString().padLeft(2, '0')}/${dataHora.year} '
-        '${dataHora.hour.toString().padLeft(2, '0')}:${dataHora.minute.toString().padLeft(2, '0')}';
   }
 }

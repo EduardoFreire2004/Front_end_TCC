@@ -1,71 +1,113 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_fgl_1/models/LavouraModel.dart';
 import 'package:flutter_fgl_1/viewmodels/LavouraViewModel.dart';
+import 'package:flutter_fgl_1/views/Lavoura/LavouraDetalhesView.dart';
 import 'package:flutter_fgl_1/views/Lavoura/LavouraFormView.dart';
 import 'package:provider/provider.dart';
 
-class LavouraListView extends StatefulWidget {
+class LavouraListView extends StatelessWidget {
   const LavouraListView({super.key});
-
-  @override
-  State<LavouraListView> createState() => _LavouraListViewState();
-}
-
-class _LavouraListViewState extends State<LavouraListView> {
-  @override
-  void initState() {
-    super.initState();
-    Future.microtask(() {
-      Provider.of<LavouraViewModel>(context, listen: false).fetch();
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<LavouraViewModel>(context);
 
+    final Color primaryColor = Colors.green[700]!;
+    final Color titleColor = Colors.green[800]!;
+    final Color subtitleColor = Colors.grey[700]!;
+    final Color iconColor = Colors.green[700]!;
+    final Color errorColor = Colors.redAccent;
+    final Color scaffoldBgColor = Colors.grey[50]!;
+
+    if (viewModel.errorMessage != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(viewModel.errorMessage!), backgroundColor: errorColor),
+        );
+      });
+    }
+
     return Scaffold(
-      appBar: AppBar(title: Text('Lavouras')),
+      backgroundColor: scaffoldBgColor,
+      appBar: AppBar(title: const Text('Lavouras')),
       body: RefreshIndicator(
-        onRefresh: viewModel.fetch,
-        child: viewModel.isLoading
-            ? Center(child: CircularProgressIndicator())
+        onRefresh: () => viewModel.fetch(),
+        color: primaryColor,
+        child: viewModel.isLoading && viewModel.lavoura.isEmpty
+            ? Center(child: CircularProgressIndicator(color: primaryColor))
             : viewModel.lavoura.isEmpty
-                ? Center(child: Text('Nenhuma lavoura cadastrada.'))
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(
+                        'Nenhuma lavoura cadastrada.\nToque no botão "+" para adicionar.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                      ),
+                    ),
+                  )
                 : ListView.builder(
+                    padding: const EdgeInsets.all(8.0),
                     itemCount: viewModel.lavoura.length,
                     itemBuilder: (context, index) {
-                      final lavoura = viewModel.lavoura[index];
-                      return ListTile(
-                        title: Text(lavoura.nome),
-                        subtitle: Text('Área: ${lavoura.area} ha'),
-                        trailing: Icon(Icons.chevron_right),
-                        onTap: () {
-                          Navigator.push(
+                      final item = viewModel.lavoura[index];
+                      return Card(
+                        margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                        elevation: 3.0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(8.0),
+                          onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => LavouraFormView(lavoura: lavoura),
+                              builder: (_) => LavouraDetalhesView(lavoura: item),
                             ),
-                          );
-                        },
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Row(
+                              children: [
+                                CircleAvatar(
+                                  backgroundColor: iconColor.withOpacity(0.1),
+                                  child: Icon(Icons.park, color: iconColor),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        item.nome,
+                                        style: TextStyle(
+                                          fontSize: 18.0,
+                                          fontWeight: FontWeight.bold,
+                                          color: titleColor,
+                                        ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 4.0),
+                                      Text(
+                                        'Área: ${item.area} ha',
+                                        style: TextStyle(fontSize: 14, color: subtitleColor),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Icon(Icons.chevron_right, color: subtitleColor),
+                              ],
+                            ),
+                          ),
+                        ),
                       );
                     },
                   ),
       ),
       floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
-        onPressed: () async {
-          final novaLavoura = await Navigator.push<LavouraModel?>(
-            context,
-            MaterialPageRoute(
-              builder: (_) => LavouraFormView(),
-            ),
-          );
-
-          if (novaLavoura != null) {
-            Provider.of<LavouraViewModel>(context, listen: false).add(novaLavoura);
-          }
-        },
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const LavouraFormView()),
+        ),
+        child: const Icon(Icons.add),
       ),
     );
   }

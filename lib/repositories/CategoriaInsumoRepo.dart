@@ -50,7 +50,7 @@ class CategoriaInsumoRepo {
   Future<void> update(CategoriaInsumoModel categoria) async {
     try {
       final response = await ApiService.put(
-        '/CategoriInsumos/${categoria.id}',
+        '/CategoriaInsumos/${categoria.id}',
         jsonEncode(categoria.toJson()),
       );
 
@@ -68,7 +68,7 @@ class CategoriaInsumoRepo {
 
   Future<void> delete(int id) async {
     try {
-      final response = await ApiService.delete('/CategoriasInsumos/$id');
+      final response = await ApiService.delete('/CategoriaInsumos/$id');
 
       if (response.statusCode != 200 && response.statusCode != 204) {
         throw Exception('Erro ao deletar categoria (${response.statusCode}).');
@@ -79,6 +79,29 @@ class CategoriaInsumoRepo {
       throw Exception('Tempo excedido ao tentar deletar.');
     } catch (e) {
       throw Exception('Erro ao deletar categoria: $e');
+    }
+  }
+
+  Future<CategoriaInsumoModel> getID(int id) async {
+    try {
+      final response = await ApiService.getID('/CategoriaInsumos/$id');
+
+      if (response.statusCode == 200) {
+        if (response.body.isNotEmpty) {
+          final jsonMap = json.decode(response.body) as Map<String, dynamic>;
+          return CategoriaInsumoModel.fromJson(jsonMap);
+        } else {
+          throw Exception('Resposta vazia do servidor');
+        }
+      } else {
+        throw Exception('Erro ao buscar categoria (${response.statusCode})');
+      }
+    } on SocketException {
+      throw Exception('Falha de conexão. Verifique sua internet');
+    } on TimeoutException {
+      throw Exception('Tempo de resposta excedido');
+    } catch (e) {
+      throw Exception('Erro ao buscar tipo: $e');
     }
   }
 }

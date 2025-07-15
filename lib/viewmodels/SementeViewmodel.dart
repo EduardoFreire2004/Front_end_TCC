@@ -74,4 +74,21 @@ class SementeViewModel extends ChangeNotifier {
       rethrow;
     }
   }
+
+   Future<SementeModel?> getID(int id) async {
+    try {
+      isLoading = true;
+      notifyListeners();
+
+      final fornecedor = await _repository.getID(id);
+      return fornecedor;
+    } catch (e) {
+      errorMessage = 'Erro ao buscar semente: $e';
+      debugPrint(errorMessage);
+      return null;
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
 }

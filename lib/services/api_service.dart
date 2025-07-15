@@ -27,4 +27,16 @@ class ApiService {
   static Future<http.Response> delete(String endpoint) async {
     return await http.delete(Uri.parse('$baseUrl$endpoint'));
   }
+
+
+  static Future<http.Response> getID(String endpoint) async {
+    final client = http.Client();
+    try {
+      return await client.get(
+        Uri.parse('$baseUrl$endpoint'),
+      );
+    } finally {
+      client.close();
+    }
+  }
 }

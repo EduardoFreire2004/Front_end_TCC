@@ -80,4 +80,27 @@ class SementeRepo {
       throw Exception('Erro ao deletar semente: $e');
     }
   }
+
+   Future<SementeModel> getID(int id) async {
+    try {
+      final response = await ApiService.getID('/Sementes/$id');
+
+      if (response.statusCode == 200) {
+        if (response.body.isNotEmpty) {
+          final jsonMap = json.decode(response.body) as Map<String, dynamic>;
+          return SementeModel.fromJson(jsonMap);
+        } else {
+          throw Exception('Resposta vazia do servidor');
+        }
+      } else {
+        throw Exception('Erro ao buscar semente (${response.statusCode})');
+      }
+    } on SocketException {
+      throw Exception('Falha de conexão. Verifique sua internet');
+    } on TimeoutException {
+      throw Exception('Tempo de resposta excedido');
+    } catch (e) {
+      throw Exception('Erro ao buscar tipo: $e');
+    }
+  }
 }

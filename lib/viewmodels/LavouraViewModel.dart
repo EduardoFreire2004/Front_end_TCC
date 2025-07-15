@@ -33,13 +33,13 @@ class LavouraViewModel extends ChangeNotifier {
 
     try {
       await _repository.create(model);
-      await fetch(); 
+      await fetch();
     } catch (e) {
       errorMessage = 'Erro ao adicionar: $e';
       debugPrint(errorMessage);
       isLoading = false;
       notifyListeners();
-      rethrow; 
+      rethrow;
     }
   }
 

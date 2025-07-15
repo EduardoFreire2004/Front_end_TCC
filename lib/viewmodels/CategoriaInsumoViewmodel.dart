@@ -74,4 +74,21 @@ class CategoriaInsumoViewModel extends ChangeNotifier {
       rethrow;
     }
   }
+
+  Future<CategoriaInsumoModel?> getID(int id) async {
+    try {
+      isLoading = true;
+      notifyListeners();
+
+      final fornecedor = await _repository.getID(id);
+      return fornecedor;
+    } catch (e) {
+      errorMessage = 'Erro ao buscar semente: $e';
+      debugPrint(errorMessage);
+      return null;
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
 }
