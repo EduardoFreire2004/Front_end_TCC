@@ -91,4 +91,19 @@ class ForneSementeViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+   Future<void> fetchByParametro(String tipo, String valor) async {
+    try {
+      isLoading = true;
+      notifyListeners();
+
+      _forneSemente = await _repository.getByParametro(tipo, valor);
+    } catch (e) {
+      _forneSemente = [];
+      print('Erro ao buscar: $e');
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
 }

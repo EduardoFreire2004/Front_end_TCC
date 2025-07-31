@@ -9,8 +9,21 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'AgrotoxicoFormView.dart';
 
-class AgrotoxicoListView extends StatelessWidget {
+class AgrotoxicoListView extends StatefulWidget {
   const AgrotoxicoListView({super.key});
+
+  @override
+  State<AgrotoxicoListView> createState() => _AgrotoxicoListViewState();
+}
+
+class _AgrotoxicoListViewState extends State<AgrotoxicoListView> {
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -157,162 +170,213 @@ class AgrotoxicoListView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: scaffoldBgColor,
-      appBar: AppBar(title: const Text('Agrotóxicos')),
+      appBar: AppBar(
+        title: const Text('Agrotóxicos'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              _searchController.clear();
+              viewModel.fetch();
+            },
+          ),
+        ],
+      ),
       body: RefreshIndicator(
         onRefresh: () => viewModel.fetch(),
         color: primaryColor,
-        child:
-            viewModel.isLoading && viewModel.lista.isEmpty
-                ? Center(child: CircularProgressIndicator(color: primaryColor))
-                : viewModel.lista.isEmpty
-                ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(
-                      'Nenhum agrotóxico cadastrado.\nToque no botão "+" para adicionar.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                    ),
+        child: Column(
+          children: [
+            // Campo de busca
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  labelText: 'Buscar por nome',
+                  hintText: 'Digite o nome do agrotóxico',
+                  prefixIcon: const Icon(Icons.search),
+                  suffixIcon: _searchController.text.isEmpty
+                      ? null
+                      : IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            _searchController.clear();
+                            viewModel.fetch();
+                          },
+                        ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0),
                   ),
-                )
-                : ListView.builder(
-                  padding: const EdgeInsets.all(8.0),
-                  itemCount: viewModel.lista.length,
-                  itemBuilder: (context, index) {
-                    final item = viewModel.lista[index];
-                    return Dismissible(
-                      key: Key(item.id.toString()),
-                      direction: DismissDirection.endToStart,
-                      background: Container(
-                        decoration: BoxDecoration(
-                          color: errorColor,
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 8.0,
-                          vertical: 4.0,
-                        ),
-                        child: const Icon(
-                          Icons.delete_sweep,
-                          color: Colors.white,
-                          size: 28,
-                        ),
-                      ),
-                      confirmDismiss: (_) async {
-                        return await showDialog(
-                          context: context,
-                          builder:
-                              (context) => AlertDialog(
-                                title: const Text('Confirmar exclusão'),
-                                content: Text(
-                                  'Deseja realmente excluir ${item.nome}?',
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed:
-                                        () => Navigator.of(context).pop(false),
-                                    child: const Text('Cancelar'),
-                                  ),
-                                  TextButton(
-                                    onPressed:
-                                        () => Navigator.of(context).pop(true),
-                                    child: const Text(
-                                      'Excluir',
-                                      style: TextStyle(color: Colors.red),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                        );
-                      },
-                      onDismissed: (_) {
-                        if (item.id != null) {
-                          viewModel.delete(item.id!);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('${item.nome} excluído.'),
-                              backgroundColor: errorColor,
-                            ),
-                          );
-                        }
-                      },
-                      child: Card(
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 8.0,
-                          vertical: 4.0,
-                        ),
-                        elevation: 3.0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(8.0),
-                          onTap: () => showDetailsDialog(item),
+                ),
+                onChanged: (value) {
+                  if (value.isEmpty) {
+                    viewModel.fetch();
+                  } else {
+                    viewModel.fetchByNome(value);
+                  }
+                },
+              ),
+            ),
+
+            // Lista de resultados
+            Expanded(
+              child: viewModel.isLoading && viewModel.lista.isEmpty
+                  ? Center(child: CircularProgressIndicator(color: primaryColor))
+                  : viewModel.lista.isEmpty
+                      ? Center(
                           child: Padding(
-                            padding: const EdgeInsets.all(12.0),
-                            child: Row(
-                              children: [
-                                CircleAvatar(
-                                  backgroundColor: iconColor.withOpacity(0.1),
-                                  child: Icon(
-                                    Icons.science_outlined,
-                                    color: iconColor,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        item.nome,
-                                        style: TextStyle(
-                                          fontSize: 18.0,
-                                          fontWeight: FontWeight.bold,
-                                          color: titleColor,
-                                        ),
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(height: 4.0),
-                                      Text(
-                                        'Quantidade: ${item.qtde} ${item.unidade_Medida}',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: subtitleColor,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                IconButton(
-                                  icon: Icon(
-                                    Icons.edit,
-                                    color: Colors.blueGrey[600],
-                                  ),
-                                  tooltip: 'Editar Agrotóxico',
-                                  onPressed:
-                                      () => Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder:
-                                              (_) => AgrotoxicoFormView(
-                                                agrotoxico: item,
-                                              ),
-                                        ),
-                                      ),
-                                ),
-                              ],
+                            padding: const EdgeInsets.all(16.0),
+                            child: Text(
+                              _searchController.text.isEmpty
+                                  ? 'Nenhum agrotóxico cadastrado.\nToque no botão "+" para adicionar.'
+                                  : 'Nenhum agrotóxico encontrado para "${_searchController.text}".',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                             ),
                           ),
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.all(8.0),
+                          itemCount: viewModel.lista.length,
+                          itemBuilder: (context, index) {
+                            final item = viewModel.lista[index];
+                            return Dismissible(
+                              key: Key(item.id.toString()),
+                              direction: DismissDirection.endToStart,
+                              background: Container(
+                                decoration: BoxDecoration(
+                                  color: errorColor,
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                                alignment: Alignment.centerRight,
+                                padding: const EdgeInsets.symmetric(horizontal: 20),
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 8.0,
+                                  vertical: 4.0,
+                                ),
+                                child: const Icon(
+                                  Icons.delete_sweep,
+                                  color: Colors.white,
+                                  size: 28,
+                                ),
+                              ),
+                              confirmDismiss: (_) async {
+                                return await showDialog(
+                                  context: context,
+                                  builder:
+                                      (context) => AlertDialog(
+                                        title: const Text('Confirmar exclusão'),
+                                        content: Text(
+                                          'Deseja realmente excluir ${item.nome}?',
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed:
+                                                () => Navigator.of(context).pop(false),
+                                            child: const Text('Cancelar'),
+                                          ),
+                                          TextButton(
+                                            onPressed:
+                                                () => Navigator.of(context).pop(true),
+                                            child: const Text(
+                                              'Excluir',
+                                              style: TextStyle(color: Colors.red),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                );
+                              },
+                              onDismissed: (_) {
+                                if (item.id != null) {
+                                  viewModel.delete(item.id!);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('${item.nome} excluído.'),
+                                      backgroundColor: errorColor,
+                                    ),
+                                  );
+                                }
+                              },
+                              child: Card(
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 8.0,
+                                  vertical: 4.0,
+                                ),
+                                elevation: 3.0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  onTap: () => showDetailsDialog(item),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(12.0),
+                                    child: Row(
+                                      children: [
+                                        CircleAvatar(
+                                          backgroundColor: iconColor.withOpacity(0.1),
+                                          child: Icon(
+                                            Icons.science_outlined,
+                                            color: iconColor,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                item.nome,
+                                                style: TextStyle(
+                                                  fontSize: 18.0,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: titleColor,
+                                                ),
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              const SizedBox(height: 4.0),
+                                              Text(
+                                                'Quantidade: ${item.qtde} ${item.unidade_Medida}',
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: subtitleColor,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: Icon(
+                                            Icons.edit,
+                                            color: Colors.blueGrey[600],
+                                          ),
+                                          tooltip: 'Editar Agrotóxico',
+                                          onPressed:
+                                              () => Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder:
+                                                      (_) => AgrotoxicoFormView(
+                                                        agrotoxico: item,
+                                                      ),
+                                                ),
+                                              ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
                         ),
-                      ),
-                    );
-                  },
-                ),
+            ),
+          ],
+        ),
       ),
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,
@@ -357,7 +421,7 @@ class AgrotoxicoListView extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const AgrotoxicoFormView()),
+                MaterialPageRoute(builder: (_) => AgrotoxicoFormView()),
               );
             },
             child: const Icon(Icons.add),

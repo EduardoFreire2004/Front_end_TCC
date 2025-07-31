@@ -1,45 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_fgl_1/models/PlantioModel.dart';
-import 'package:flutter_fgl_1/viewmodels/PlantioViewModel.dart';
-import 'package:flutter_fgl_1/viewmodels/SementeViewModel.dart';
-import 'package:flutter_fgl_1/views/Semente/SementeFormView.dart';
+import 'package:flutter_fgl_1/models/AplicacaoInsumoModel.dart';
+import 'package:flutter_fgl_1/viewmodels/AplicacaoInsumoViewModel.dart';
+import 'package:flutter_fgl_1/viewmodels/InsumoViewModel.dart';
+import 'package:flutter_fgl_1/views/Insumo/InsumoFormView.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-class PlantioFormView extends StatefulWidget {
-  final PlantioModel? plantio;
-  final int lavouraId;
+class AplicacaoInsumoFormView extends StatefulWidget {
+  final AplicacaoInsumoModel? aplicacao;
+  final int lavouraId; 
 
-  const PlantioFormView({super.key, this.plantio, required this.lavouraId});
+  const AplicacaoInsumoFormView({super.key, this.aplicacao, required this.lavouraId});
 
   @override
-  State<PlantioFormView> createState() => _PlantioFormViewState();
+  State<AplicacaoInsumoFormView> createState() => _AplicacaoFormViewState();
 }
 
-class _PlantioFormViewState extends State<PlantioFormView> {
+class _AplicacaoFormViewState extends State<AplicacaoInsumoFormView> {
   final _formKey = GlobalKey<FormState>();
   final _descricaoController = TextEditingController();
-  final _areaController = TextEditingController();
   final _dataHoraController = TextEditingController();
 
-  int? _sementeID;
+  int? _insumoID;
   DateTime? _dataHora;
 
   final Color primaryColor = Colors.green[700]!;
   final Color primaryColorDark = Colors.green[800]!;
   final Color errorColor = Colors.redAccent;
+  final Color lightGreyColor = Colors.grey[400]!;
+  final Color mediumGreyColor = Colors.grey[600]!;
   final Color whiteColor = Colors.white;
   final Color formBackgroundColor = Colors.grey[50]!;
 
   @override
   void initState() {
     super.initState();
-    if (widget.plantio != null) {
-      _descricaoController.text = widget.plantio!.descricao;
-      _areaController.text = widget.plantio!.areaPlantada.toString().replaceAll('.', ',');
-      _sementeID = widget.plantio!.sementeID;
-      _dataHora = widget.plantio!.dataHora;
+    if (widget.aplicacao != null) {
+      _descricaoController.text = widget.aplicacao!.descricao;
+      _insumoID = widget.aplicacao!.insumoID;
+      _dataHora = widget.aplicacao!.dataHora;
       _dataHoraController.text = DateFormat('dd/MM/yyyy HH:mm').format(_dataHora!);
     }
   }
@@ -47,7 +47,6 @@ class _PlantioFormViewState extends State<PlantioFormView> {
   @override
   void dispose() {
     _descricaoController.dispose();
-    _areaController.dispose();
     _dataHoraController.dispose();
     super.dispose();
   }
@@ -104,18 +103,16 @@ class _PlantioFormViewState extends State<PlantioFormView> {
   void _salvar() {
     if (!_formKey.currentState!.validate()) return;
 
-    final model = PlantioModel(
-      id: widget.plantio?.id,
+    final model = AplicacaoInsumoModel(
+      id: widget.aplicacao?.id,
       descricao: _descricaoController.text.trim(),
-      sementeID: _sementeID!,
       dataHora: _dataHora!,
-      areaPlantada: double.tryParse(_areaController.text.replaceAll(',', '.')) ?? 0.0,
+      insumoID: _insumoID!,
       lavouraID: widget.lavouraId,
     );
 
-    final viewModel = Provider.of<PlantioViewModel>(context, listen: false);
-
-    if (widget.plantio == null) {
+    final viewModel = Provider.of<AplicacaoInsumoViewModel>(context, listen: false);
+    if (widget.aplicacao == null) {
       viewModel.add(model);
     } else {
       viewModel.update(model);
@@ -123,12 +120,113 @@ class _PlantioFormViewState extends State<PlantioFormView> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('Plantio salvo com sucesso!'),
+        content: const Text('Aplicação salva com sucesso!'),
         backgroundColor: primaryColor,
       ),
     );
 
     Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final insumoViewModel = Provider.of<InsumoViewModel>(context);
+
+    return Scaffold(
+      backgroundColor: formBackgroundColor,
+      appBar: AppBar(
+        title: Text(widget.aplicacao == null ? 'Nova Aplicação' : 'Editar Aplicação'),
+      ),
+      body: insumoViewModel.insumo.isEmpty
+          ? Center(child: CircularProgressIndicator(color: primaryColor))
+          : Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Form(
+                key: _formKey,
+                child: ListView(
+                  children: [
+                    _buildTextField(
+                      controller: _descricaoController,
+                      label: 'Descrição',
+                      hint: 'Ex: Aplicação na lavoura A',
+                      icon: Icons.description,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Descrição é obrigatória';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: DropdownButtonFormField<int>(
+                            value: _insumoID,
+                            items: insumoViewModel.insumo.map((a) {
+                              return DropdownMenuItem(
+                                value: a.id,
+                                child: Text(a.nome),
+                              );
+                            }).toList(),
+                            onChanged: (value) => setState(() => _insumoID = value),
+                            decoration: const InputDecoration(
+                              labelText: 'Insumo',
+                              prefixIcon: Icon(Icons.science),
+                            ),
+                            validator: (value) =>
+                                value == null ? 'Selecione um insumo' : null,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: Icon(Icons.add_circle, color: primaryColor),
+                          tooltip: 'Novo Insumo',
+                          onPressed: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const InsumoFormView(),
+                              ),
+                            );
+                            insumoViewModel.fetch();
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _dataHoraController,
+                      readOnly: true,
+                      onTap: () => _selectDateTime(context),
+                      decoration: const InputDecoration(
+                        labelText: 'Data e Hora da Aplicação',
+                        prefixIcon: Icon(Icons.calendar_today),
+                      ),
+                      validator: (value) =>
+                          value == null || value.isEmpty ? 'Selecione data e hora' : null,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: _salvar,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryColor,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                      ),
+                      child: Text(
+                        widget.aplicacao == null ? 'ADICIONAR' : 'ATUALIZAR',
+                        style: TextStyle(fontSize: 16, color: whiteColor),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+    );
   }
 
   Widget _buildTextField({
@@ -153,123 +251,5 @@ class _PlantioFormViewState extends State<PlantioFormView> {
       keyboardType: keyboardType,
     );
   }
-
-  @override
-  Widget build(BuildContext context) {
-    final sementeViewModel = Provider.of<SementeViewModel>(context);
-
-    return Scaffold(
-      backgroundColor: formBackgroundColor,
-      appBar: AppBar(
-        title: Text(widget.plantio == null ? 'Novo Plantio' : 'Editar Plantio'),
-      ),
-      body: sementeViewModel.semente.isEmpty
-          ? Center(child: CircularProgressIndicator(color: primaryColor))
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: ListView(
-                  children: [
-                    _buildTextField(
-                      controller: _descricaoController,
-                      label: 'Descrição',
-                      hint: 'Ex: Plantio de Soja Safra 2025',
-                      icon: Icons.description,
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Descrição é obrigatória';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    _buildTextField(
-                      controller: _areaController,
-                      label: 'Área Plantada (ha)',
-                      hint: 'Ex: 150.5',
-                      icon: Icons.map_outlined,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'[\d,.]')),
-                      ],
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Área é obrigatória';
-                        }
-                        if (double.tryParse(value.replaceAll(',', '.')) == null) {
-                          return 'Valor numérico inválido';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: DropdownButtonFormField<int>(
-                            value: _sementeID,
-                            items: sementeViewModel.semente.map((s) {
-                              return DropdownMenuItem(
-                                value: s.id,
-                                child: Text(s.nome),
-                              );
-                            }).toList(),
-                            onChanged: (value) => setState(() => _sementeID = value),
-                            decoration: InputDecoration(
-                              labelText: 'Semente',
-                              prefixIcon: const Icon(Icons.grass),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
-                            ),
-                            validator: (value) => value == null ? 'Selecione uma semente' : null,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        IconButton(
-                          icon: Icon(Icons.add_circle, color: primaryColor, size: 30),
-                          tooltip: 'Nova Semente',
-                          onPressed: () async {
-                            await Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const SementeFormView()),
-                            );
-                            sementeViewModel.fetch();
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _dataHoraController,
-                      readOnly: true,
-                      onTap: () => _selectDateTime(context),
-                      decoration: InputDecoration(
-                        labelText: 'Data e Hora do Plantio',
-                        prefixIcon: const Icon(Icons.calendar_today),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
-                      ),
-                      validator: (value) => value == null || value.isEmpty ? 'Selecione data e hora' : null,
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: _salvar,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryColor,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                      ),
-                      child: Text(
-                        widget.plantio == null ? 'ADICIONAR' : 'ATUALIZAR',
-                        style: TextStyle(fontSize: 16, color: whiteColor),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-    );
-  }
 }
+

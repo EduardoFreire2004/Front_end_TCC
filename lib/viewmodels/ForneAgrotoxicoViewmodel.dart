@@ -83,9 +83,24 @@ class ForneAgrotoxicoViewModel extends ChangeNotifier {
       final fornecedor = await _repository.getID(id);
       return fornecedor;
     } catch (e) {
-      errorMessage = 'Erro ao buscar tipo: $e';
+      errorMessage = 'Erro ao buscar agrotóxico: $e';
       debugPrint(errorMessage);
       return null;
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> fetchByParametro(String tipo, String valor) async {
+    try {
+      isLoading = true;
+      notifyListeners();
+
+      _forneAgrotoxico = await _repository.getByParametro(tipo, valor);
+    } catch (e) {
+      _forneAgrotoxico = [];
+      print('Erro ao buscar: $e');
     } finally {
       isLoading = false;
       notifyListeners();

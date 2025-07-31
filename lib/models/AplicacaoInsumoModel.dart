@@ -1,22 +1,22 @@
-class AplicacaoModel {
+class AplicacaoInsumoModel {
   int? id;
-  int agrotoxicoID;
+  int insumoID;
   int lavouraID;
   String descricao;
   DateTime dataHora;
 
-  AplicacaoModel({
+  AplicacaoInsumoModel({
     this.id,
-    required this.agrotoxicoID,
+    required this.insumoID,
     required this.lavouraID,
     required this.descricao,
     required this.dataHora,
   });
 
-  factory AplicacaoModel.fromJson(Map<String, dynamic> map) {
-    return AplicacaoModel(
+  factory AplicacaoInsumoModel.fromJson(Map<String, dynamic> map) {
+    return AplicacaoInsumoModel(
       id: map['id'],
-      agrotoxicoID: map['agrotoxicoID'],
+      insumoID: map['insumoID'],
       lavouraID: map['lavouraID'],
       descricao: map['descricao'],
       dataHora: DateTime.parse(map['dataHora']),
@@ -26,7 +26,7 @@ class AplicacaoModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id ?? 0,
-      'agrotoxicoID': agrotoxicoID,
+      'insumoID': insumoID,
       'lavouraID': lavouraID,
       'descricao': descricao,
       'dataHora': dataHora.toIso8601String(),

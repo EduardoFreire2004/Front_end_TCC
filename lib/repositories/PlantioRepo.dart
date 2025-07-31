@@ -80,4 +80,33 @@ class PlantioRepo {
       throw Exception('Erro ao deletar plantio: $e');
     }
   }
+
+   Future<List<PlantioModel>> fetchByLavoura(int lavouraId) async {
+    try {
+      final response = await ApiService.get(
+        '/Plantios/porlavoura/$lavouraId',
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data
+            .map(
+              (item) => PlantioModel.fromJson(item as Map<String, dynamic>),
+            )
+            .toList();
+      } else {
+        throw Exception(
+          'Erro ${response.statusCode}: Não foi possível buscar plantios da lavoura.',
+        );
+      }
+    } on SocketException {
+      throw Exception('Sem conexão com a internet ao buscar por lavoura.');
+    } on TimeoutException {
+      throw Exception('Tempo excedido ao buscar plantios por lavoura.');
+    } on FormatException {
+      throw Exception('Erro ao interpretar dados de plantios por lavoura.');
+    } catch (e) {
+      throw Exception('Erro inesperado ao buscar por lavoura: $e');
+    }
+  }
 }

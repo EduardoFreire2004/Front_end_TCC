@@ -4,6 +4,7 @@ import 'package:flutter_fgl_1/models/SementeModel.dart';
 import 'package:flutter_fgl_1/viewmodels/ForneSementeViewModel.dart';
 import 'package:flutter_fgl_1/viewmodels/SementeViewModel.dart';
 import 'package:flutter_fgl_1/views/ForneSemente/FornecedorSementeFormView.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class SementeFormView extends StatefulWidget {
@@ -17,13 +18,17 @@ class SementeFormView extends StatefulWidget {
 class _SementeFormViewState extends State<SementeFormView> {
   final _formKey = GlobalKey<FormState>();
   final _nomeController = TextEditingController();
+  final _dataCadastroController = TextEditingController();
   final _tipoController = TextEditingController();
   final _marcaController = TextEditingController();
   final _qtdeController = TextEditingController();
+
   int? _fornecedorID;
+  DateTime? _selectedDate;
 
   final primaryColor = Colors.green[700]!;
   final whiteColor = Colors.white;
+  final Color primaryColorDark = Colors.green[800]!;
 
   @override
   void initState() {
@@ -35,6 +40,12 @@ class _SementeFormViewState extends State<SementeFormView> {
       _marcaController.text = semente.marca;
       _qtdeController.text = semente.qtde.toString();
       _fornecedorID = semente.fornecedorSementeID;
+      _selectedDate = widget.semente!.data_Cadastro;
+      if (_selectedDate != null) {
+        _dataCadastroController.text = DateFormat(
+          'dd/MM/yyyy',
+        ).format(_selectedDate!);
+      }
     }
   }
 
@@ -44,6 +55,7 @@ class _SementeFormViewState extends State<SementeFormView> {
     _tipoController.dispose();
     _marcaController.dispose();
     _qtdeController.dispose();
+    _dataCadastroController.dispose();
     super.dispose();
   }
 
@@ -62,6 +74,36 @@ class _SementeFormViewState extends State<SementeFormView> {
     return lista.any((s) => s.nome.toLowerCase() == nome.toLowerCase());
   }
 
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: primaryColor,
+              onPrimary: whiteColor,
+              onSurface: primaryColorDark,
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(foregroundColor: primaryColor),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+        _dataCadastroController.text = DateFormat('dd/MM/yyyy').format(picked);
+      });
+    }
+  }
+
   void _salvar() {
     if (!_formKey.currentState!.validate()) return;
 
@@ -72,6 +114,7 @@ class _SementeFormViewState extends State<SementeFormView> {
       marca: _marcaController.text.trim(),
       qtde: double.tryParse(_qtdeController.text.replaceAll(',', '.')) ?? 0.0,
       fornecedorSementeID: _fornecedorID!,
+      data_Cadastro: _selectedDate!,
     );
 
     final viewModel = Provider.of<SementeViewModel>(context, listen: false);
@@ -100,100 +143,132 @@ class _SementeFormViewState extends State<SementeFormView> {
       appBar: AppBar(
         title: Text(widget.semente == null ? "Nova Semente" : "Editar Semente"),
       ),
-      body: fornecedorVM.forneSemente.isEmpty
-          ? Center(child: CircularProgressIndicator(color: primaryColor))
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: ListView(
-                  children: [
-                    TextFormField(
-                      controller: _nomeController,
-                      decoration: const InputDecoration(
-                        labelText: 'Nome',
-                        prefixIcon: Icon(Icons.grass),
+      body:
+          fornecedorVM.forneSemente.isEmpty
+              ? Center(child: CircularProgressIndicator(color: primaryColor))
+              : Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Form(
+                  key: _formKey,
+                  child: ListView(
+                    children: [
+                      TextFormField(
+                        controller: _nomeController,
+                        decoration: const InputDecoration(
+                          labelText: 'Nome',
+                          prefixIcon: Icon(Icons.grass),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Nome é obrigatório';
+                          }
+                          if (_nomeJaExiste(value.trim())) {
+                            return 'Este nome já está cadastrado';
+                          }
+                          return null;
+                        },
                       ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Nome é obrigatório';
-                        }
-                        if (_nomeJaExiste(value.trim())) {
-                          return 'Este nome já está cadastrado';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    _buildTextField(_tipoController, "Tipo", Icons.category),
-                    const SizedBox(height: 16),
-                    _buildTextField(_marcaController, "Marca", Icons.branding_watermark),
-                    const SizedBox(height: 16),
-                    _buildTextField(
-                      _qtdeController,
-                      "Quantidade",
-                      Icons.scale,
-                      inputType: TextInputType.numberWithOptions(decimal: true),
-                      formatter: [
-                        FilteringTextInputFormatter.allow(RegExp(r'[0-9,\.]')),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: DropdownButtonFormField<int>(
-                            value: _fornecedorID,
-                            decoration: const InputDecoration(
-                              labelText: "Fornecedor",
-                              prefixIcon: Icon(Icons.business),
+                      const SizedBox(height: 16),
+                      _buildTextField(_tipoController, "Tipo", Icons.category),
+                      const SizedBox(height: 16),
+                      _buildTextField(
+                        _marcaController,
+                        "Marca",
+                        Icons.branding_watermark,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextField(
+                        _qtdeController,
+                        "Quantidade",
+                        Icons.scale,
+                        inputType: TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        formatter: [
+                          FilteringTextInputFormatter.allow(
+                            RegExp(r'[0-9,\.]'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: DropdownButtonFormField<int>(
+                              value: _fornecedorID,
+                              decoration: const InputDecoration(
+                                labelText: "Fornecedor",
+                                prefixIcon: Icon(Icons.business),
+                              ),
+                              items:
+                                  fornecedorVM.forneSemente
+                                      .map(
+                                        (f) => DropdownMenuItem(
+                                          value: f.id,
+                                          child: Text(f.nome),
+                                        ),
+                                      )
+                                      .toList(),
+                              onChanged:
+                                  (value) =>
+                                      setState(() => _fornecedorID = value),
+                              validator:
+                                  (value) =>
+                                      value == null
+                                          ? "Selecione um fornecedor"
+                                          : null,
                             ),
-                            items: fornecedorVM.forneSemente
-                                .map((f) => DropdownMenuItem(
-                                      value: f.id,
-                                      child: Text(f.nome),
-                                    ))
-                                .toList(),
-                            onChanged: (value) => setState(() => _fornecedorID = value),
-                            validator: (value) => value == null ? "Selecione um fornecedor" : null,
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.add_circle, color: primaryColor),
+                            tooltip: 'Novo Fornecedor',
+                            onPressed: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (_) => const FornecedorSementeFormView(),
+                                ),
+                              );
+                              fornecedorVM.fetch();
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _dataCadastroController,
+                        decoration: const InputDecoration(
+                          labelText: 'Data de Cadastro',
+                          prefixIcon: Icon(Icons.calendar_today),
+                        ),
+                        readOnly: true,
+                        onTap: () => _selectDate(context),
+                        validator:
+                            (value) =>
+                                value == null || value.isEmpty
+                                    ? 'Selecione a data'
+                                    : null,
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: _salvar,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryColor,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.0),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        IconButton(
-                          icon: Icon(Icons.add_circle, color: primaryColor),
-                          tooltip: 'Novo Fornecedor',
-                          onPressed: () async {
-                            await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const FornecedorSementeFormView(),
-                              ),
-                            );
-                            fornecedorVM.fetch();
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: _salvar,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryColor,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.0),
+                        child: Text(
+                          widget.semente == null ? "ADICIONAR" : "ATUALIZAR",
+                          style: TextStyle(color: whiteColor, fontSize: 16),
                         ),
                       ),
-                      child: Text(
-                        widget.semente == null ? "ADICIONAR" : "ATUALIZAR",
-                        style: TextStyle(color: whiteColor, fontSize: 16),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
     );
   }
 
@@ -209,7 +284,9 @@ class _SementeFormViewState extends State<SementeFormView> {
       decoration: InputDecoration(labelText: label, prefixIcon: Icon(icon)),
       keyboardType: inputType,
       inputFormatters: formatter,
-      validator: (value) => value == null || value.isEmpty ? "Campo obrigatório" : null,
+      validator:
+          (value) =>
+              value == null || value.isEmpty ? "Campo obrigatório" : null,
     );
   }
 }

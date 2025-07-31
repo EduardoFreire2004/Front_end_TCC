@@ -91,4 +91,19 @@ class ForneInsumoViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<void> fetchByParametro(String tipo, String valor) async {
+    try {
+      isLoading = true;
+      notifyListeners();
+
+      _forneInsumo = await _repository.getByParametro(tipo, valor);
+    } catch (e) {
+      _forneInsumo = [];
+      print('Erro ao buscar: $e');
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
 }

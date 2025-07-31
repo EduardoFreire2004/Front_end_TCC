@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fgl_1/models/LavouraModel.dart';
 import 'package:flutter_fgl_1/views/Agrotoxico/AgrotoxicoListView.dart';
 import 'package:flutter_fgl_1/views/Aplicacao/AplicacaoListView.dart';
+import 'package:flutter_fgl_1/views/AplicacaoInsumo/AplicacaoInsumoListView.dart';
 import 'package:flutter_fgl_1/views/Colheita/ColheitaListView.dart';
 import 'package:flutter_fgl_1/views/ForneAgrotoxico/FornecedorAgrotoxicoListView.dart';
 import 'package:flutter_fgl_1/views/ForneInsumo/ForneInsumoListView.dart';
@@ -71,10 +72,11 @@ class LavouraDetalhesView extends StatelessWidget {
                 mainAxisSpacing: 12,
                 childAspectRatio: 1.0,
                 children: [
-                  buildCard('Aplicações', Icons.local_florist, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AplicacaoListView()))),
-                  buildCard('Plantios', Icons.agriculture, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PlantioListView()))),
+                  buildCard('Aplicações de Agrotóxicos', Icons.local_florist, () => Navigator.push(context, MaterialPageRoute(builder: (_) => AplicacaoListView(lavouraId: lavoura.id!)))),
+                  buildCard('Plantios', Icons.agriculture, () => Navigator.push(context, MaterialPageRoute(builder: (_) => PlantioListView(lavouraId: lavoura.id!)))),
+                  buildCard('Aplicações de Insumos', Icons.local_florist, () => Navigator.push(context, MaterialPageRoute(builder: (_) => AplicacaoInsumoListView(lavouraId: lavoura.id!)))),  
                   buildCard('Sementes', Icons.spa, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SementeListView()))),
-                  buildCard('Colheitas', Icons.grass, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ColheitaListView()))),
+                  buildCard('Colheitas', Icons.grass, () => Navigator.push(context, MaterialPageRoute(builder: (_) => ColheitaListView()))),
                   buildCard('Agrotóxicos', Icons.science, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AgrotoxicoListView()))),
                   buildCard('Insumos', Icons.inventory_2, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const InsumoListView()))),
                   buildCard('Fornecedores', Icons.store, () {

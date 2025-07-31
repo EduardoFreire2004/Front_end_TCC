@@ -74,4 +74,18 @@ class PlantioViewModel extends ChangeNotifier {
       rethrow;
     }
   }
+
+  Future<void> fetchByLavoura(int lavouraId) async {
+    try {
+      isLoading = true;
+      notifyListeners();
+
+      _plantio = await _repository.fetchByLavoura(lavouraId);
+    } catch (e) {
+      print('Erro ao buscar plantio da lavoura: $e');
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
 }

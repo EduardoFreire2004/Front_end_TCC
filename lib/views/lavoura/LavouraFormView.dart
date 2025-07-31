@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../models/LavouraModel.dart';
+import 'package:flutter_fgl_1/models/LavouraModel.dart';
+import 'package:flutter_fgl_1/viewmodels/LavouraViewModel.dart';
+import 'package:provider/provider.dart';
 
 class LavouraFormView extends StatelessWidget {
   final LavouraModel? lavoura;
@@ -43,8 +45,10 @@ class _FormLavouraCadastroState extends State<FormLavouraCadastro> {
     }
   }
 
-  void _salvar() {
+  void _salvar() async {
     if (!_formKey.currentState!.validate()) return;
+
+    final lavouraViewModel = Provider.of<LavouraViewModel>(context, listen: false);
 
     final novaLavoura = LavouraModel(
       id: widget.lavoura?.id,
@@ -52,7 +56,25 @@ class _FormLavouraCadastroState extends State<FormLavouraCadastro> {
       area: double.parse(_areaController.text),
     );
 
-    Navigator.pop(context, novaLavoura);
+    try {
+      if (widget.lavoura == null) {
+        await lavouraViewModel.add(novaLavoura);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Lavoura criada com sucesso')),
+        );
+      } else {
+        await lavouraViewModel.update(novaLavoura);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Lavoura atualizada com sucesso')),
+        );
+      }
+
+      Navigator.pop(context); // Volta após salvar
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao salvar: $e')),
+      );
+    }
   }
 
   @override
@@ -77,7 +99,10 @@ class _FormLavouraCadastroState extends State<FormLavouraCadastro> {
                     : null,
           ),
           const SizedBox(height: 20),
-          ElevatedButton(onPressed: _salvar, child: const Text('Salvar')),
+          ElevatedButton(
+            onPressed: _salvar,
+            child: const Text('Salvar'),
+          ),
         ],
       ),
     );

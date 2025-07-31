@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import '../../models/InsumoModel.dart';
-import '../../repositories/InsumoRepo.dart';
+import 'package:flutter_fgl_1/models/AplicacaoInsumoModel.dart';
+import '../../repositories/AplicacaoInsumoRepo.dart';
 
-class InsumoViewModel extends ChangeNotifier {
-  final InsumoRepo _repository = InsumoRepo();
-  List<InsumoModel> _insumo = [];
+class AplicacaoInsumoViewModel extends ChangeNotifier {
+  final AplicacaoInsumoRepo _repository = AplicacaoInsumoRepo();
+  List<AplicacaoInsumoModel> _aplicacaoInsumo = [];
   bool isLoading = false;
   String? errorMessage;
 
-  List<InsumoModel> get insumo => _insumo;
+  List<AplicacaoInsumoModel> get aplicacao => _aplicacaoInsumo;
 
   Future<void> fetch() async {
     isLoading = true;
@@ -16,9 +16,9 @@ class InsumoViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _insumo = await _repository.getAll();
+      _aplicacaoInsumo = await _repository.getAll();
     } catch (e) {
-      _insumo = [];
+      _aplicacaoInsumo = [];
       errorMessage = e.toString();
       debugPrint('Erro em fetch(): $e');
     } finally {
@@ -27,23 +27,23 @@ class InsumoViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> add(InsumoModel model) async {
+  Future<void> add(AplicacaoInsumoModel model) async {
     isLoading = true;
     notifyListeners();
 
     try {
       await _repository.create(model);
-      await fetch(); 
+      await fetch();
     } catch (e) {
       errorMessage = 'Erro ao adicionar: $e';
       debugPrint(errorMessage);
       isLoading = false;
       notifyListeners();
-      rethrow; 
+      rethrow;
     }
   }
 
-  Future<void> update(InsumoModel model) async {
+  Future<void> update(AplicacaoInsumoModel model) async {
     isLoading = true;
     notifyListeners();
 
@@ -75,17 +75,14 @@ class InsumoViewModel extends ChangeNotifier {
     }
   }
 
-  Future<InsumoModel?> getID(int id) async {
+  Future<void> fetchByLavoura(int lavouraId) async {
     try {
       isLoading = true;
       notifyListeners();
 
-      final insumo = await _repository.getID(id);
-      return insumo;
+      _aplicacaoInsumo = await _repository.fetchByLavoura(lavouraId);
     } catch (e) {
-      errorMessage = 'Erro ao buscar insumo: $e';
-      debugPrint(errorMessage);
-      return null;
+      print('Erro ao buscar aplicações da lavoura: $e');
     } finally {
       isLoading = false;
       notifyListeners();

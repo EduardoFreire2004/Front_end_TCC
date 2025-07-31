@@ -9,8 +9,9 @@ import 'package:provider/provider.dart';
 
 class AplicacaoFormView extends StatefulWidget {
   final AplicacaoModel? aplicacao;
+  final int lavouraId; 
 
-  const AplicacaoFormView({super.key, this.aplicacao});
+  const AplicacaoFormView({super.key, this.aplicacao, required this.lavouraId});
 
   @override
   State<AplicacaoFormView> createState() => _AplicacaoFormViewState();
@@ -39,9 +40,7 @@ class _AplicacaoFormViewState extends State<AplicacaoFormView> {
       _descricaoController.text = widget.aplicacao!.descricao;
       _agrotoxicoID = widget.aplicacao!.agrotoxicoID;
       _dataHora = widget.aplicacao!.dataHora;
-      _dataHoraController.text = DateFormat(
-        'dd/MM/yyyy HH:mm',
-      ).format(_dataHora!);
+      _dataHoraController.text = DateFormat('dd/MM/yyyy HH:mm').format(_dataHora!);
     }
   }
 
@@ -58,34 +57,32 @@ class _AplicacaoFormViewState extends State<AplicacaoFormView> {
       initialDate: _dataHora ?? DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime.now(),
-      builder:
-          (context, child) => Theme(
-            data: Theme.of(context).copyWith(
-              colorScheme: ColorScheme.light(
-                primary: primaryColor,
-                onPrimary: whiteColor,
-                onSurface: primaryColorDark,
-              ),
-            ),
-            child: child!,
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: ColorScheme.light(
+            primary: primaryColor,
+            onPrimary: whiteColor,
+            onSurface: primaryColorDark,
           ),
+        ),
+        child: child!,
+      ),
     );
 
     if (pickedDate != null) {
       final TimeOfDay? pickedTime = await showTimePicker(
         context: context,
         initialTime: TimeOfDay.fromDateTime(_dataHora ?? DateTime.now()),
-        builder:
-            (context, child) => Theme(
-              data: Theme.of(context).copyWith(
-                colorScheme: ColorScheme.light(
-                  primary: primaryColor,
-                  onPrimary: whiteColor,
-                  onSurface: primaryColorDark,
-                ),
-              ),
-              child: child!,
+        builder: (context, child) => Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: primaryColor,
+              onPrimary: whiteColor,
+              onSurface: primaryColorDark,
             ),
+          ),
+          child: child!,
+        ),
       );
 
       if (pickedTime != null) {
@@ -97,9 +94,7 @@ class _AplicacaoFormViewState extends State<AplicacaoFormView> {
             pickedTime.hour,
             pickedTime.minute,
           );
-          _dataHoraController.text = DateFormat(
-            'dd/MM/yyyy HH:mm',
-          ).format(_dataHora!);
+          _dataHoraController.text = DateFormat('dd/MM/yyyy HH:mm').format(_dataHora!);
         });
       }
     }
@@ -113,6 +108,7 @@ class _AplicacaoFormViewState extends State<AplicacaoFormView> {
       descricao: _descricaoController.text.trim(),
       dataHora: _dataHora!,
       agrotoxicoID: _agrotoxicoID!,
+      lavouraID: widget.lavouraId,
     );
 
     final viewModel = Provider.of<AplicacaoViewModel>(context, listen: false);
@@ -124,7 +120,7 @@ class _AplicacaoFormViewState extends State<AplicacaoFormView> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Aplicação salva com sucesso!'),
+        content: const Text('Aplicação salva com sucesso!'),
         backgroundColor: primaryColor,
       ),
     );
@@ -139,111 +135,97 @@ class _AplicacaoFormViewState extends State<AplicacaoFormView> {
     return Scaffold(
       backgroundColor: formBackgroundColor,
       appBar: AppBar(
-        title: Text(
-          widget.aplicacao == null ? 'Nova Aplicação' : 'Editar Aplicação',
-        ),
+        title: Text(widget.aplicacao == null ? 'Nova Aplicação' : 'Editar Aplicação'),
       ),
-      body:
-          agrotoxicoViewModel.lista.isEmpty
-              ? Center(child: CircularProgressIndicator(color: primaryColor))
-              : Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Form(
-                  key: _formKey,
-                  child: ListView(
-                    children: [
-                      _buildTextField(
-                        controller: _descricaoController,
-                        label: 'Descrição',
-                        hint: 'Ex: Aplicação na lavoura A',
-                        icon: Icons.description,
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Descrição é obrigatória';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: DropdownButtonFormField<int>(
-                              value: _agrotoxicoID,
-                              items:
-                                  agrotoxicoViewModel.lista
-                                      .map(
-                                        (a) => DropdownMenuItem(
-                                          value: a.id,
-                                          child: Text(a.nome),
-                                        ),
-                                      )
-                                      .toList(),
-                              onChanged:
-                                  (value) =>
-                                      setState(() => _agrotoxicoID = value),
-                              decoration: const InputDecoration(
-                                labelText: 'Agrotóxico',
-                                prefixIcon: Icon(Icons.science),
-                              ),
-                              validator:
-                                  (value) =>
-                                      value == null
-                                          ? 'Selecione um agrotóxico'
-                                          : null,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          IconButton(
-                            icon: Icon(Icons.add_circle, color: primaryColor),
-                            tooltip: 'Novo Agrotóxico',
-                            onPressed: () async {
-                              await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const AgrotoxicoFormView(),
-                                ),
+      body: agrotoxicoViewModel.lista.isEmpty
+          ? Center(child: CircularProgressIndicator(color: primaryColor))
+          : Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Form(
+                key: _formKey,
+                child: ListView(
+                  children: [
+                    _buildTextField(
+                      controller: _descricaoController,
+                      label: 'Descrição',
+                      hint: 'Ex: Aplicação na lavoura A',
+                      icon: Icons.description,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Descrição é obrigatória';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: DropdownButtonFormField<int>(
+                            value: _agrotoxicoID,
+                            items: agrotoxicoViewModel.lista.map((a) {
+                              return DropdownMenuItem(
+                                value: a.id,
+                                child: Text(a.nome),
                               );
-                              agrotoxicoViewModel.fetch();
-                            },
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _dataHoraController,
-                        readOnly: true,
-                        onTap: () => _selectDateTime(context),
-                        decoration: const InputDecoration(
-                          labelText: 'Data e Hora da Aplicação',
-                          prefixIcon: Icon(Icons.calendar_today),
-                        ),
-                        validator:
-                            (value) =>
-                                value == null || value.isEmpty
-                                    ? 'Selecione data e hora'
-                                    : null,
-                      ),
-                      const SizedBox(height: 24),
-                      ElevatedButton(
-                        onPressed: _salvar,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryColor,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8.0),
+                            }).toList(),
+                            onChanged: (value) => setState(() => _agrotoxicoID = value),
+                            decoration: const InputDecoration(
+                              labelText: 'Agrotóxico',
+                              prefixIcon: Icon(Icons.science),
+                            ),
+                            validator: (value) =>
+                                value == null ? 'Selecione um agrotóxico' : null,
                           ),
                         ),
-                        child: Text(
-                          widget.aplicacao == null ? 'ADICIONAR' : 'ATUALIZAR',
-                          style: TextStyle(fontSize: 16, color: whiteColor),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: Icon(Icons.add_circle, color: primaryColor),
+                          tooltip: 'Novo Agrotóxico',
+                          onPressed: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const AgrotoxicoFormView(),
+                              ),
+                            );
+                            agrotoxicoViewModel.fetch();
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _dataHoraController,
+                      readOnly: true,
+                      onTap: () => _selectDateTime(context),
+                      decoration: const InputDecoration(
+                        labelText: 'Data e Hora da Aplicação',
+                        prefixIcon: Icon(Icons.calendar_today),
+                      ),
+                      validator: (value) =>
+                          value == null || value.isEmpty ? 'Selecione data e hora' : null,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: _salvar,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryColor,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.0),
                         ),
                       ),
-                    ],
-                  ),
+                      child: Text(
+                        widget.aplicacao == null ? 'ADICIONAR' : 'ATUALIZAR',
+                        style: TextStyle(fontSize: 16, color: whiteColor),
+                      ),
+                    ),
+                  ],
                 ),
               ),
+            ),
     );
   }
 
@@ -270,3 +252,4 @@ class _AplicacaoFormViewState extends State<AplicacaoFormView> {
     );
   }
 }
+

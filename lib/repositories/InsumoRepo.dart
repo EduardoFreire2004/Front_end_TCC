@@ -80,4 +80,28 @@ class InsumoRepo {
       throw Exception('Erro ao deletar insumo: $e');
     }
   }
+
+  
+  Future<InsumoModel> getID(int id) async {
+    try {
+      final response = await ApiService.getID('/Insumos/$id');
+
+      if (response.statusCode == 200) {
+        if (response.body.isNotEmpty) {
+          final jsonMap = json.decode(response.body) as Map<String, dynamic>;
+          return InsumoModel.fromJson(jsonMap);
+        } else {
+          throw Exception('Resposta vazia do servidor');
+        }
+      } else {
+        throw Exception('Erro ao buscar insumo (${response.statusCode})');
+      }
+    } on SocketException {
+      throw Exception('Falha de conexão. Verifique sua internet');
+    } on TimeoutException {
+      throw Exception('Tempo de resposta excedido');
+    } catch (e) {
+      throw Exception('Erro ao buscar insumo: $e');
+    }
+  }
 }

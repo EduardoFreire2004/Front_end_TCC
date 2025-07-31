@@ -33,13 +33,13 @@ class AplicacaoViewModel extends ChangeNotifier {
 
     try {
       await _repository.create(model);
-      await fetch(); 
+      await fetch();
     } catch (e) {
       errorMessage = 'Erro ao adicionar: $e';
       debugPrint(errorMessage);
       isLoading = false;
       notifyListeners();
-      rethrow; 
+      rethrow;
     }
   }
 
@@ -72,6 +72,20 @@ class AplicacaoViewModel extends ChangeNotifier {
       isLoading = false;
       notifyListeners();
       rethrow;
+    }
+  }
+
+  Future<void> fetchByLavoura(int lavouraId) async {
+    try {
+      isLoading = true;
+      notifyListeners();
+
+      _aplicacao = await _repository.fetchByLavoura(lavouraId);
+    } catch (e) {
+      print('Erro ao buscar aplicações da lavoura: $e');
+    } finally {
+      isLoading = false;
+      notifyListeners();
     }
   }
 }

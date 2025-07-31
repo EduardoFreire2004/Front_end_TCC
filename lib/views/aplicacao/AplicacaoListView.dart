@@ -8,8 +8,23 @@ import 'package:flutter_fgl_1/views/Aplicacao/AplicacaoFormView.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-class AplicacaoListView extends StatelessWidget {
-  const AplicacaoListView({super.key});
+class AplicacaoListView extends StatefulWidget {
+  final int lavouraId;
+
+  const AplicacaoListView({super.key, required this.lavouraId});
+
+  @override
+  State<AplicacaoListView> createState() => _AplicacaoListViewState();
+}
+
+class _AplicacaoListViewState extends State<AplicacaoListView> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<AplicacaoViewModel>(context, listen: false).fetchByLavoura(widget.lavouraId);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,9 +39,8 @@ class AplicacaoListView extends StatelessWidget {
     final Color scaffoldBgColor = Colors.grey[50]!;
 
     void showDetailsDialog(AplicacaoModel aplicacao) {
-      String formatarDataHora(DateTime data) {
-        return DateFormat('dd/MM/yyyy HH:mm').format(data);
-      }
+      String formatarDataHora(DateTime data) =>
+          DateFormat('dd/MM/yyyy HH:mm').format(data);
 
       Widget buildDetailItem(IconData icon, String label, String value) {
         return Padding(
@@ -36,7 +50,9 @@ class AplicacaoListView extends StatelessWidget {
             children: [
               Icon(icon, size: 20, color: iconColor),
               const SizedBox(width: 12),
-              Text("$label: ", style: TextStyle(fontWeight: FontWeight.bold, color: titleColor)),
+              Text("$label: ",
+                  style:
+                      TextStyle(fontWeight: FontWeight.bold, color: titleColor)),
               Expanded(child: Text(value)),
             ],
           ),
@@ -48,11 +64,14 @@ class AplicacaoListView extends StatelessWidget {
           future: agrotoxicoVM.getID(agrotoxicoID),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return buildDetailItem(Icons.science, 'Agrotóxico', 'Carregando...');
+              return buildDetailItem(
+                  Icons.science, 'Agrotóxico', 'Carregando...');
             } else if (snapshot.hasError || snapshot.data == null) {
-              return buildDetailItem(Icons.science, 'Agrotóxico', 'Não encontrado');
+              return buildDetailItem(
+                  Icons.science, 'Agrotóxico', 'Não encontrado');
             } else {
-              return buildDetailItem(Icons.science, 'Agrotóxico', snapshot.data!.nome);
+              return buildDetailItem(
+                  Icons.science, 'Agrotóxico', snapshot.data!.nome);
             }
           },
         );
@@ -62,14 +81,16 @@ class AplicacaoListView extends StatelessWidget {
         context: context,
         builder: (dialogContext) {
           return AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             title: Text('Detalhes da Aplicação', style: TextStyle(color: titleColor)),
             content: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   buildDetailItem(Icons.description, 'Descrição', aplicacao.descricao),
-                  buildDetailItem(Icons.calendar_today, 'Data e Hora', formatarDataHora(aplicacao.dataHora)),
+                  buildDetailItem(Icons.calendar_today, 'Data e Hora',
+                      formatarDataHora(aplicacao.dataHora)),
                   buildAgrotoxicoDetail(aplicacao.agrotoxicoID),
                 ],
               ),
@@ -95,9 +116,9 @@ class AplicacaoListView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: scaffoldBgColor,
-      appBar: AppBar(title: const Text('Aplicações')),
+      appBar: AppBar(title: const Text('Aplicações de Agrotóxicos')),
       body: RefreshIndicator(
-        onRefresh: () => aplicacaoVM.fetch(),
+        onRefresh: () => aplicacaoVM.fetchByLavoura(widget.lavouraId),
         color: primaryColor,
         child: aplicacaoVM.isLoading && aplicacaoVM.aplicacao.isEmpty
             ? Center(child: CircularProgressIndicator(color: primaryColor))
@@ -135,7 +156,7 @@ class AplicacaoListView extends StatelessWidget {
                             context: context,
                             builder: (context) => AlertDialog(
                               title: const Text('Confirmar exclusão'),
-                              content: Text('Deseja realmente excluir esta aplicação?'),
+                              content: const Text('Deseja realmente excluir esta aplicação?'),
                               actions: [
                                 TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancelar')),
                                 TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Excluir', style: TextStyle(color: Colors.red))),
@@ -147,7 +168,7 @@ class AplicacaoListView extends StatelessWidget {
                           if (item.id != null) {
                             aplicacaoVM.delete(item.id!);
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Aplicação excluída.'), backgroundColor: errorColor),
+                              SnackBar(content: const Text('Aplicação excluída.'), backgroundColor: errorColor),
                             );
                           }
                         },
@@ -195,7 +216,10 @@ class AplicacaoListView extends StatelessWidget {
                                     onPressed: () => Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (_) => AplicacaoFormView(aplicacao: item),
+                                        builder: (_) => AplicacaoFormView(
+                                          aplicacao: item,
+                                          lavouraId: widget.lavouraId,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -230,7 +254,9 @@ class AplicacaoListView extends StatelessWidget {
             heroTag: 'addFAB',
             onPressed: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const AplicacaoFormView()),
+              MaterialPageRoute(
+                builder: (_) => AplicacaoFormView(lavouraId: widget.lavouraId),
+              ),
             ),
             child: const Icon(Icons.add),
           ),

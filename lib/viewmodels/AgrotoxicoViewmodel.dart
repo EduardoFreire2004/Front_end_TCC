@@ -33,13 +33,13 @@ class AgrotoxicoViewModel extends ChangeNotifier {
 
     try {
       await _repository.create(model);
-      await fetch(); 
+      await fetch();
     } catch (e) {
       errorMessage = 'Erro ao adicionar: $e';
       debugPrint(errorMessage);
       isLoading = false;
       notifyListeners();
-      rethrow; 
+      rethrow;
     }
   }
 
@@ -75,17 +75,32 @@ class AgrotoxicoViewModel extends ChangeNotifier {
     }
   }
 
- Future<AgrotoxicoModel?> getID(int id) async {
+  Future<AgrotoxicoModel?> getID(int id) async {
     try {
       isLoading = true;
       notifyListeners();
 
-      final fornecedor = await _repository.getID(id);
-      return fornecedor;
+      final agrotoxico = await _repository.getID(id);
+      return agrotoxico;
     } catch (e) {
       errorMessage = 'Erro ao buscar agrotóxico: $e';
       debugPrint(errorMessage);
       return null;
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> fetchByNome(String nome) async {
+    try {
+      isLoading = true;
+      notifyListeners();
+
+      _lista = await _repository.getByNome(nome);
+    } catch (e) {
+      _lista = [];
+      print('Erro ao buscar: $e');
     } finally {
       isLoading = false;
       notifyListeners();

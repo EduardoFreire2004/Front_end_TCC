@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_fgl_1/views/Insumo/InsumoListView.dart';
+import 'package:flutter_fgl_1/viewmodels/AplicacaoInsumoViewModel.dart';
+import 'package:flutter_fgl_1/views/Lavoura/LavouraListView.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
@@ -16,15 +17,6 @@ import 'package:flutter_fgl_1/viewmodels/PlantioViewModel.dart';
 import 'package:flutter_fgl_1/viewmodels/SementeViewModel.dart';
 import 'package:flutter_fgl_1/viewmodels/ThemaProviderViewModel.dart';
 import 'package:flutter_fgl_1/viewmodels/TipoAgrotoxicoViewModel.dart';
-
-import 'package:flutter_fgl_1/views/Agrotoxico/AgrotoxicoListView.dart';
-import 'package:flutter_fgl_1/views/Aplicacao/AplicacaoListView.dart';
-import 'package:flutter_fgl_1/views/CategoriaInsumo/CategoriaInsumoListView.dart';
-import 'package:flutter_fgl_1/views/ForneAgrotoxico/FornecedorAgrotoxicoListView.dart';
-import 'package:flutter_fgl_1/views/Lavoura/LavouraListView.dart';
-import 'package:flutter_fgl_1/views/TipoAgrotoxico/TipoAgrotoxicoListView.dart';
-import 'package:flutter_fgl_1/views/plantio/PlantioListView.dart';
-import 'package:flutter_fgl_1/views/semente/SementeListView.dart';
 
 import 'package:flutter_fgl_1/widgets/nav_page.dart';
 import 'package:provider/provider.dart';
@@ -60,6 +52,7 @@ class FGLApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => PlantioViewModel()..fetch()),
         ChangeNotifierProvider(create: (_) => ColheitaViewModel()..fetch()),
         ChangeNotifierProvider(create: (_) => LavouraViewModel()..fetch()),
+        ChangeNotifierProvider(create: (_) => AplicacaoInsumoViewModel()..fetch()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
       child: Consumer<ThemeProvider>(

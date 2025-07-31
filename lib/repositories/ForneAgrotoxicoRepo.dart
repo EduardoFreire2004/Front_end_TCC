@@ -111,4 +111,23 @@ class ForneAgrotoxicoRepo {
       throw Exception('Erro ao buscar tipo: $e');
     }
   }
+
+ Future<List<ForneAgrotoxicoModel>> getByParametro(String tipo, String valor) async {
+  try {
+    final endpoint = '/FornecedorAgrotoxicos/buscar?tipo=$tipo&valor=$valor';
+    final response = await ApiService.get(endpoint);
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.map((item) => ForneAgrotoxicoModel.fromJson(item)).toList();
+    } else {
+      throw Exception('Erro ${response.statusCode}: busca falhou.');
+    }
+  } catch (e) {
+    throw Exception('Erro ao buscar por $tipo: $e');
+  }
+}
+
+
+
 }

@@ -14,7 +14,9 @@ class LavouraRepo {
             .map((item) => LavouraModel.fromJson(item as Map<String, dynamic>))
             .toList();
       } else {
-        throw Exception('Erro ${response.statusCode}: Não foi possível carregar os lavouras.');
+        throw Exception(
+          'Erro ${response.statusCode}: Não foi possível carregar os lavouras.',
+        );
       }
     } on SocketException {
       throw Exception('Sem conexão com a internet. Verifique sua rede.');

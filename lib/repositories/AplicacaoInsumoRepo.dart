@@ -1,19 +1,19 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
-import '../models/AplicacaoModel.dart';
 import '../services/api_service.dart';
+import '../models/AplicacaoInsumoModel.dart';
 
-class AplicacaoRepo {
-  Future<List<AplicacaoModel>> getAll() async {
+class AplicacaoInsumoRepo {
+  Future<List<AplicacaoInsumoModel>> getAll() async {
     try {
-      final response = await ApiService.get('/Aplicacoes');
+      final response = await ApiService.get('/AplicacaoInsumos');
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         return data
             .map(
-              (item) => AplicacaoModel.fromJson(item as Map<String, dynamic>),
+              (item) => AplicacaoInsumoModel.fromJson(item as Map<String, dynamic>),
             )
             .toList();
       } else {
@@ -32,10 +32,10 @@ class AplicacaoRepo {
     }
   }
 
-  Future<void> create(AplicacaoModel aplicacao) async {
+  Future<void> create(AplicacaoInsumoModel aplicacao) async {
     try {
       final response = await ApiService.post(
-        '/Aplicacoes',
+        '/AplicacaoInsumos',
         jsonEncode(aplicacao.toJson()),
       );
 
@@ -51,10 +51,10 @@ class AplicacaoRepo {
     }
   }
 
-  Future<void> update(AplicacaoModel aplicacao) async {
+  Future<void> update(AplicacaoInsumoModel aplicacao) async {
     try {
       final response = await ApiService.put(
-        '/Aplicacoes/${aplicacao.id}',
+        '/AplicacaoInsumos/${aplicacao.id}',
         jsonEncode(aplicacao.toJson()),
       );
 
@@ -74,7 +74,7 @@ class AplicacaoRepo {
 
   Future<void> delete(int id) async {
     try {
-      final response = await ApiService.delete('/Aplicacoes/$id');
+      final response = await ApiService.delete('/AplicacaoInsumos/$id');
 
       if (response.statusCode != 200 && response.statusCode != 204) {
         throw Exception('Erro ao deletar aplicação (${response.statusCode}).');
@@ -88,17 +88,17 @@ class AplicacaoRepo {
     }
   }
 
-  Future<List<AplicacaoModel>> fetchByLavoura(int lavouraId) async {
+  Future<List<AplicacaoInsumoModel>> fetchByLavoura(int lavouraId) async {
     try {
       final response = await ApiService.get(
-        '/Aplicacoes/porlavoura/$lavouraId',
+        '/AplicacaoInsumos/porlavoura/$lavouraId',
       );
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         return data
             .map(
-              (item) => AplicacaoModel.fromJson(item as Map<String, dynamic>),
+              (item) => AplicacaoInsumoModel.fromJson(item as Map<String, dynamic>),
             )
             .toList();
       } else {
