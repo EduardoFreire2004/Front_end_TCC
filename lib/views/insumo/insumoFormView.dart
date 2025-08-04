@@ -49,7 +49,9 @@ class _InsumoFormPageState extends State<InsumoFormView> {
 
     if (widget.insumo != null) {
       return lista.any(
-        (f) => f.nome.toLowerCase() == nome.toLowerCase() && f.id != widget.insumo!.id,
+        (f) =>
+            f.nome.toLowerCase() == nome.toLowerCase() &&
+            f.id != widget.insumo!.id,
       );
     }
 
@@ -78,7 +80,10 @@ class _InsumoFormPageState extends State<InsumoFormView> {
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Insumo salvo com sucesso!'), backgroundColor: primaryColor),
+      SnackBar(
+        content: Text('Insumo salvo com sucesso!'),
+        backgroundColor: primaryColor,
+      ),
     );
 
     Navigator.pop(context);
@@ -107,162 +112,192 @@ class _InsumoFormPageState extends State<InsumoFormView> {
       appBar: AppBar(
         title: Text(widget.insumo == null ? "Novo Insumo" : "Editar Insumo"),
       ),
-      body: categoriaVM.categoriaInsumo.isEmpty || fornecedorVM.forneInsumo.isEmpty
-          ? Center(child: CircularProgressIndicator(color: primaryColor))
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: ListView(
-                  children: [
-                    TextFormField(
-                      controller: _nomeController,
-                      decoration: const InputDecoration(
-                        labelText: "Nome",
-                        prefixIcon: Icon(Icons.inventory),
+      body:
+          categoriaVM.categoriaInsumo.isEmpty ||
+                  fornecedorVM.forneInsumo.isEmpty
+              ? Center(child: CircularProgressIndicator(color: primaryColor))
+              : Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Form(
+                  key: _formKey,
+                  child: ListView(
+                    children: [
+                      TextFormField(
+                        controller: _nomeController,
+                        decoration: const InputDecoration(
+                          labelText: "Nome",
+                          prefixIcon: Icon(Icons.inventory),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Nome é obrigatório';
+                          }
+                          if (_nomeJaExiste(value.trim())) {
+                            return 'Este nome já está cadastrado';
+                          }
+                          return null;
+                        },
                       ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Nome é obrigatório';
-                        }
-                        if (_nomeJaExiste(value.trim())) {
-                          return 'Este nome já está cadastrado';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _unidadeController,
-                      decoration: const InputDecoration(
-                        labelText: "Unidade de Medida",
-                        prefixIcon: Icon(Icons.straighten),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _unidadeController,
+                        decoration: const InputDecoration(
+                          labelText: "Unidade de Medida",
+                          prefixIcon: Icon(Icons.straighten),
+                        ),
+                        validator:
+                            (value) =>
+                                value == null || value.isEmpty
+                                    ? "Campo obrigatório"
+                                    : null,
                       ),
-                      validator: (value) =>
-                          value == null || value.isEmpty ? "Campo obrigatório" : null,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _qtdeController,
-                      keyboardType: TextInputType.numberWithOptions(decimal: true),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'[0-9,\.]')),
-                      ],
-                      decoration: const InputDecoration(
-                        labelText: "Quantidade",
-                        prefixIcon: Icon(Icons.scale),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _qtdeController,
+                        keyboardType: TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                            RegExp(r'[0-9,\.]'),
+                          ),
+                        ],
+                        decoration: const InputDecoration(
+                          labelText: "Quantidade",
+                          prefixIcon: Icon(Icons.scale),
+                        ),
+                        validator:
+                            (value) =>
+                                value == null || value.isEmpty
+                                    ? "Campo obrigatório"
+                                    : null,
                       ),
-                      validator: (value) =>
-                          value == null || value.isEmpty ? "Campo obrigatório" : null,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      readOnly: true,
-                      onTap: _selectDate,
-                      controller: TextEditingController(
-                        text: DateFormat('dd/MM/yyyy').format(_dataCadastro),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        readOnly: true,
+                        onTap: _selectDate,
+                        controller: TextEditingController(
+                          text: DateFormat('dd/MM/yyyy').format(_dataCadastro),
+                        ),
+                        decoration: const InputDecoration(
+                          labelText: 'Data de Cadastro',
+                          prefixIcon: Icon(Icons.calendar_today),
+                        ),
+                        validator:
+                            (value) =>
+                                value == null || value.isEmpty
+                                    ? 'Data obrigatória'
+                                    : null,
                       ),
-                      decoration: const InputDecoration(
-                        labelText: 'Data de Cadastro',
-                        prefixIcon: Icon(Icons.calendar_today),
-                      ),
-                      validator: (value) => value == null || value.isEmpty
-                          ? 'Data obrigatória'
-                          : null,
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: DropdownButtonFormField<int>(
-                            value: _categoriaID,
-                            items: categoriaVM.categoriaInsumo
-                                .map((c) => DropdownMenuItem(
-                                      value: c.id,
-                                      child: Text(c.descricao),
-                                    ))
-                                .toList(),
-                            onChanged: (value) => setState(() => _categoriaID = value),
-                            decoration: const InputDecoration(
-                              labelText: "Categoria",
-                              prefixIcon: Icon(Icons.category),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: DropdownButtonFormField<int>(
+                              value: _categoriaID,
+                              items:
+                                  categoriaVM.categoriaInsumo
+                                      .map(
+                                        (c) => DropdownMenuItem(
+                                          value: c.id,
+                                          child: Text(c.descricao),
+                                        ),
+                                      )
+                                      .toList(),
+                              onChanged:
+                                  (value) =>
+                                      setState(() => _categoriaID = value),
+                              decoration: const InputDecoration(
+                                labelText: "Categoria",
+                                prefixIcon: Icon(Icons.category),
+                              ),
+                              validator:
+                                  (value) =>
+                                      value == null
+                                          ? "Selecione uma categoria"
+                                          : null,
                             ),
-                            validator: (value) =>
-                                value == null ? "Selecione uma categoria" : null,
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: Icon(Icons.add_circle, color: primaryColor),
+                            tooltip: 'Nova Categoria',
+                            onPressed: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => CategoriaInsumoFormView(),
+                                ),
+                              );
+                              categoriaVM.fetch();
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: DropdownButtonFormField<int>(
+                              value: _fornecedorID,
+                              items:
+                                  fornecedorVM.forneInsumo
+                                      .map(
+                                        (f) => DropdownMenuItem(
+                                          value: f.id,
+                                          child: Text(f.nome),
+                                        ),
+                                      )
+                                      .toList(),
+                              onChanged:
+                                  (value) =>
+                                      setState(() => _fornecedorID = value),
+                              decoration: const InputDecoration(
+                                labelText: "Fornecedor",
+                                prefixIcon: Icon(Icons.business),
+                              ),
+                              validator:
+                                  (value) =>
+                                      value == null
+                                          ? "Selecione um fornecedor"
+                                          : null,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: Icon(Icons.add_circle, color: primaryColor),
+                            tooltip: 'Novo Fornecedor',
+                            onPressed: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => FornecedorInsumoFormView(),
+                                ),
+                              );
+                              fornecedorVM.fetch();
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: _salvar,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryColor,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.0),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        IconButton(
-                          icon: Icon(Icons.add_circle, color: primaryColor),
-                          tooltip: 'Nova Categoria',
-                          onPressed: () async {
-                            await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => CategoriaInsumoFormView(),
-                              ),
-                            );
-                            categoriaVM.fetch();
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: DropdownButtonFormField<int>(
-                            value: _fornecedorID,
-                            items: fornecedorVM.forneInsumo
-                                .map((f) => DropdownMenuItem(
-                                      value: f.id,
-                                      child: Text(f.nome),
-                                    ))
-                                .toList(),
-                            onChanged: (value) => setState(() => _fornecedorID = value),
-                            decoration: const InputDecoration(
-                              labelText: "Fornecedor",
-                              prefixIcon: Icon(Icons.business),
-                            ),
-                            validator: (value) =>
-                                value == null ? "Selecione um fornecedor" : null,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        IconButton(
-                          icon: Icon(Icons.add_circle, color: primaryColor),
-                          tooltip: 'Novo Fornecedor',
-                          onPressed: () async {
-                            await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => FornecedorInsumoFormView(),
-                              ),
-                            );
-                            fornecedorVM.fetch();
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: _salvar,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryColor,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.0),
+                        child: Text(
+                          widget.insumo == null ? "ADICIONAR" : "ATUALIZAR",
+                          style: TextStyle(color: whiteColor, fontSize: 16),
                         ),
                       ),
-                      child: Text(
-                        widget.insumo == null ? "ADICIONAR" : "ATUALIZAR",
-                        style: TextStyle(color: whiteColor, fontSize: 16),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
     );
   }
 }

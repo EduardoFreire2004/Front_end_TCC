@@ -14,7 +14,9 @@ class InsumoRepo {
             .map((item) => InsumoModel.fromJson(item as Map<String, dynamic>))
             .toList();
       } else {
-        throw Exception('Erro ${response.statusCode}: Não foi possível carregar os insumos.');
+        throw Exception(
+          'Erro ${response.statusCode}: Não foi possível carregar os insumos.',
+        );
       }
     } on SocketException {
       throw Exception('Sem conexão com a internet. Verifique sua rede.');
@@ -81,7 +83,6 @@ class InsumoRepo {
     }
   }
 
-  
   Future<InsumoModel> getID(int id) async {
     try {
       final response = await ApiService.getID('/Insumos/$id');
@@ -102,6 +103,22 @@ class InsumoRepo {
       throw Exception('Tempo de resposta excedido');
     } catch (e) {
       throw Exception('Erro ao buscar insumo: $e');
+    }
+  }
+
+  Future<List<InsumoModel>> getByNome(String nome) async {
+    try {
+      final endpoint = '/Insumos/nome/$nome';
+      final response = await ApiService.get(endpoint);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((item) => InsumoModel.fromJson(item)).toList();
+      } else {
+        throw Exception('Erro ${response.statusCode}: busca falhou.');
+      }
+    } catch (e) {
+      throw Exception('Erro ao buscar por $nome: $e');
     }
   }
 }

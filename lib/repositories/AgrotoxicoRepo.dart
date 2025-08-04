@@ -12,10 +12,14 @@ class AgrotoxicoRepo {
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         return data
-            .map((item) => AgrotoxicoModel.fromJson(item as Map<String, dynamic>))
+            .map(
+              (item) => AgrotoxicoModel.fromJson(item as Map<String, dynamic>),
+            )
             .toList();
       } else {
-        throw Exception('Erro ${response.statusCode}: Não foi possível carregar os agrotóxicos.');
+        throw Exception(
+          'Erro ${response.statusCode}: Não foi possível carregar os agrotóxicos.',
+        );
       }
     } on SocketException {
       throw Exception('Sem conexão com a internet. Verifique sua rede.');
@@ -55,7 +59,9 @@ class AgrotoxicoRepo {
       );
 
       if (response.statusCode != 200 && response.statusCode != 204) {
-        throw Exception('Erro ao atualizar agrotóxico (${response.statusCode}).');
+        throw Exception(
+          'Erro ao atualizar agrotóxico (${response.statusCode}).',
+        );
       }
     } on SocketException {
       throw Exception('Sem conexão com a internet ao atualizar.');
@@ -106,18 +112,18 @@ class AgrotoxicoRepo {
   }
 
   Future<List<AgrotoxicoModel>> getByNome(String nome) async {
-  try {
-    final endpoint = '/Agrotoxicos/nome/$nome';
-    final response = await ApiService.get(endpoint);
+    try {
+      final endpoint = '/Agrotoxicos/nome/$nome';
+      final response = await ApiService.get(endpoint);
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.map((item) => AgrotoxicoModel.fromJson(item)).toList();
-    } else {
-      throw Exception('Erro ${response.statusCode}: busca falhou.');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((item) => AgrotoxicoModel.fromJson(item)).toList();
+      } else {
+        throw Exception('Erro ${response.statusCode}: busca falhou.');
+      }
+    } catch (e) {
+      throw Exception('Erro ao buscar por $nome: $e');
     }
-  } catch (e) {
-    throw Exception('Erro ao buscar por $nome: $e');
   }
-}
 }

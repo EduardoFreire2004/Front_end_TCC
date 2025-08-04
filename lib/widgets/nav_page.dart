@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fgl_1/viewmodels/ThemaProviderViewModel.dart';
-import 'package:flutter_fgl_1/views/Aplicacao/AplicacaoListView.dart';
-import 'package:flutter_fgl_1/views/Colheita/ColheitaListView.dart';
+import 'package:flutter_fgl_1/views/Agrotoxico/AgrotoxicoListView.dart';
 import 'package:flutter_fgl_1/views/ForneAgrotoxico/FornecedorAgrotoxicoListView.dart';
 import 'package:flutter_fgl_1/views/ForneInsumo/ForneInsumoListView.dart';
 import 'package:flutter_fgl_1/views/ForneSemente/FonecedorSementeListView.dart';
 import 'package:flutter_fgl_1/views/Insumo/InsumoListView.dart';
-import 'package:flutter_fgl_1/views/Plantio/PlantioListView.dart';
 import 'package:flutter_fgl_1/views/Semente/SementeListView.dart';
 import 'package:provider/provider.dart';
 
@@ -30,11 +28,26 @@ class NavBar extends StatelessWidget {
         children: [
           DrawerHeader(
             decoration: BoxDecoration(color: headerColor),
-            child: Text(
-              'Menu',
-              style: TextStyle(color: headerTextColor, fontSize: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CircleAvatar(
+                  radius: 28,
+                  backgroundColor: Colors.white,
+                  child: Icon(Icons.person, size: 32, color: Colors.green[700]),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Eduardo Freire',
+                  style: TextStyle(
+                    color: headerTextColor,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
-          ),  
+          ),
           ExpansionTile(
             leading: Icon(Icons.store, color: iconItemColor),
             title: Text(
@@ -45,12 +58,40 @@ class NavBar extends StatelessWidget {
               ),
             ),
             children: [
-              _buildSubNavItem(context, 'Fornecedor Agrotóxicos', FornecedorAgrotoxicoListView()),
-              _buildSubNavItem(context, 'Fornecedor Sementes', FornecedorSementeListView()),
-              _buildSubNavItem(context, 'Fornecedor Insumos', FornecedorInsumoListView()),
-              _buildSubNavItem(context, 'Sementes', SementeListView()),
-              
+              _buildSubNavItem(
+                context,
+                'Fornecedor Agrotóxicos',
+                FornecedorAgrotoxicoListView(),
+              ),
+              _buildSubNavItem(
+                context,
+                'Fornecedor Sementes',
+                FornecedorSementeListView(),
+              ),
+              _buildSubNavItem(
+                context,
+                'Fornecedor Insumos',
+                FornecedorInsumoListView(),
+              ),
             ],
+          ),
+          _buildNavItem(
+            context,
+            Icons.bug_report,
+            'Agrotóxicos',
+            AgrotoxicoListView(),
+          ),
+          _buildNavItem(
+            context,
+            Icons.grass,
+            'Sementes',
+            SementeListView(),
+          ),
+          _buildNavItem(
+            context,
+            Icons.science,
+            'Insumos',
+            InsumoListView(),
           ),
           const Divider(),
           ListTile(
@@ -75,22 +116,21 @@ class NavBar extends StatelessWidget {
     );
   }
 
-  ListTile _buildNavItem(BuildContext context, IconData icon, String title, Widget page) {
+  ListTile _buildNavItem(
+    BuildContext context,
+    IconData icon,
+    String title,
+    Widget page,
+  ) {
     return ListTile(
       leading: Icon(icon, color: Colors.green[700]),
       title: Text(
         title,
-        style: TextStyle(
-          color: Colors.green[800],
-          fontWeight: FontWeight.w500,
-        ),
+        style: TextStyle(color: Colors.green[800], fontWeight: FontWeight.w500),
       ),
       onTap: () {
         Navigator.pop(context);
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => page),
-        );
+        Navigator.push(context, MaterialPageRoute(builder: (_) => page));
       },
     );
   }
@@ -102,17 +142,11 @@ class NavBar extends StatelessWidget {
       contentPadding: EdgeInsets.only(left: 72),
       title: Text(
         title,
-        style: TextStyle(
-          color: Colors.green[800],
-          fontWeight: FontWeight.w400,
-        ),
+        style: TextStyle(color: Colors.green[800], fontWeight: FontWeight.w400),
       ),
       onTap: () {
         Navigator.pop(context);
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => page),
-        );
+        Navigator.push(context, MaterialPageRoute(builder: (_) => page));
       },
     );
   }

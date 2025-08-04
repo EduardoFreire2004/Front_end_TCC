@@ -7,16 +7,14 @@ import 'package:provider/provider.dart';
 class FornecedorInsumoFormView extends StatefulWidget {
   final ForneInsumoModel? fornecedor;
 
-  const FornecedorInsumoFormView({Key? key, this.fornecedor})
-    : super(key: key);
+  const FornecedorInsumoFormView({Key? key, this.fornecedor}) : super(key: key);
 
   @override
   State<FornecedorInsumoFormView> createState() =>
       _FornecedorInsumoFormViewState();
 }
 
-class _FornecedorInsumoFormViewState
-    extends State<FornecedorInsumoFormView> {
+class _FornecedorInsumoFormViewState extends State<FornecedorInsumoFormView> {
   final _formKey = GlobalKey<FormState>();
   final _nomeController = TextEditingController();
   final _cnpjController = TextEditingController();
@@ -74,10 +72,7 @@ class _FornecedorInsumoFormViewState
   }
 
   bool _nomeJaExiste(String nome) {
-    final viewModel = Provider.of<ForneInsumoViewModel>(
-      context,
-      listen: false,
-    );
+    final viewModel = Provider.of<ForneInsumoViewModel>(context, listen: false);
     final lista = viewModel.forneInsumo;
 
     if (widget.fornecedor != null) {

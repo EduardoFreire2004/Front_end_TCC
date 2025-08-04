@@ -33,7 +33,7 @@ class AplicacaoInsumoViewModel extends ChangeNotifier {
 
     try {
       await _repository.create(model);
-      await fetch();
+      await fetchByLavoura(model.lavouraID!);
     } catch (e) {
       errorMessage = 'Erro ao adicionar: $e';
       debugPrint(errorMessage);
@@ -49,7 +49,7 @@ class AplicacaoInsumoViewModel extends ChangeNotifier {
 
     try {
       await _repository.update(model);
-      await fetch();
+      await fetchByLavoura(model.lavouraID!);
     } catch (e) {
       errorMessage = 'Erro ao atualizar: $e';
       debugPrint(errorMessage);
@@ -59,13 +59,13 @@ class AplicacaoInsumoViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> delete(int id) async {
+  Future<void> delete(int id, int lavouraID) async {
     isLoading = true;
     notifyListeners();
 
     try {
       await _repository.delete(id);
-      await fetch();
+      await fetchByLavoura(lavouraID);
     } catch (e) {
       errorMessage = 'Erro ao excluir: $e';
       debugPrint(errorMessage);

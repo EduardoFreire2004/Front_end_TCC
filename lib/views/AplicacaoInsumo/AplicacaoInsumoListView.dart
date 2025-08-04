@@ -41,7 +41,7 @@ class _AplicacaoListViewState extends State<AplicacaoInsumoListView> {
     final Color errorColor = Colors.redAccent;
     final Color scaffoldBgColor = Colors.grey[50]!;
 
-    void showDetailsDialog(AplicacaoInsumoModel aplicacao) {
+    void showDetailsDialog(AplicacaoInsumoModel aplicacao) async {
       String formatarDataHora(DateTime data) =>
           DateFormat('dd/MM/yyyy HH:mm').format(data);
 
@@ -66,24 +66,8 @@ class _AplicacaoListViewState extends State<AplicacaoInsumoListView> {
         );
       }
 
-      Widget buildInsumoDetail(int insumoID) {
-        return FutureBuilder<InsumoModel?>(
-          future: insumoVM.getID(insumoID),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return buildDetailItem(Icons.science, 'Insumo', 'Carregando...');
-            } else if (snapshot.hasError || snapshot.data == null) {
-              return buildDetailItem(Icons.science, 'Insumo', 'Não encontrado');
-            } else {
-              return buildDetailItem(
-                Icons.science,
-                'Insumo',
-                snapshot.data!.nome,
-              );
-            }
-          },
-        );
-      }
+      final insumo = await insumoVM.getID(aplicacao.insumoID);
+      final nomeInsumo = insumo?.nome ?? 'Não encontrado';
 
       showDialog(
         context: context,
@@ -110,7 +94,7 @@ class _AplicacaoListViewState extends State<AplicacaoInsumoListView> {
                     'Data e Hora',
                     formatarDataHora(aplicacao.dataHora),
                   ),
-                  buildInsumoDetail(aplicacao.insumoID),
+                  buildDetailItem(Icons.science, 'Insumo', nomeInsumo),
                 ],
               ),
             ),
@@ -182,13 +166,13 @@ class _AplicacaoListViewState extends State<AplicacaoInsumoListView> {
                         ),
                       ),
                       confirmDismiss: (_) async {
-                        return await showDialog(
+                        final shouldDelete = await showDialog<bool>(
                           context: context,
                           builder:
                               (context) => AlertDialog(
                                 title: const Text('Confirmar exclusão'),
                                 content: const Text(
-                                  'Deseja realmente excluir esta aplicação?',
+                                  'Deseja realmente excluir esta Aplicação?',
                                 ),
                                 actions: [
                                   TextButton(
@@ -197,8 +181,30 @@ class _AplicacaoListViewState extends State<AplicacaoInsumoListView> {
                                     child: const Text('Cancelar'),
                                   ),
                                   TextButton(
-                                    onPressed:
-                                        () => Navigator.of(context).pop(true),
+                                    onPressed: () async {
+                                      if (item.id != null) {
+                                        await aplicacaoVM.delete(
+                                          item.id!,
+                                          item.lavouraID,
+                                        );
+                                        Navigator.of(context).pop(true);
+                                        WidgetsBinding.instance
+                                            .addPostFrameCallback((_) {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: const Text(
+                                                    'Aplicação excluída.',
+                                                  ),
+                                                  backgroundColor: errorColor,
+                                                ),
+                                              );
+                                            });
+                                      } else {
+                                        Navigator.of(context).pop(false);
+                                      }
+                                    },
                                     child: const Text(
                                       'Excluir',
                                       style: TextStyle(color: Colors.red),
@@ -207,18 +213,9 @@ class _AplicacaoListViewState extends State<AplicacaoInsumoListView> {
                                 ],
                               ),
                         );
+                        return shouldDelete ?? false;
                       },
-                      onDismissed: (_) {
-                        if (item.id != null) {
-                          aplicacaoVM.delete(item.id!);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: const Text('Aplicação excluída.'),
-                              backgroundColor: errorColor,
-                            ),
-                          );
-                        }
-                      },
+                      onDismissed: (_) {},
                       child: Card(
                         margin: const EdgeInsets.symmetric(
                           horizontal: 8.0,
@@ -318,6 +315,7 @@ class _AplicacaoListViewState extends State<AplicacaoInsumoListView> {
           const SizedBox(height: 12),
           FloatingActionButton(
             heroTag: 'addFAB',
+            backgroundColor: Colors.green,
             onPressed:
                 () => Navigator.push(
                   context,

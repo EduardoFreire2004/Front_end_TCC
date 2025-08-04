@@ -10,7 +10,8 @@ class CategoriaInsumoFormView extends StatefulWidget {
   const CategoriaInsumoFormView({Key? key, this.categoria}) : super(key: key);
 
   @override
-  State<CategoriaInsumoFormView> createState() => _TipoAgrotoxicoFormViewState();
+  State<CategoriaInsumoFormView> createState() =>
+      _TipoAgrotoxicoFormViewState();
 }
 
 class _TipoAgrotoxicoFormViewState extends State<CategoriaInsumoFormView> {
@@ -87,7 +88,9 @@ class _TipoAgrotoxicoFormViewState extends State<CategoriaInsumoFormView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.categoria == null ? 'Nova categoria' : 'Editar categoria'),
+        title: Text(
+          widget.categoria == null ? 'Nova categoria' : 'Editar categoria',
+        ),
         backgroundColor: primaryColor,
       ),
       body: Padding(

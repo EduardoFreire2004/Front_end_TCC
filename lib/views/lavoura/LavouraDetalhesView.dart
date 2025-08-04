@@ -29,7 +29,9 @@ class LavouraDetalhesView extends StatelessWidget {
         child: Card(
           color: cardColor,
           elevation: 3,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -39,7 +41,11 @@ class LavouraDetalhesView extends StatelessWidget {
                 Text(
                   title,
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: titleColor),
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: titleColor,
+                  ),
                 ),
               ],
             ),
@@ -57,7 +63,11 @@ class LavouraDetalhesView extends StatelessWidget {
           children: [
             Text(
               lavoura.nome,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: titleColor),
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: titleColor,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
@@ -72,45 +82,148 @@ class LavouraDetalhesView extends StatelessWidget {
                 mainAxisSpacing: 12,
                 childAspectRatio: 1.0,
                 children: [
-                  buildCard('Aplicações de Agrotóxicos', Icons.local_florist, () => Navigator.push(context, MaterialPageRoute(builder: (_) => AplicacaoListView(lavouraId: lavoura.id!)))),
-                  buildCard('Plantios', Icons.agriculture, () => Navigator.push(context, MaterialPageRoute(builder: (_) => PlantioListView(lavouraId: lavoura.id!)))),
-                  buildCard('Aplicações de Insumos', Icons.local_florist, () => Navigator.push(context, MaterialPageRoute(builder: (_) => AplicacaoInsumoListView(lavouraId: lavoura.id!)))),  
-                  buildCard('Sementes', Icons.spa, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SementeListView()))),
-                  buildCard('Colheitas', Icons.grass, () => Navigator.push(context, MaterialPageRoute(builder: (_) => ColheitaListView()))),
-                  buildCard('Agrotóxicos', Icons.science, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AgrotoxicoListView()))),
-                  buildCard('Insumos', Icons.inventory_2, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const InsumoListView()))),
+                  buildCard(
+                    'Aplicações de Agrotóxicos',
+                    Icons.local_florist,
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (_) => AplicacaoListView(lavouraId: lavoura.id!),
+                      ),
+                    ),
+                  ),
+                  buildCard(
+                    'Plantios',
+                    Icons.agriculture,
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PlantioListView(lavouraId: lavoura.id!),
+                      ),
+                    ),
+                  ),
+                  buildCard(
+                    'Aplicações de Insumos',
+                    Icons.local_florist,
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (_) =>
+                                AplicacaoInsumoListView(lavouraId: lavoura.id!),
+                      ),
+                    ),
+                  ),
+                  buildCard(
+                    'Sementes',
+                    Icons.spa,
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const SementeListView(),
+                      ),
+                    ),
+                  ),
+                  buildCard(
+                    'Colheitas',
+                    Icons.grass,
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => ColheitaListView(lavouraId: lavoura.id!,)),
+                    ),
+                  ),
+                  buildCard(
+                    'Agrotóxicos',
+                    Icons.science,
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const AgrotoxicoListView(),
+                      ),
+                    ),
+                  ),
+                  buildCard(
+                    'Insumos',
+                    Icons.inventory_2,
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const InsumoListView()),
+                    ),
+                  ),
                   buildCard('Fornecedores', Icons.store, () {
                     showModalBottomSheet(
                       context: context,
                       shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                      ),
-                      builder: (context) => SafeArea(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 12),
-                              child: Text('Selecione o tipo de fornecedor', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                            ),
-                            ListTile(
-                              leading: const Icon(Icons.bug_report, color: Colors.green),
-                              title: const Text('Fornecedor Agrotóxico'),
-                              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => FornecedorAgrotoxicoListView())),
-                            ),
-                            ListTile(
-                              leading: const Icon(Icons.inventory, color: Colors.green),
-                              title: const Text('Fornecedor Insumo'),
-                              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => FornecedorInsumoListView())),
-                            ),
-                            ListTile(
-                              leading: const Icon(Icons.grass, color: Colors.green),
-                              title: const Text('Fornecedor Semente'),
-                              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => FornecedorSementeListView())),
-                            ),
-                          ],
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(16),
                         ),
                       ),
+                      builder:
+                          (context) => SafeArea(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 12),
+                                  child: Text(
+                                    'Selecione o tipo de fornecedor',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                ListTile(
+                                  leading: const Icon(
+                                    Icons.bug_report,
+                                    color: Colors.green,
+                                  ),
+                                  title: const Text('Fornecedor Agrotóxico'),
+                                  onTap:
+                                      () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (_) =>
+                                                  FornecedorAgrotoxicoListView(),
+                                        ),
+                                      ),
+                                ),
+                                ListTile(
+                                  leading: const Icon(
+                                    Icons.inventory,
+                                    color: Colors.green,
+                                  ),
+                                  title: const Text('Fornecedor Insumo'),
+                                  onTap:
+                                      () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (_) => FornecedorInsumoListView(),
+                                        ),
+                                      ),
+                                ),
+                                ListTile(
+                                  leading: const Icon(
+                                    Icons.grass,
+                                    color: Colors.green,
+                                  ),
+                                  title: const Text('Fornecedor Semente'),
+                                  onTap:
+                                      () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (_) =>
+                                                  FornecedorSementeListView(),
+                                        ),
+                                      ),
+                                ),
+                              ],
+                            ),
+                          ),
                     );
                   }),
                 ],

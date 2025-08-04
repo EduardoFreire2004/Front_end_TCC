@@ -33,13 +33,13 @@ class PlantioViewModel extends ChangeNotifier {
 
     try {
       await _repository.create(model);
-      await fetch(); 
+      await fetchByLavoura(model.lavouraID!);
     } catch (e) {
       errorMessage = 'Erro ao adicionar: $e';
       debugPrint(errorMessage);
       isLoading = false;
       notifyListeners();
-      rethrow; 
+      rethrow;
     }
   }
 
@@ -49,7 +49,7 @@ class PlantioViewModel extends ChangeNotifier {
 
     try {
       await _repository.update(model);
-      await fetch();
+      await fetchByLavoura(model.lavouraID!);
     } catch (e) {
       errorMessage = 'Erro ao atualizar: $e';
       debugPrint(errorMessage);
@@ -59,19 +59,20 @@ class PlantioViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> delete(int id) async {
+  Future<void> delete(int id, int lavouraId) async {
     isLoading = true;
     notifyListeners();
 
     try {
       await _repository.delete(id);
-      await fetch();
+      await fetchByLavoura(lavouraId);
     } catch (e) {
       errorMessage = 'Erro ao excluir: $e';
       debugPrint(errorMessage);
+      rethrow;
+    } finally {
       isLoading = false;
       notifyListeners();
-      rethrow;
     }
   }
 

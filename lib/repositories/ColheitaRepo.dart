@@ -81,4 +81,33 @@ class ColheitaRepo {
       throw Exception('Erro ao deletar colheita: $e');
     }
   }
+
+   Future<List<ColheitaModel>> fetchByLavoura(int lavouraId) async {
+    try {
+      final response = await ApiService.get(
+        '/Colheitas/porlavoura/$lavouraId',
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data
+            .map(
+              (item) => ColheitaModel.fromJson(item as Map<String, dynamic>),
+            )
+            .toList();
+      } else {
+        throw Exception(
+          'Erro ${response.statusCode}: Não foi possível buscar colheita da lavoura.',
+        );
+      }
+    } on SocketException {
+      throw Exception('Sem conexão com a internet ao buscar por lavoura.');
+    } on TimeoutException {
+      throw Exception('Tempo excedido ao buscar colheita por lavoura.');
+    } on FormatException {
+      throw Exception('Erro ao interpretar dados da colheita por lavoura.');
+    } catch (e) {
+      throw Exception('Erro inesperado ao buscar por lavoura: $e');
+    }
+  }
 }

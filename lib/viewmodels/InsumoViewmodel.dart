@@ -91,4 +91,19 @@ class InsumoViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<void> fetchByNome(String nome) async {
+    try {
+      isLoading = true;
+      notifyListeners();
+
+      _insumo = await _repository.getByNome(nome);
+    } catch (e) {
+      _insumo = [];
+      print('Erro ao buscar: $e');
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
 }

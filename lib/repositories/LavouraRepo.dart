@@ -82,4 +82,20 @@ class LavouraRepo {
       throw Exception('Erro ao deletar lavoura: $e');
     }
   }
+
+   Future<List<LavouraModel>> getByNome(String nome) async {
+    try {
+      final endpoint = '/Lavouras/nome/$nome';
+      final response = await ApiService.get(endpoint);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((item) =>  LavouraModel.fromJson(item)).toList();
+      } else {
+        throw Exception('Erro ${response.statusCode}: busca falhou.');
+      }
+    } catch (e) {
+      throw Exception('Erro ao buscar por $nome: $e');
+    }
+  }
 }

@@ -9,9 +9,13 @@ import 'package:provider/provider.dart';
 
 class AplicacaoInsumoFormView extends StatefulWidget {
   final AplicacaoInsumoModel? aplicacao;
-  final int lavouraId; 
+  final int lavouraId;
 
-  const AplicacaoInsumoFormView({super.key, this.aplicacao, required this.lavouraId});
+  const AplicacaoInsumoFormView({
+    super.key,
+    this.aplicacao,
+    required this.lavouraId,
+  });
 
   @override
   State<AplicacaoInsumoFormView> createState() => _AplicacaoFormViewState();
@@ -40,7 +44,9 @@ class _AplicacaoFormViewState extends State<AplicacaoInsumoFormView> {
       _descricaoController.text = widget.aplicacao!.descricao;
       _insumoID = widget.aplicacao!.insumoID;
       _dataHora = widget.aplicacao!.dataHora;
-      _dataHoraController.text = DateFormat('dd/MM/yyyy HH:mm').format(_dataHora!);
+      _dataHoraController.text = DateFormat(
+        'dd/MM/yyyy HH:mm',
+      ).format(_dataHora!);
     }
   }
 
@@ -57,32 +63,34 @@ class _AplicacaoFormViewState extends State<AplicacaoInsumoFormView> {
       initialDate: _dataHora ?? DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime.now(),
-      builder: (context, child) => Theme(
-        data: Theme.of(context).copyWith(
-          colorScheme: ColorScheme.light(
-            primary: primaryColor,
-            onPrimary: whiteColor,
-            onSurface: primaryColorDark,
+      builder:
+          (context, child) => Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: ColorScheme.light(
+                primary: primaryColor,
+                onPrimary: whiteColor,
+                onSurface: primaryColorDark,
+              ),
+            ),
+            child: child!,
           ),
-        ),
-        child: child!,
-      ),
     );
 
     if (pickedDate != null) {
       final TimeOfDay? pickedTime = await showTimePicker(
         context: context,
         initialTime: TimeOfDay.fromDateTime(_dataHora ?? DateTime.now()),
-        builder: (context, child) => Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: primaryColor,
-              onPrimary: whiteColor,
-              onSurface: primaryColorDark,
+        builder:
+            (context, child) => Theme(
+              data: Theme.of(context).copyWith(
+                colorScheme: ColorScheme.light(
+                  primary: primaryColor,
+                  onPrimary: whiteColor,
+                  onSurface: primaryColorDark,
+                ),
+              ),
+              child: child!,
             ),
-          ),
-          child: child!,
-        ),
       );
 
       if (pickedTime != null) {
@@ -94,7 +102,9 @@ class _AplicacaoFormViewState extends State<AplicacaoInsumoFormView> {
             pickedTime.hour,
             pickedTime.minute,
           );
-          _dataHoraController.text = DateFormat('dd/MM/yyyy HH:mm').format(_dataHora!);
+          _dataHoraController.text = DateFormat(
+            'dd/MM/yyyy HH:mm',
+          ).format(_dataHora!);
         });
       }
     }
@@ -111,7 +121,10 @@ class _AplicacaoFormViewState extends State<AplicacaoInsumoFormView> {
       lavouraID: widget.lavouraId,
     );
 
-    final viewModel = Provider.of<AplicacaoInsumoViewModel>(context, listen: false);
+    final viewModel = Provider.of<AplicacaoInsumoViewModel>(
+      context,
+      listen: false,
+    );
     if (widget.aplicacao == null) {
       viewModel.add(model);
     } else {
@@ -135,97 +148,108 @@ class _AplicacaoFormViewState extends State<AplicacaoInsumoFormView> {
     return Scaffold(
       backgroundColor: formBackgroundColor,
       appBar: AppBar(
-        title: Text(widget.aplicacao == null ? 'Nova Aplicação' : 'Editar Aplicação'),
+        title: Text(
+          widget.aplicacao == null ? 'Nova Aplicação' : 'Editar Aplicação',
+        ),
       ),
-      body: insumoViewModel.insumo.isEmpty
-          ? Center(child: CircularProgressIndicator(color: primaryColor))
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: ListView(
-                  children: [
-                    _buildTextField(
-                      controller: _descricaoController,
-                      label: 'Descrição',
-                      hint: 'Ex: Aplicação na lavoura A',
-                      icon: Icons.description,
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Descrição é obrigatória';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: DropdownButtonFormField<int>(
-                            value: _insumoID,
-                            items: insumoViewModel.insumo.map((a) {
-                              return DropdownMenuItem(
-                                value: a.id,
-                                child: Text(a.nome),
-                              );
-                            }).toList(),
-                            onChanged: (value) => setState(() => _insumoID = value),
-                            decoration: const InputDecoration(
-                              labelText: 'Insumo',
-                              prefixIcon: Icon(Icons.science),
+      body:
+          insumoViewModel.insumo.isEmpty
+              ? Center(child: CircularProgressIndicator(color: primaryColor))
+              : Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Form(
+                  key: _formKey,
+                  child: ListView(
+                    children: [
+                      _buildTextField(
+                        controller: _descricaoController,
+                        label: 'Descrição',
+                        hint: 'Ex: Aplicação na lavoura A',
+                        icon: Icons.description,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Descrição é obrigatória';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: DropdownButtonFormField<int>(
+                              value: _insumoID,
+                              items:
+                                  insumoViewModel.insumo.map((a) {
+                                    return DropdownMenuItem(
+                                      value: a.id,
+                                      child: Text(a.nome),
+                                    );
+                                  }).toList(),
+                              onChanged:
+                                  (value) => setState(() => _insumoID = value),
+                              decoration: const InputDecoration(
+                                labelText: 'Insumo',
+                                prefixIcon: Icon(Icons.science),
+                              ),
+                              validator:
+                                  (value) =>
+                                      value == null
+                                          ? 'Selecione um insumo'
+                                          : null,
                             ),
-                            validator: (value) =>
-                                value == null ? 'Selecione um insumo' : null,
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: Icon(Icons.add_circle, color: primaryColor),
+                            tooltip: 'Novo Insumo',
+                            onPressed: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const InsumoFormView(),
+                                ),
+                              );
+                              insumoViewModel.fetch();
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _dataHoraController,
+                        readOnly: true,
+                        onTap: () => _selectDateTime(context),
+                        decoration: const InputDecoration(
+                          labelText: 'Data e Hora da Aplicação',
+                          prefixIcon: Icon(Icons.calendar_today),
+                        ),
+                        validator:
+                            (value) =>
+                                value == null || value.isEmpty
+                                    ? 'Selecione data e hora'
+                                    : null,
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: _salvar,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryColor,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.0),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        IconButton(
-                          icon: Icon(Icons.add_circle, color: primaryColor),
-                          tooltip: 'Novo Insumo',
-                          onPressed: () async {
-                            await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const InsumoFormView(),
-                              ),
-                            );
-                            insumoViewModel.fetch();
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _dataHoraController,
-                      readOnly: true,
-                      onTap: () => _selectDateTime(context),
-                      decoration: const InputDecoration(
-                        labelText: 'Data e Hora da Aplicação',
-                        prefixIcon: Icon(Icons.calendar_today),
-                      ),
-                      validator: (value) =>
-                          value == null || value.isEmpty ? 'Selecione data e hora' : null,
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: _salvar,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryColor,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.0),
+                        child: Text(
+                          widget.aplicacao == null ? 'ADICIONAR' : 'ATUALIZAR',
+                          style: TextStyle(fontSize: 16, color: whiteColor),
                         ),
                       ),
-                      child: Text(
-                        widget.aplicacao == null ? 'ADICIONAR' : 'ATUALIZAR',
-                        style: TextStyle(fontSize: 16, color: whiteColor),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
     );
   }
 
@@ -252,4 +276,3 @@ class _AplicacaoFormViewState extends State<AplicacaoInsumoFormView> {
     );
   }
 }
-

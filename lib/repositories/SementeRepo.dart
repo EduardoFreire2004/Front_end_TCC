@@ -103,4 +103,20 @@ class SementeRepo {
       throw Exception('Erro ao buscar tipo: $e');
     }
   }
+
+   Future<List<SementeModel>> getByNome(String nome) async {
+  try {
+    final endpoint = '/Sementes/nome/$nome';
+    final response = await ApiService.get(endpoint);
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.map((item) => SementeModel.fromJson(item)).toList();
+    } else {
+      throw Exception('Erro ${response.statusCode}: busca falhou.');
+    }
+  } catch (e) {
+    throw Exception('Erro ao buscar por $nome: $e');
+  }
+}
 }

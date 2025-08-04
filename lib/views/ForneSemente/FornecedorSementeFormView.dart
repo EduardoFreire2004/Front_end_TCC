@@ -15,8 +15,7 @@ class FornecedorSementeFormView extends StatefulWidget {
       _FornecedorSementeFormViewState();
 }
 
-class _FornecedorSementeFormViewState
-    extends State<FornecedorSementeFormView> {
+class _FornecedorSementeFormViewState extends State<FornecedorSementeFormView> {
   final _formKey = GlobalKey<FormState>();
   final _nomeController = TextEditingController();
   final _cnpjController = TextEditingController();

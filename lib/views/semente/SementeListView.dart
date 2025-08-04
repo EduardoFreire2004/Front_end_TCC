@@ -6,8 +6,15 @@ import 'package:flutter_fgl_1/views/ForneSemente/FonecedorSementeListView.dart';
 import 'package:flutter_fgl_1/views/Semente/SementeFormView.dart';
 import 'package:provider/provider.dart';
 
-class SementeListView extends StatelessWidget {
+class SementeListView extends StatefulWidget {
   const SementeListView({super.key});
+
+  @override
+  State<SementeListView> createState() => _SementeListViewState();
+}
+
+class _SementeListViewState extends State<SementeListView> {
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +30,13 @@ class SementeListView extends StatelessWidget {
     final subtitleColor = Colors.grey[700]!;
     final scaffoldBgColor = Colors.grey[50]!;
 
-    void showDetailsDialog(SementeModel semente) {
+    void showDetailsDialog(SementeModel semente) async {
+      final fornecedor = await fornecedorVM.getID(
+        semente.fornecedorSementeID,
+      ); 
+
+      if (!mounted) return; 
+
       showDialog(
         context: context,
         builder:
@@ -45,18 +58,7 @@ class SementeListView extends StatelessWidget {
                     Text("Tipo: ${semente.tipo}"),
                     Text("Marca: ${semente.marca}"),
                     Text("Quantidade: ${semente.qtde}"),
-                    FutureBuilder(
-                      future: fornecedorVM.getID(semente.fornecedorSementeID),
-                      builder: (_, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Text("Fornecedor: Carregando...");
-                        } else if (snapshot.hasData && snapshot.data != null) {
-                          return Text("Fornecedor: ${snapshot.data!.nome}");
-                        }
-                        return const Text("Fornecedor: Não encontrado");
-                      },
-                    ),
+                    Text("Fornecedor: ${fornecedor?.nome ?? "Não encontrado"}"),
                   ],
                 ),
               ),
@@ -83,7 +85,36 @@ class SementeListView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: scaffoldBgColor,
-      appBar: AppBar(title: const Text("Sementes")),
+      appBar: AppBar(
+        title: const Text("Sementes"),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(60),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _searchController,
+              onChanged: (value) {
+                if (value.isEmpty) {
+                  sementeVM.fetch();
+                } else {
+                  sementeVM.fetchByNome(value);
+                }
+              },
+              decoration: InputDecoration(
+                hintText: 'Buscar por nome...',
+                prefixIcon: const Icon(Icons.search),
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
       body: RefreshIndicator(
         onRefresh: () => sementeVM.fetch(),
         color: primaryColor,
@@ -91,7 +122,7 @@ class SementeListView extends StatelessWidget {
             sementeVM.isLoading && sementeVM.semente.isEmpty
                 ? Center(child: CircularProgressIndicator(color: primaryColor))
                 : sementeVM.semente.isEmpty
-                ? Center(child: Text("Nenhuma semente cadastrada."))
+                ? const Center(child: Text("Nenhuma semente cadastrada."))
                 : ListView.builder(
                   padding: const EdgeInsets.all(8.0),
                   itemCount: sementeVM.semente.length,
@@ -107,41 +138,53 @@ class SementeListView extends StatelessWidget {
                         child: const Icon(Icons.delete, color: Colors.white),
                       ),
                       confirmDismiss: (_) async {
-                        return await showDialog(
+                        final shouldDelete = await showDialog<bool>(
                           context: context,
                           builder:
-                              (_) => AlertDialog(
-                                title: const Text("Confirmar exclusão"),
-                                content: Text(
-                                  "Excluir a semente ${semente.nome}?",
+                              (context) => AlertDialog(
+                                title: const Text('Confirmar exclusão'),
+                                content: const Text(
+                                  'Deseja realmente excluir esta Semente?',
                                 ),
                                 actions: [
                                   TextButton(
                                     onPressed:
-                                        () => Navigator.pop(context, false),
-                                    child: const Text("Cancelar"),
+                                        () => Navigator.of(context).pop(false),
+                                    child: const Text('Cancelar'),
                                   ),
                                   TextButton(
-                                    onPressed:
-                                        () => Navigator.pop(context, true),
+                                    onPressed: () async {
+                                      if (semente.id != null) {
+                                        await sementeVM.delete(semente.id!);
+                                        Navigator.of(context).pop(true);
+                                        WidgetsBinding.instance
+                                            .addPostFrameCallback((_) {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: const Text(
+                                                    'Semente excluído.',
+                                                  ),
+                                                  backgroundColor: errorColor,
+                                                ),
+                                              );
+                                            });
+                                      } else {
+                                        Navigator.of(context).pop(false);
+                                      }
+                                    },
                                     child: const Text(
-                                      "Excluir",
+                                      'Excluir',
                                       style: TextStyle(color: Colors.red),
                                     ),
                                   ),
                                 ],
                               ),
                         );
+                        return shouldDelete ?? false;
                       },
-                      onDismissed: (_) {
-                        sementeVM.delete(semente.id!);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text("${semente.nome} excluída."),
-                            backgroundColor: errorColor,
-                          ),
-                        );
-                      },
+                      onDismissed: (_) {},
                       child: Card(
                         child: ListTile(
                           leading: CircleAvatar(
@@ -189,9 +232,7 @@ class SementeListView extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => FornecedorSementeListView(),
-                ),
+                MaterialPageRoute(builder: (_) => FornecedorSementeListView()),
               );
             },
             child: const Icon(Icons.business),
@@ -204,7 +245,7 @@ class SementeListView extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => SementeFormView()),
+                MaterialPageRoute(builder: (_) => const SementeFormView()),
               );
             },
             child: const Icon(Icons.add),

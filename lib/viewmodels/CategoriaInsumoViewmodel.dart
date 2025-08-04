@@ -83,7 +83,7 @@ class CategoriaInsumoViewModel extends ChangeNotifier {
       final fornecedor = await _repository.getID(id);
       return fornecedor;
     } catch (e) {
-      errorMessage = 'Erro ao buscar semente: $e';
+      errorMessage = 'Erro ao buscar Categoria do Insumo: $e';
       debugPrint(errorMessage);
       return null;
     } finally {

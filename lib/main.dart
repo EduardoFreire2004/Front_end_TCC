@@ -34,25 +34,19 @@ class FGLApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => TipoAgrotoxicoViewModel()..fetch(),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => ForneAgrotoxicoViewModel()..fetch(),
-        ),
+        ChangeNotifierProvider(create: (_) => TipoAgrotoxicoViewModel()..fetch()),
+        ChangeNotifierProvider( create: (_) => ForneAgrotoxicoViewModel()..fetch()),
         ChangeNotifierProvider(create: (_) => AgrotoxicoViewModel()..fetch()),
-        ChangeNotifierProvider(create: (_) => AplicacaoViewModel()..fetch()),
+        ChangeNotifierProvider(create: (_) => AplicacaoViewModel()),
         ChangeNotifierProvider(create: (_) => ForneInsumoViewModel()..fetch()),
-        ChangeNotifierProvider(
-          create: (_) => CategoriaInsumoViewModel()..fetch(),
-        ),
+        ChangeNotifierProvider(create: (_) => CategoriaInsumoViewModel()..fetch()),
         ChangeNotifierProvider(create: (_) => InsumoViewModel()..fetch()),
         ChangeNotifierProvider(create: (_) => ForneSementeViewModel()..fetch()),
         ChangeNotifierProvider(create: (_) => SementeViewModel()..fetch()),
-        ChangeNotifierProvider(create: (_) => PlantioViewModel()..fetch()),
+        ChangeNotifierProvider(create: (_) => PlantioViewModel()),
         ChangeNotifierProvider(create: (_) => ColheitaViewModel()..fetch()),
         ChangeNotifierProvider(create: (_) => LavouraViewModel()..fetch()),
-        ChangeNotifierProvider(create: (_) => AplicacaoInsumoViewModel()..fetch()),
+        ChangeNotifierProvider(create: (_) => AplicacaoInsumoViewModel()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
       child: Consumer<ThemeProvider>(

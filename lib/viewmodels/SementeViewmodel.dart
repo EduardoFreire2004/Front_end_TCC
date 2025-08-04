@@ -91,4 +91,20 @@ class SementeViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<void> fetchByNome(String nome) async {
+    try {
+      isLoading = true;
+      notifyListeners();
+
+      _semente = await _repository.getByNome(nome);
+    } catch (e) {
+      _semente = [];
+      print('Erro ao buscar: $e');
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
 }

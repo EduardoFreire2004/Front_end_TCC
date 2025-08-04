@@ -74,4 +74,19 @@ class LavouraViewModel extends ChangeNotifier {
       rethrow;
     }
   }
+
+  Future<void> fetchByNome(String nome) async {
+    try {
+      isLoading = true;
+      notifyListeners();
+
+      _lavoura = await _repository.getByNome(nome);
+    } catch (e) {
+      _lavoura = [];
+      print('Erro ao buscar: $e');
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
 }

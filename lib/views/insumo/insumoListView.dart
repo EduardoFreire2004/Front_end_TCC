@@ -9,20 +9,19 @@ import 'package:flutter_fgl_1/views/Insumo/insumoFormView.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-class InsumoListView extends StatelessWidget {
+class InsumoListView extends StatefulWidget {
   const InsumoListView({super.key});
+
+  @override
+  State<InsumoListView> createState() => _InsumoListViewState();
+}
+
+class _InsumoListViewState extends State<InsumoListView> {
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     final insumoVM = Provider.of<InsumoViewModel>(context);
-    final categoriaVM = Provider.of<CategoriaInsumoViewModel>(
-      context,
-      listen: false,
-    );
-    final fornecedorVM = Provider.of<ForneInsumoViewModel>(
-      context,
-      listen: false,
-    );
 
     final Color primaryColor = Colors.green[700]!;
     final Color titleColor = Colors.green[800]!;
@@ -31,117 +30,61 @@ class InsumoListView extends StatelessWidget {
     final Color errorColor = Colors.redAccent;
     final Color scaffoldBgColor = Colors.grey[50]!;
 
-    void showDetailsDialog(InsumoModel insumo) {
+    void showDetailsDialog(BuildContext context, InsumoModel insumo) async {
+      final categoriaVM = Provider.of<CategoriaInsumoViewModel>(
+        context,
+        listen: false,
+      );
+      final fornecedorVM = Provider.of<ForneInsumoViewModel>(
+        context,
+        listen: false,
+      );
+
+      final categoria = await categoriaVM.getID(insumo.categoriaID);
+      final fornecedor = await fornecedorVM.getID(insumo.fornecedorID);
+
+      if (!context.mounted) return;
+
       String formatarData(DateTime data) {
         return DateFormat('dd/MM/yyyy').format(data);
       }
 
-      Widget buildDetailItem(IconData icon, String label, Widget value) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6.0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(icon, size: 20, color: iconColor),
-              const SizedBox(width: 12),
-              Text(
-                "$label: ",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: titleColor,
-                ),
-              ),
-              Expanded(child: value),
-            ],
-          ),
-        );
-      }
-
-      Widget buildFutureDetailItem({
-        required IconData icon,
-        required String label,
-        required Future<dynamic> future,
-        required String Function(dynamic) onData,
-      }) {
-        return FutureBuilder<dynamic>(
-          future: future,
-          builder: (context, snapshot) {
-            Widget valueWidget;
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              valueWidget = const Text(
-                "Carregando...",
-                style: TextStyle(fontStyle: FontStyle.italic),
-              );
-            } else if (snapshot.hasError) {
-              valueWidget = const Text(
-                "Erro ao buscar",
-                style: TextStyle(color: Colors.red),
-              );
-            } else if (snapshot.hasData && snapshot.data != null) {
-              valueWidget = Text(onData(snapshot.data));
-            } else {
-              valueWidget = const Text("Não encontrado");
-            }
-            return buildDetailItem(icon, label, valueWidget);
-          },
-        );
-      }
-
       showDialog(
         context: context,
-        builder: (dialogContext) {
-          return AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            title: Text(
-              'Detalhes do Insumo',
-              style: TextStyle(color: titleColor),
-            ),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  buildDetailItem(Icons.inventory, 'Nome', Text(insumo.nome)),
-                  buildDetailItem(
-                    Icons.scale,
-                    'Quantidade',
-                    Text(insumo.qtde.toString()),
-                  ),
-                  buildDetailItem(
-                    Icons.straighten,
-                    'Unidade',
-                    Text(insumo.unidade_Medida),
-                  ),
-                  buildDetailItem(
-                    Icons.calendar_today,
-                    'Cadastro',
-                    Text(formatarData(insumo.data_Cadastro)),
-                  ),
-                  buildFutureDetailItem(
-                    icon: Icons.category,
-                    label: 'Categoria',
-                    future: categoriaVM.getID(insumo.categoriaID),
-                    onData: (data) => data.descricao,
-                  ),
-                  buildFutureDetailItem(
-                    icon: Icons.business,
-                    label: 'Fornecedor',
-                    future: fornecedorVM.getID(insumo.fornecedorID),
-                    onData: (data) => data.nome,
-                  ),
-                ],
+        builder:
+            (_) => AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(dialogContext).pop(),
-                child: Text('Fechar', style: TextStyle(color: primaryColor)),
+              title: Text(
+                'Detalhes do Insumo',
+                style: TextStyle(
+                  color: titleColor,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ],
-          );
-        },
+              content: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Nome: ${insumo.nome}"),
+                    Text("Quantidade: ${insumo.qtde}"),
+                    Text("Unidade: ${insumo.unidade_Medida}"),
+                    Text("Cadastro: ${formatarData(insumo.data_Cadastro)}"),
+                    Text(
+                      "Categoria: ${categoria?.descricao ?? 'Não encontrada'}",
+                    ),
+                    Text("Fornecedor: ${fornecedor?.nome ?? 'Não encontrado'}"),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text("Fechar", style: TextStyle(color: primaryColor)),
+                ),
+              ],
+            ),
       );
     }
 
@@ -158,7 +101,36 @@ class InsumoListView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: scaffoldBgColor,
-      appBar: AppBar(title: const Text('Insumos')),
+      appBar: AppBar(
+        title: const Text('Insumos'),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(60),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _searchController,
+              onChanged: (value) {
+                if (value.isEmpty) {
+                  insumoVM.fetch();
+                } else {
+                  insumoVM.fetchByNome(value);
+                }
+              },
+              decoration: InputDecoration(
+                hintText: 'Buscar por nome...',
+                prefixIcon: const Icon(Icons.search),
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
       body: RefreshIndicator(
         onRefresh: () => insumoVM.fetch(),
         color: primaryColor,
@@ -202,13 +174,13 @@ class InsumoListView extends StatelessWidget {
                         ),
                       ),
                       confirmDismiss: (_) async {
-                        return await showDialog(
+                        final shouldDelete = await showDialog<bool>(
                           context: context,
                           builder:
                               (context) => AlertDialog(
                                 title: const Text('Confirmar exclusão'),
-                                content: Text(
-                                  'Deseja realmente excluir este insumo?',
+                                content: const Text(
+                                  'Deseja realmente excluir este Insumo?',
                                 ),
                                 actions: [
                                   TextButton(
@@ -217,8 +189,27 @@ class InsumoListView extends StatelessWidget {
                                     child: const Text('Cancelar'),
                                   ),
                                   TextButton(
-                                    onPressed:
-                                        () => Navigator.of(context).pop(true),
+                                    onPressed: () async {
+                                      if (item.id != null) {
+                                        await insumoVM.delete(item.id!);
+                                        Navigator.of(context).pop(true);
+                                        WidgetsBinding.instance
+                                            .addPostFrameCallback((_) {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: const Text(
+                                                    'Insumo excluído.',
+                                                  ),
+                                                  backgroundColor: errorColor,
+                                                ),
+                                              );
+                                            });
+                                      } else {
+                                        Navigator.of(context).pop(false);
+                                      }
+                                    },
                                     child: const Text(
                                       'Excluir',
                                       style: TextStyle(color: Colors.red),
@@ -227,18 +218,9 @@ class InsumoListView extends StatelessWidget {
                                 ],
                               ),
                         );
+                        return shouldDelete ?? false;
                       },
-                      onDismissed: (_) {
-                        if (item.id != null) {
-                          insumoVM.delete(item.id!);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Insumo excluído.'),
-                              backgroundColor: errorColor,
-                            ),
-                          );
-                        }
-                      },
+                      onDismissed: (_) {},
                       child: Card(
                         margin: const EdgeInsets.symmetric(
                           horizontal: 8.0,
@@ -250,7 +232,7 @@ class InsumoListView extends StatelessWidget {
                         ),
                         child: InkWell(
                           borderRadius: BorderRadius.circular(8.0),
-                          onTap: () => showDetailsDialog(item),
+                          onTap: () => showDetailsDialog(context, item),
                           child: Padding(
                             padding: const EdgeInsets.all(12.0),
                             child: Row(
@@ -328,9 +310,7 @@ class InsumoListView extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => CategoriaInsumoListView(),
-                ),
+                MaterialPageRoute(builder: (_) => CategoriaInsumoListView()),
               );
             },
             child: const Icon(Icons.category),
@@ -344,9 +324,7 @@ class InsumoListView extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => FornecedorInsumoListView(),
-                ),
+                MaterialPageRoute(builder: (_) => FornecedorInsumoListView()),
               );
             },
             child: const Icon(Icons.business),
