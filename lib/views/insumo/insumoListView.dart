@@ -71,6 +71,7 @@ class _InsumoListViewState extends State<InsumoListView> {
                     Text("Quantidade: ${insumo.qtde}"),
                     Text("Unidade: ${insumo.unidade_Medida}"),
                     Text("Cadastro: ${formatarData(insumo.data_Cadastro)}"),
+                    Text("Preco: ${insumo.preco}"),
                     Text(
                       "Categoria: ${categoria?.descricao ?? 'Não encontrada'}",
                     ),

@@ -6,6 +6,7 @@ class SementeModel {
   String tipo;
   String marca;
   double qtde;
+  double preco;
 
   SementeModel({
     this.id,
@@ -15,6 +16,7 @@ class SementeModel {
     required this.tipo,
     required this.marca,
     required this.qtde,
+    required this.preco,
   });
 
   factory SementeModel.fromJson(Map<String, dynamic> map) {
@@ -26,6 +28,7 @@ class SementeModel {
       tipo: map['tipo'],
       marca: map['marca'],
       qtde: map['qtde'].toDouble(),
+      preco: map['preco'].toDouble(),
     );
   }
 
@@ -38,6 +41,7 @@ class SementeModel {
       'tipo': tipo,
       'marca': marca,
       'qtde': qtde,
+      'preco': preco,
     };
   }
 }

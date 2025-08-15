@@ -24,6 +24,7 @@ class _AgrotoxicoFormViewState extends State<AgrotoxicoFormView> {
   final _unidadeController = TextEditingController();
   final _dataCadastroController = TextEditingController();
   final _qtdeController = TextEditingController();
+  final _precoController = TextEditingController();
 
   int? _fornecedorID;
   int? _tipoID;
@@ -44,13 +45,13 @@ class _AgrotoxicoFormViewState extends State<AgrotoxicoFormView> {
       _nomeController.text = widget.agrotoxico!.nome;
       _unidadeController.text = widget.agrotoxico!.unidade_Medida;
       _qtdeController.text = widget.agrotoxico!.qtde.toString();
+      _precoController.text = widget.agrotoxico!.preco.toString();
       _fornecedorID = widget.agrotoxico!.fornecedorID;
       _tipoID = widget.agrotoxico!.tipoID;
       _selectedDate = widget.agrotoxico!.data_Cadastro;
       if (_selectedDate != null) {
-        _dataCadastroController.text = DateFormat(
-          'dd/MM/yyyy',
-        ).format(_selectedDate!);
+        _dataCadastroController.text =
+            DateFormat('dd/MM/yyyy').format(_selectedDate!);
       }
     }
   }
@@ -61,6 +62,7 @@ class _AgrotoxicoFormViewState extends State<AgrotoxicoFormView> {
     _unidadeController.dispose();
     _dataCadastroController.dispose();
     _qtdeController.dispose();
+    _precoController.dispose();
     super.dispose();
   }
 
@@ -99,11 +101,9 @@ class _AgrotoxicoFormViewState extends State<AgrotoxicoFormView> {
     final lista = viewModel.lista;
 
     if (widget.agrotoxico != null) {
-      return lista.any(
-        (f) =>
-            f.nome.toLowerCase() == nome.toLowerCase() &&
-            f.id != widget.agrotoxico!.id,
-      );
+      return lista.any((f) =>
+          f.nome.toLowerCase() == nome.toLowerCase() &&
+          f.id != widget.agrotoxico!.id);
     }
 
     return lista.any((f) => f.nome.toLowerCase() == nome.toLowerCase());
@@ -117,6 +117,7 @@ class _AgrotoxicoFormViewState extends State<AgrotoxicoFormView> {
       nome: _nomeController.text.trim(),
       unidade_Medida: _unidadeController.text.trim(),
       qtde: double.tryParse(_qtdeController.text.replaceAll(',', '.')) ?? 0.0,
+      preco: double.tryParse(_precoController.text.replaceAll(',', '.')) ?? 0.0,
       data_Cadastro: _selectedDate!,
       fornecedorID: _fornecedorID!,
       tipoID: _tipoID!,
@@ -191,215 +192,220 @@ class _AgrotoxicoFormViewState extends State<AgrotoxicoFormView> {
             selectionColor: primaryColor.withOpacity(0.3),
             selectionHandleColor: primaryColor,
           ),
-          colorScheme: Theme.of(
-            context,
-          ).colorScheme.copyWith(error: errorColor),
+          colorScheme:
+              Theme.of(context).colorScheme.copyWith(error: errorColor),
         ),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child:
-              fornecedorViewModel.forneAgrotoxico.isEmpty ||
-                      tipoViewModel.tipo.isEmpty
-                  ? Center(
-                    child: CircularProgressIndicator(color: primaryColor),
-                  )
-                  : Form(
-                    key: _formKey,
-                    child: ListView(
-                      children: [
-                        _buildTextField(
-                          controller: _nomeController,
-                          label: 'Nome',
-                          hint: 'Nome do Agrotóxico',
-                          icon: Icons.science_outlined,
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Nome é obrigatório';
-                            }
-                            if (_nomeJaExiste(value.trim())) {
-                              return 'Este nome já está cadastrado';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: DropdownButtonFormField<int>(
-                                value: _fornecedorID,
-                                items:
-                                    fornecedorViewModel.forneAgrotoxico
-                                        .map(
-                                          (f) => DropdownMenuItem(
-                                            value: f.id,
-                                            child: Text(f.nome),
-                                          ),
-                                        )
-                                        .toList(),
-                                onChanged:
-                                    (value) =>
-                                        setState(() => _fornecedorID = value),
-                                decoration: const InputDecoration(
-                                  labelText: 'Fornecedor',
-                                  prefixIcon: Icon(Icons.business),
-                                ),
-                                validator:
-                                    (value) =>
-                                        value == null
-                                            ? 'Selecione um fornecedor'
-                                            : null,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            IconButton(
-                              icon: Icon(Icons.add_circle, color: primaryColor),
-                              tooltip: 'Novo Fornecedor',
-                              onPressed: () async {
-                                await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder:
-                                        (_) =>
-                                            const FornecedorAgrotoxicoFormView(),
-                                  ),
-                                );
-                                fornecedorViewModel.fetch();
-                              },
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: DropdownButtonFormField<int>(
-                                value: _tipoID,
-                                items:
-                                    tipoViewModel.tipo
-                                        .map(
-                                          (t) => DropdownMenuItem(
-                                            value: t.id,
-                                            child: Text(t.descricao),
-                                          ),
-                                        )
-                                        .toList(),
-                                onChanged:
-                                    (value) => setState(() => _tipoID = value),
-                                decoration: const InputDecoration(
-                                  labelText: 'Tipo',
-                                  prefixIcon: Icon(Icons.category_outlined),
-                                ),
-                                validator:
-                                    (value) =>
-                                        value == null
-                                            ? 'Selecione um tipo'
-                                            : null,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            IconButton(
-                              icon: Icon(Icons.add_circle, color: primaryColor),
-                              tooltip: 'Novo Tipo',
-                              onPressed: () async {
-                                await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder:
-                                        (_) => const TipoAgrotoxicoFormView(),
-                                  ),
-                                );
-                                tipoViewModel.fetch();
-                              },
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextFormField(
-                                controller: _qtdeController,
-                                decoration: const InputDecoration(
-                                  labelText: 'Quantidade',
-                                  prefixIcon: Icon(Icons.scale_outlined),
-                                ),
-                                keyboardType:
-                                    const TextInputType.numberWithOptions(
-                                      decimal: true,
+          child: fornecedorViewModel.forneAgrotoxico.isEmpty ||
+                  tipoViewModel.tipo.isEmpty
+              ? Center(
+                  child: CircularProgressIndicator(color: primaryColor),
+                )
+              : Form(
+                  key: _formKey,
+                  child: ListView(
+                    children: [
+                      _buildTextField(
+                        controller: _nomeController,
+                        label: 'Nome',
+                        hint: 'Nome do Agrotóxico',
+                        icon: Icons.science_outlined,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Nome é obrigatório';
+                          }
+                          if (_nomeJaExiste(value.trim())) {
+                            return 'Este nome já está cadastrado';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: DropdownButtonFormField<int>(
+                              value: _fornecedorID,
+                              items: fornecedorViewModel.forneAgrotoxico
+                                  .map(
+                                    (f) => DropdownMenuItem(
+                                      value: f.id,
+                                      child: Text(f.nome),
                                     ),
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.allow(
-                                    RegExp(r'^\d+[,.]?\d{0,2}'),
-                                  ),
-                                ],
-                                validator: (value) {
-                                  if (value == null || value.isEmpty)
-                                    return 'Informe a quantidade';
-                                  if (double.tryParse(
-                                        value.replaceAll(',', '.'),
-                                      ) ==
-                                      null)
-                                    return 'Valor inválido';
-                                  return null;
-                                },
+                                  )
+                                  .toList(),
+                              onChanged: (value) =>
+                                  setState(() => _fornecedorID = value),
+                              decoration: const InputDecoration(
+                                labelText: 'Fornecedor',
+                                prefixIcon: Icon(Icons.business),
                               ),
+                              validator: (value) => value == null
+                                  ? 'Selecione um fornecedor'
+                                  : null,
                             ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: TextFormField(
-                                controller: _unidadeController,
-                                decoration: const InputDecoration(
-                                  labelText: 'Unidade',
-                                  hintText: 'Ex: L, Kg',
-                                  prefixIcon: Icon(Icons.straighten),
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: Icon(Icons.add_circle, color: primaryColor),
+                            tooltip: 'Novo Fornecedor',
+                            onPressed: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      const FornecedorAgrotoxicoFormView(),
                                 ),
-                                validator:
-                                    (value) =>
-                                        value == null || value.isEmpty
-                                            ? 'Informe a unidade'
-                                            : null,
+                              );
+                              fornecedorViewModel.fetch();
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: DropdownButtonFormField<int>(
+                              value: _tipoID,
+                              items: tipoViewModel.tipo
+                                  .map(
+                                    (t) => DropdownMenuItem(
+                                      value: t.id,
+                                      child: Text(t.descricao),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (value) =>
+                                  setState(() => _tipoID = value),
+                              decoration: const InputDecoration(
+                                labelText: 'Tipo',
+                                prefixIcon: Icon(Icons.category_outlined),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: _dataCadastroController,
-                          decoration: const InputDecoration(
-                            labelText: 'Data de Cadastro',
-                            prefixIcon: Icon(Icons.calendar_today),
-                          ),
-                          readOnly: true,
-                          onTap: () => _selectDate(context),
-                          validator:
-                              (value) =>
-                                  value == null || value.isEmpty
-                                      ? 'Selecione a data'
-                                      : null,
-                        ),
-                        const SizedBox(height: 24),
-                        ElevatedButton(
-                          onPressed: _salvar,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: primaryColor,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8.0),
+                              validator: (value) =>
+                                  value == null ? 'Selecione um tipo' : null,
                             ),
                           ),
-                          child: Text(
-                            widget.agrotoxico == null
-                                ? 'ADICIONAR'
-                                : 'ATUALIZAR',
-                            style: TextStyle(fontSize: 16, color: whiteColor),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: Icon(Icons.add_circle, color: primaryColor),
+                            tooltip: 'Novo Tipo',
+                            onPressed: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      const TipoAgrotoxicoFormView(),
+                                ),
+                              );
+                              tipoViewModel.fetch();
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: _qtdeController,
+                              decoration: const InputDecoration(
+                                labelText: 'Quantidade',
+                                prefixIcon: Icon(Icons.scale_outlined),
+                              ),
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                      decimal: true),
+                              inputFormatters: [
+                                FilteringTextInputFormatter.allow(
+                                  RegExp(r'^\d+[,.]?\d{0,2}'),
+                                ),
+                              ],
+                              validator: (value) {
+                                if (value == null || value.isEmpty)
+                                  return 'Informe a quantidade';
+                                if (double.tryParse(
+                                        value.replaceAll(',', '.')) ==
+                                    null) return 'Valor inválido';
+                                return null;
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: TextFormField(
+                              controller: _unidadeController,
+                              decoration: const InputDecoration(
+                                labelText: 'Unidade',
+                                hintText: 'Ex: L, Kg',
+                                prefixIcon: Icon(Icons.straighten),
+                              ),
+                              validator: (value) => value == null ||
+                                      value.isEmpty
+                                  ? 'Informe a unidade'
+                                  : null,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _precoController,
+                        decoration: const InputDecoration(
+                          labelText: 'Preço',
+                          hintText: 'Informe o preço unitário',
+                          prefixIcon: Icon(Icons.attach_money),
+                        ),
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                              RegExp(r'^\d+[,.]?\d{0,2}')),
+                        ],
+                        validator: (value) {
+                          if (value == null || value.isEmpty)
+                            return 'Informe o preço';
+                          if (double.tryParse(
+                                  value.replaceAll(',', '.')) ==
+                              null) return 'Valor inválido';
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _dataCadastroController,
+                        decoration: const InputDecoration(
+                          labelText: 'Data de Cadastro',
+                          prefixIcon: Icon(Icons.calendar_today),
+                        ),
+                        readOnly: true,
+                        onTap: () => _selectDate(context),
+                        validator: (value) =>
+                            value == null || value.isEmpty
+                                ? 'Selecione a data'
+                                : null,
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: _salvar,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryColor,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.0),
                           ),
                         ),
-                      ],
-                    ),
+                        child: Text(
+                          widget.agrotoxico == null ? 'ADICIONAR' : 'ATUALIZAR',
+                          style: TextStyle(fontSize: 16, color: whiteColor),
+                        ),
+                      ),
+                    ],
                   ),
+                ),
         ),
       ),
     );

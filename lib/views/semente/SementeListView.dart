@@ -58,6 +58,7 @@ class _SementeListViewState extends State<SementeListView> {
                     Text("Tipo: ${semente.tipo}"),
                     Text("Marca: ${semente.marca}"),
                     Text("Quantidade: ${semente.qtde}"),
+                    Text("Preco: ${semente.preco}"),
                     Text("Fornecedor: ${fornecedor?.nome ?? "Não encontrado"}"),
                   ],
                 ),

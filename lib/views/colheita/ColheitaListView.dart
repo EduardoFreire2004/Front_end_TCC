@@ -41,6 +41,9 @@ class _ColheitaListViewState extends State<ColheitaListView> {
       String formatarDataHora(DateTime data) =>
           DateFormat('dd/MM/yyyy HH:mm').format(data);
 
+      String formatarReal(num valor) =>
+          NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(valor);
+
       Widget buildDetailItem(IconData icon, String label, String value) {
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 6.0),
@@ -90,6 +93,39 @@ class _ColheitaListViewState extends State<ColheitaListView> {
                       'Descrição',
                       colheita.descricao!,
                     ),
+                  buildDetailItem(
+                    Icons.shopping_bag,
+                    'Quantidade de Sacas (60kg)',
+                    colheita.quantidadeSacas.toStringAsFixed(2),
+                  ),
+                  buildDetailItem(
+                    Icons.landscape,
+                    'Área (hectares)',
+                    colheita.areaHectares.toStringAsFixed(2),
+                  ),
+                  buildDetailItem(
+                    Icons.store,
+                    'Cooperativa de Destino',
+                    colheita.cooperativaDestino,
+                  ),
+                  buildDetailItem(
+                    Icons.monetization_on,
+                    'Preço por Saca',
+                    formatarReal(colheita.precoPorSaca),
+                  ),
+                  buildDetailItem(
+                    Icons.show_chart,
+                    'Rendimento por hectare',
+                    colheita.areaHectares == 0
+                        ? '0.00'
+                        : (colheita.quantidadeSacas / colheita.areaHectares)
+                            .toStringAsFixed(2),
+                  ),
+                  buildDetailItem(
+                    Icons.attach_money,
+                    'Rendimento financeiro',
+                    formatarReal(colheita.quantidadeSacas * colheita.precoPorSaca),
+                  ),
                 ],
               ),
             ),
@@ -121,182 +157,168 @@ class _ColheitaListViewState extends State<ColheitaListView> {
       body: RefreshIndicator(
         onRefresh: () => colheitaVM.fetchByLavoura(widget.lavouraId),
         color: primaryColor,
-        child:
-            colheitaVM.isLoading && colheitaVM.colheita.isEmpty
-                ? Center(child: CircularProgressIndicator(color: primaryColor))
-                : colheitaVM.colheita.isEmpty
+        child: colheitaVM.isLoading && colheitaVM.colheita.isEmpty
+            ? Center(child: CircularProgressIndicator(color: primaryColor))
+            : colheitaVM.colheita.isEmpty
                 ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(
-                      'Nenhuma colheita registrada.\nToque no botão "+" para adicionar.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                    ),
-                  ),
-                )
-                : ListView.builder(
-                  padding: const EdgeInsets.all(8.0),
-                  itemCount: colheitaVM.colheita.length,
-                  itemBuilder: (context, index) {
-                    final item = colheitaVM.colheita[index];
-                    return Dismissible(
-                      key: Key(item.id.toString()),
-                      direction: DismissDirection.endToStart,
-                      background: Container(
-                        decoration: BoxDecoration(
-                          color: errorColor,
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 8.0,
-                          vertical: 4.0,
-                        ),
-                        child: const Icon(
-                          Icons.delete_sweep,
-                          color: Colors.white,
-                          size: 28,
-                        ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(
+                        'Nenhuma colheita registrada.\nToque no botão "+" para adicionar.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                       ),
-                      confirmDismiss: (_) async {
-                        final shouldDelete = await showDialog<bool>(
-                          context: context,
-                          builder:
-                              (context) => AlertDialog(
-                                title: const Text('Confirmar exclusão'),
-                                content: const Text(
-                                  'Deseja realmente excluir esta colheita?',
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.all(8.0),
+                    itemCount: colheitaVM.colheita.length,
+                    itemBuilder: (context, index) {
+                      final item = colheitaVM.colheita[index];
+                      return Dismissible(
+                        key: Key(item.id.toString()),
+                        direction: DismissDirection.endToStart,
+                        background: Container(
+                          decoration: BoxDecoration(
+                            color: errorColor,
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 8.0,
+                            vertical: 4.0,
+                          ),
+                          child: const Icon(
+                            Icons.delete_sweep,
+                            color: Colors.white,
+                            size: 28,
+                          ),
+                        ),
+                        confirmDismiss: (_) async {
+                          final shouldDelete = await showDialog<bool>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Confirmar exclusão'),
+                              content: const Text(
+                                'Deseja realmente excluir esta colheita?',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(false),
+                                  child: const Text('Cancelar'),
                                 ),
-                                actions: [
-                                  TextButton(
-                                    onPressed:
-                                        () => Navigator.of(context).pop(false),
-                                    child: const Text('Cancelar'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () async {
-                                      if (item.id != null) {
-                                        await colheitaVM.delete(
-                                          item.id!,
-                                          item.lavouraID,
+                                TextButton(
+                                  onPressed: () async {
+                                    if (item.id != null) {
+                                      await colheitaVM.delete(
+                                        item.id!,
+                                        item.lavouraID,
+                                      );
+                                      Navigator.of(context).pop(true);
+                                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: const Text('Colheita excluída.'),
+                                            backgroundColor: errorColor,
+                                          ),
                                         );
-                                        Navigator.of(context).pop(true);
-                                        WidgetsBinding.instance
-                                            .addPostFrameCallback((_) {
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: const Text(
-                                                    'Colheita excluída.',
-                                                  ),
-                                                  backgroundColor: errorColor,
-                                                ),
-                                              );
-                                            });
-                                      } else {
-                                        Navigator.of(context).pop(false);
-                                      }
-                                    },
-                                    child: const Text(
-                                      'Excluir',
-                                      style: TextStyle(color: Colors.red),
+                                      });
+                                    } else {
+                                      Navigator.of(context).pop(false);
+                                    }
+                                  },
+                                  child: const Text(
+                                    'Excluir',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                          return shouldDelete ?? false;
+                        },
+                        onDismissed: (_) {},
+                        child: Card(
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 8.0,
+                            vertical: 4.0,
+                          ),
+                          elevation: 3.0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(8.0),
+                            onTap: () => showDetailsDialog(item),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    backgroundColor: iconColor.withOpacity(0.1),
+                                    child: Icon(
+                                      Icons.agriculture,
+                                      color: iconColor,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          item.tipo,
+                                          style: TextStyle(
+                                            fontSize: 18.0,
+                                            fontWeight: FontWeight.bold,
+                                            color: titleColor,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4.0),
+                                        Text(
+                                          DateFormat('dd/MM/yyyy HH:mm').format(item.dataHora),
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: subtitleColor,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.edit,
+                                      color: Colors.blueGrey[600],
+                                    ),
+                                    tooltip: 'Editar Colheita',
+                                    onPressed: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => ColheitaFormView(
+                                          colheita: item,
+                                          lavouraId: widget.lavouraId,
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ],
                               ),
-                        );
-                        return shouldDelete ?? false;
-                      },
-                      onDismissed: (_) {},
-                      child: Card(
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 8.0,
-                          vertical: 4.0,
-                        ),
-                        elevation: 3.0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(8.0),
-                          onTap: () => showDetailsDialog(item),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12.0),
-                            child: Row(
-                              children: [
-                                CircleAvatar(
-                                  backgroundColor: iconColor.withOpacity(0.1),
-                                  child: Icon(
-                                    Icons.agriculture,
-                                    color: iconColor,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        item.tipo,
-                                        style: TextStyle(
-                                          fontSize: 18.0,
-                                          fontWeight: FontWeight.bold,
-                                          color: titleColor,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4.0),
-                                      Text(
-                                        DateFormat(
-                                          'dd/MM/yyyy HH:mm',
-                                        ).format(item.dataHora),
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: subtitleColor,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                IconButton(
-                                  icon: Icon(
-                                    Icons.edit,
-                                    color: Colors.blueGrey[600],
-                                  ),
-                                  tooltip: 'Editar Colheita',
-                                  onPressed:
-                                      () => Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder:
-                                              (_) => ColheitaFormView(
-                                                colheita: item,
-                                                lavouraId: widget.lavouraId,
-                                              ),
-                                        ),
-                                      ),
-                                ),
-                              ],
                             ),
                           ),
                         ),
-                      ),
-                    );
-                  },
-                ),
+                      );
+                    },
+                  ),
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.green,
-        onPressed:
-            () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => ColheitaFormView(lavouraId: widget.lavouraId),
-              ),
-            ),
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ColheitaFormView(lavouraId: widget.lavouraId),
+          ),
+        ),
         child: const Icon(Icons.add),
       ),
     );

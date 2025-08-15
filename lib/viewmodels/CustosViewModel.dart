@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_fgl_1/models/RendimentoColheitaModel.dart';
-import '../../models/ColheitaModel.dart';
-import '../../repositories/ColheitaRepo.dart';
+import '../../models/CustosModel.dart';
+import '../../repositories/CustosRepo.dart';
 
-class ColheitaViewModel extends ChangeNotifier {
-  final ColheitaRepo _repository = ColheitaRepo();
-  List<ColheitaModel> _colheita = [];
+class CustoViewModel extends ChangeNotifier {
+  final CustoRepo _repository = CustoRepo();
+
+  List<CustoModel> _custos = [];
   bool isLoading = false;
   String? errorMessage;
 
-  RendimentoColheitaModel? rendimento;
-
-  List<ColheitaModel> get colheita => _colheita;
+  List<CustoModel> get custos => _custos;
 
   Future<void> fetch() async {
     isLoading = true;
@@ -19,9 +17,9 @@ class ColheitaViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _colheita = await _repository.getAll();
+      _custos = await _repository.getAll();
     } catch (e) {
-      _colheita = [];
+      _custos = [];
       errorMessage = e.toString();
       debugPrint('Erro em fetch(): $e');
     } finally {
@@ -30,7 +28,23 @@ class ColheitaViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> add(ColheitaModel model) async {
+  Future<void> fetchByLavoura(int lavouraId) async {
+    isLoading = true;
+    notifyListeners();
+
+    try {
+      _custos = await _repository.fetchByLavoura(lavouraId);
+    } catch (e) {
+      _custos = [];
+      errorMessage = 'Erro ao buscar custos por lavoura: $e';
+      debugPrint(errorMessage);
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> add(CustoModel model) async {
     isLoading = true;
     notifyListeners();
 
@@ -46,7 +60,7 @@ class ColheitaViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> update(ColheitaModel model) async {
+  Future<void> update(CustoModel model) async {
     isLoading = true;
     notifyListeners();
 
@@ -62,44 +76,19 @@ class ColheitaViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> delete(int id, int lavouraID) async {
+  Future<void> delete(int id, int lavouraId) async {
     isLoading = true;
     notifyListeners();
 
     try {
       await _repository.delete(id);
-      await fetchByLavoura(lavouraID);
+      await fetchByLavoura(lavouraId);
     } catch (e) {
       errorMessage = 'Erro ao excluir: $e';
       debugPrint(errorMessage);
       isLoading = false;
       notifyListeners();
       rethrow;
-    }
-  }
-
-  Future<void> fetchByLavoura(int lavouraId) async {
-    try {
-      isLoading = true;
-      notifyListeners();
-
-      _colheita = await _repository.fetchByLavoura(lavouraId);
-    } catch (e) {
-      print('Erro ao buscar colheita da lavoura: $e');
-    } finally {
-      isLoading = false;
-      notifyListeners();
-    }
-  }
-
-
-  Future<void> carregarRendimento(int lavouraId) async {
-    try {
-      rendimento = await _repository.getRendimentoPorLavoura(lavouraId);
-      notifyListeners();
-    } catch (e) {
-      errorMessage = 'Erro ao carregar rendimento: $e';
-      notifyListeners();
     }
   }
 }

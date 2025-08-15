@@ -98,4 +98,28 @@ class LavouraRepo {
       throw Exception('Erro ao buscar por $nome: $e');
     }
   }
+
+  Future<LavouraModel> getID(int id) async {
+    try {
+      final response = await ApiService.getID('/Lavouras/$id');
+
+      if (response.statusCode == 200) {
+        if (response.body.isNotEmpty) {
+          final jsonMap = json.decode(response.body) as Map<String, dynamic>;
+          return LavouraModel.fromJson(jsonMap);
+        } else {
+          throw Exception('Resposta vazia do servidor');
+        }
+      } else {
+        throw Exception('Erro ao buscar lavoura (${response.statusCode})');
+      }
+    } on SocketException {
+      throw Exception('Falha de conexão. Verifique sua internet');
+    } on TimeoutException {
+      throw Exception('Tempo de resposta excedido');
+    } catch (e) {
+      throw Exception('Erro ao buscar lavoura: $e');
+    }
+  }
+
 }

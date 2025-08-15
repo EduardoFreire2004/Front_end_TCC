@@ -24,6 +24,10 @@ class _ColheitaFormViewState extends State<ColheitaFormView> {
   final _descricaoController = TextEditingController();
   final _dataHoraController = TextEditingController();
   final _tipoController = TextEditingController();
+  final _quantidadeSacasController = TextEditingController();
+  final _areaHectaresController = TextEditingController();
+  final _cooperativaController = TextEditingController();
+  final _precoPorSacaController = TextEditingController();
 
   DateTime? _dataHora;
 
@@ -40,6 +44,11 @@ class _ColheitaFormViewState extends State<ColheitaFormView> {
       _tipoController.text = widget.colheita!.tipo;
       _dataHora = widget.colheita!.dataHora;
       _dataHoraController.text = DateFormat('dd/MM/yyyy HH:mm').format(_dataHora!);
+
+      _quantidadeSacasController.text = widget.colheita!.quantidadeSacas.toStringAsFixed(2);
+      _areaHectaresController.text = widget.colheita!.areaHectares.toStringAsFixed(2);
+      _cooperativaController.text = widget.colheita!.cooperativaDestino;
+      _precoPorSacaController.text = widget.colheita!.precoPorSaca.toStringAsFixed(2);
     }
   }
 
@@ -48,6 +57,10 @@ class _ColheitaFormViewState extends State<ColheitaFormView> {
     _descricaoController.dispose();
     _dataHoraController.dispose();
     _tipoController.dispose();
+    _quantidadeSacasController.dispose();
+    _areaHectaresController.dispose();
+    _cooperativaController.dispose();
+    _precoPorSacaController.dispose();
     super.dispose();
   }
 
@@ -108,7 +121,17 @@ class _ColheitaFormViewState extends State<ColheitaFormView> {
       lavouraID: widget.lavouraId,
       tipo: _tipoController.text.trim(),
       dataHora: _dataHora!,
-      descricao: _descricaoController.text.trim().isEmpty ? null : _descricaoController.text.trim(),
+      descricao: _descricaoController.text.trim().isEmpty
+          ? null
+          : _descricaoController.text.trim(),
+      quantidadeSacas:
+          double.parse(_quantidadeSacasController.text.replaceAll(',', '.')),
+      areaHectares:
+          double.parse(_areaHectaresController.text.replaceAll(',', '.')),
+      cooperativaDestino: _cooperativaController.text.trim(),
+      precoPorSaca: double.parse(
+        _precoPorSacaController.text.replaceAll(RegExp(r'[^\d.]'), ''),
+      ),
     );
 
     final viewModel = Provider.of<ColheitaViewModel>(context, listen: false);
@@ -171,6 +194,69 @@ class _ColheitaFormViewState extends State<ColheitaFormView> {
                 ),
                 validator: (value) =>
                     value == null || value.isEmpty ? 'Selecione data e hora' : null,
+              ),
+              const SizedBox(height: 16),
+              _buildTextField(
+                controller: _quantidadeSacasController,
+                label: 'Quantidade de Sacas (60kg)',
+                hint: 'Ex: 1200',
+                icon: Icons.shopping_bag,
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+                ],
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty)
+                    return 'Informe a quantidade de sacas';
+                  if (double.tryParse(value.replaceAll(',', '.')) == null)
+                    return 'Valor inválido';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              _buildTextField(
+                controller: _areaHectaresController,
+                label: 'Área Colhida (hectares)',
+                hint: 'Ex: 20',
+                icon: Icons.landscape,
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+                ],
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty)
+                    return 'Informe a área colhida';
+                  if (double.tryParse(value.replaceAll(',', '.')) == null)
+                    return 'Valor inválido';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              _buildTextField(
+                controller: _cooperativaController,
+                label: 'Cooperativa de Destino',
+                hint: 'Nome da cooperativa',
+                icon: Icons.store,
+                validator: (value) =>
+                    value == null || value.trim().isEmpty ? 'Informe a cooperativa' : null,
+              ),
+              const SizedBox(height: 16),
+              _buildTextField(
+                controller: _precoPorSacaController,
+                label: 'Preço por Saca (R\$)',
+                hint: 'Ex: 130.50',
+                icon: Icons.monetization_on,
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+                ],
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty)
+                    return 'Informe o preço por saca';
+                  if (double.tryParse(value.replaceAll(RegExp(r'[^\d.]'), '')) == null)
+                    return 'Valor inválido';
+                  return null;
+                },
               ),
               const SizedBox(height: 24),
               ElevatedButton(

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fgl_1/viewmodels/AplicacaoInsumoViewModel.dart';
+import 'package:flutter_fgl_1/viewmodels/CustosViewModel.dart';
+import 'package:flutter_fgl_1/viewmodels/MovimentacaoEstoqueViewModel.dart';
 import 'package:flutter_fgl_1/views/Lavoura/LavouraListView.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -34,12 +36,18 @@ class FGLApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => TipoAgrotoxicoViewModel()..fetch()),
-        ChangeNotifierProvider( create: (_) => ForneAgrotoxicoViewModel()..fetch()),
+        ChangeNotifierProvider(
+          create: (_) => TipoAgrotoxicoViewModel()..fetch(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => ForneAgrotoxicoViewModel()..fetch(),
+        ),
         ChangeNotifierProvider(create: (_) => AgrotoxicoViewModel()..fetch()),
         ChangeNotifierProvider(create: (_) => AplicacaoViewModel()),
         ChangeNotifierProvider(create: (_) => ForneInsumoViewModel()..fetch()),
-        ChangeNotifierProvider(create: (_) => CategoriaInsumoViewModel()..fetch()),
+        ChangeNotifierProvider(
+          create: (_) => CategoriaInsumoViewModel()..fetch(),
+        ),
         ChangeNotifierProvider(create: (_) => InsumoViewModel()..fetch()),
         ChangeNotifierProvider(create: (_) => ForneSementeViewModel()..fetch()),
         ChangeNotifierProvider(create: (_) => SementeViewModel()..fetch()),
@@ -48,6 +56,9 @@ class FGLApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => LavouraViewModel()..fetch()),
         ChangeNotifierProvider(create: (_) => AplicacaoInsumoViewModel()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => CustoViewModel()),
+        ChangeNotifierProvider(create: (_) => MovimentacaoEstoqueViewModel())
+
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {

@@ -6,6 +6,7 @@ import 'package:flutter_fgl_1/viewmodels/SementeViewModel.dart';
 import 'package:flutter_fgl_1/views/ForneSemente/FornecedorSementeFormView.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 
 class SementeFormView extends StatefulWidget {
   final SementeModel? semente;
@@ -22,6 +23,7 @@ class _SementeFormViewState extends State<SementeFormView> {
   final _tipoController = TextEditingController();
   final _marcaController = TextEditingController();
   final _qtdeController = TextEditingController();
+  final _precoController = TextEditingController();
 
   int? _fornecedorID;
   DateTime? _selectedDate;
@@ -40,11 +42,19 @@ class _SementeFormViewState extends State<SementeFormView> {
       _marcaController.text = semente.marca;
       _qtdeController.text = semente.qtde.toString();
       _fornecedorID = semente.fornecedorSementeID;
-      _selectedDate = widget.semente!.data_Cadastro;
+      _selectedDate = semente.data_Cadastro;
       if (_selectedDate != null) {
         _dataCadastroController.text = DateFormat(
           'dd/MM/yyyy',
         ).format(_selectedDate!);
+      }
+
+      if (semente.preco != null) {
+        _precoController.text = toCurrencyString(
+          semente.preco!.toStringAsFixed(2),
+          leadingSymbol: 'R\$ ',
+          useSymbolPadding: true,
+        );
       }
     }
   }
@@ -55,6 +65,7 @@ class _SementeFormViewState extends State<SementeFormView> {
     _tipoController.dispose();
     _marcaController.dispose();
     _qtdeController.dispose();
+    _precoController.dispose();
     _dataCadastroController.dispose();
     super.dispose();
   }
@@ -107,12 +118,18 @@ class _SementeFormViewState extends State<SementeFormView> {
   void _salvar() {
     if (!_formKey.currentState!.validate()) return;
 
+    final precoText = _precoController.text
+        .replaceAll(RegExp(r'[^0-9,]'), '')
+        .replaceAll(',', '.');
+    final preco = double.tryParse(precoText) ?? 0.0;
+
     final model = SementeModel(
       id: widget.semente?.id,
       nome: _nomeController.text.trim(),
       tipo: _tipoController.text.trim(),
       marca: _marcaController.text.trim(),
       qtde: double.tryParse(_qtdeController.text.replaceAll(',', '.')) ?? 0.0,
+      preco: preco,
       fornecedorSementeID: _fornecedorID!,
       data_Cadastro: _selectedDate!,
     );
@@ -152,12 +169,10 @@ class _SementeFormViewState extends State<SementeFormView> {
                   key: _formKey,
                   child: ListView(
                     children: [
-                      TextFormField(
-                        controller: _nomeController,
-                        decoration: const InputDecoration(
-                          labelText: 'Nome',
-                          prefixIcon: Icon(Icons.grass),
-                        ),
+                      _buildTextField(
+                        _nomeController,
+                        "Nome",
+                        Icons.grass,
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Nome é obrigatório';
@@ -181,7 +196,7 @@ class _SementeFormViewState extends State<SementeFormView> {
                         _qtdeController,
                         "Quantidade",
                         Icons.scale,
-                        inputType: TextInputType.numberWithOptions(
+                        inputType: const TextInputType.numberWithOptions(
                           decimal: true,
                         ),
                         formatter: [
@@ -189,6 +204,34 @@ class _SementeFormViewState extends State<SementeFormView> {
                             RegExp(r'[0-9,\.]'),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextField(
+                        _precoController,
+                        "Preço (R\$)",
+                        Icons.attach_money,
+                        inputType: TextInputType.number,
+                        formatter: [
+                          MoneyInputFormatter(
+                            leadingSymbol: 'R\$',
+                            useSymbolPadding: true,
+                            thousandSeparator: ThousandSeparator.Period,
+                            mantissaLength: 2,
+                          ),
+                        ],
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Preço é obrigatório';
+                          }
+                          final cleaned = value.replaceAll(
+                            RegExp(r'[^0-9,]'),
+                            '',
+                          );
+                          if (cleaned.isEmpty) {
+                            return 'Preço inválido';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 16),
                       Row(
@@ -278,6 +321,7 @@ class _SementeFormViewState extends State<SementeFormView> {
     IconData icon, {
     TextInputType inputType = TextInputType.text,
     List<TextInputFormatter>? formatter,
+    String? Function(String?)? validator,
   }) {
     return TextFormField(
       controller: controller,
@@ -285,6 +329,7 @@ class _SementeFormViewState extends State<SementeFormView> {
       keyboardType: inputType,
       inputFormatters: formatter,
       validator:
+          validator ??
           (value) =>
               value == null || value.isEmpty ? "Campo obrigatório" : null,
     );

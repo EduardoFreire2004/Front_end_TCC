@@ -4,6 +4,10 @@ class ColheitaModel {
   String tipo;
   DateTime dataHora;
   String? descricao;
+  double quantidadeSacas;
+  double areaHectares;
+  String cooperativaDestino;
+  double precoPorSaca;
 
   ColheitaModel({
     this.id,
@@ -11,6 +15,10 @@ class ColheitaModel {
     required this.tipo,
     required this.dataHora,
     this.descricao,
+    required this.quantidadeSacas,
+    required this.areaHectares,
+    required this.cooperativaDestino,
+    required this.precoPorSaca,
   });
 
   factory ColheitaModel.fromJson(Map<String, dynamic> map) {
@@ -20,6 +28,10 @@ class ColheitaModel {
       tipo: map['tipo'] ?? '',
       dataHora: DateTime.parse(map['dataHora']),
       descricao: map['descricao'],
+      quantidadeSacas: (map['quantidadeSacas'] as num).toDouble(),
+      areaHectares: (map['areaHectares'] as num).toDouble(),
+      cooperativaDestino: map['cooperativaDestino'] ?? '',
+      precoPorSaca: (map['precoPorSaca'] as num).toDouble(),
     );
   }
 
@@ -30,6 +42,10 @@ class ColheitaModel {
       'tipo': tipo,
       'dataHora': dataHora.toIso8601String(),
       'descricao': descricao,
+      'quantidadeSacas': quantidadeSacas,
+      'areaHectares': areaHectares,
+      'cooperativaDestino': cooperativaDestino,
+      'precoPorSaca': precoPorSaca,
     };
   }
 }

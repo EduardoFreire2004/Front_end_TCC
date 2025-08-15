@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
+import 'package:flutter_fgl_1/models/RendimentoColheitaModel.dart';
+
 import '../models/ColheitaModel.dart';
 import '../services/api_service.dart';
 
@@ -15,7 +17,9 @@ class ColheitaRepo {
             .map((item) => ColheitaModel.fromJson(item as Map<String, dynamic>))
             .toList();
       } else {
-        throw Exception('Erro ${response.statusCode}: Não foi possível carregar as colheitas.');
+        throw Exception(
+          'Erro ${response.statusCode}: Não foi possível carregar as colheitas.',
+        );
       }
     } on SocketException {
       throw Exception('Sem conexão com a internet. Verifique sua rede.');
@@ -82,18 +86,14 @@ class ColheitaRepo {
     }
   }
 
-   Future<List<ColheitaModel>> fetchByLavoura(int lavouraId) async {
+  Future<List<ColheitaModel>> fetchByLavoura(int lavouraId) async {
     try {
-      final response = await ApiService.get(
-        '/Colheitas/porlavoura/$lavouraId',
-      );
+      final response = await ApiService.get('/Colheitas/porlavoura/$lavouraId');
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         return data
-            .map(
-              (item) => ColheitaModel.fromJson(item as Map<String, dynamic>),
-            )
+            .map((item) => ColheitaModel.fromJson(item as Map<String, dynamic>))
             .toList();
       } else {
         throw Exception(
@@ -108,6 +108,27 @@ class ColheitaRepo {
       throw Exception('Erro ao interpretar dados da colheita por lavoura.');
     } catch (e) {
       throw Exception('Erro inesperado ao buscar por lavoura: $e');
+    }
+  }
+
+  Future<RendimentoColheitaModel> getRendimentoPorLavoura(int lavouraId) async {
+    try {
+      final response = await ApiService.get(
+        '/Colheitas/rendimento/lavoura/$lavouraId',
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+        return RendimentoColheitaModel.fromJson(data);
+      } else if (response.statusCode == 404) {
+        throw Exception('Nenhuma colheita encontrada para a lavoura.');
+      } else {
+        throw Exception(
+          'Erro ${response.statusCode}: não foi possível obter o rendimento.',
+        );
+      }
+    } catch (e) {
+      throw Exception('Erro ao buscar rendimento: $e');
     }
   }
 }

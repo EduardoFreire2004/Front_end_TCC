@@ -6,6 +6,7 @@ class InsumoModel {
   String unidade_Medida;
   DateTime data_Cadastro;
   double qtde;
+  double preco;
 
   InsumoModel({
     this.id,
@@ -15,6 +16,7 @@ class InsumoModel {
     required this.unidade_Medida,
     required this.data_Cadastro,
     required this.qtde,
+    required this.preco,
   });
 
   factory InsumoModel.fromJson(Map<String, dynamic> map) {
@@ -26,6 +28,7 @@ class InsumoModel {
       unidade_Medida: map['unidade_Medida'],
       data_Cadastro: DateTime.parse(map['data_Cadastro']),
       qtde: map['qtde'].toDouble(),
+      preco: map['preco'].toDouble(),
     );
   }
 
@@ -37,8 +40,8 @@ class InsumoModel {
       'nome': nome,
       'unidade_Medida': unidade_Medida,
       'data_Cadastro': data_Cadastro.toIso8601String(),
-      'qtde': qtde,       
+      'qtde': qtde,
+      'preco': preco,
     };
   }
-
 }

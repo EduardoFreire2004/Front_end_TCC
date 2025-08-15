@@ -1,27 +1,24 @@
 import 'package:flutter/material.dart';
-import '../../models/LavouraModel.dart';
-import '../../repositories/LavouraRepo.dart';
+import '../../models/MovimentacaoEstoqueModel.dart';
+import '../../repositories/MovimentacaoEstoqueRepo.dart';
 
-class LavouraViewModel extends ChangeNotifier {
-  final LavouraRepo _repository = LavouraRepo();
-  List<LavouraModel> _lavoura = [];
+class MovimentacaoEstoqueViewModel extends ChangeNotifier {
+  final MovimentacaoEstoqueRepo _repo = MovimentacaoEstoqueRepo();
+  List<MovimentacaoEstoqueModel> _lista = [];
   bool isLoading = false;
   String? errorMessage;
 
-  List<LavouraModel> get lavoura => _lavoura;
+  List<MovimentacaoEstoqueModel> get lista => _lista;
 
   Future<bool> fetch() async {
     isLoading = true;
-    errorMessage = null;
     notifyListeners();
-
     try {
-      _lavoura = await _repository.getAll();
+      _lista = await _repo.getAll();
       return true;
     } catch (e) {
-      _lavoura = [];
+      _lista = [];
       errorMessage = e.toString();
-      debugPrint('Erro em fetch(): $e');
       return false;
     } finally {
       isLoading = false;
@@ -29,67 +26,47 @@ class LavouraViewModel extends ChangeNotifier {
     }
   }
 
-  Future<bool> add(LavouraModel model) async {
+  Future<bool> add(MovimentacaoEstoqueModel model) async {
     isLoading = true;
     notifyListeners();
-
     try {
-      await _repository.create(model);
+      await _repo.create(model);
       await fetch();
       return true;
     } catch (e) {
       errorMessage = 'Erro ao adicionar: $e';
-      debugPrint(errorMessage);
+      return false;
+    } finally {
       isLoading = false;
       notifyListeners();
-      return false;
     }
   }
 
-  Future<bool> update(LavouraModel model) async {
+  Future<bool> update(MovimentacaoEstoqueModel model) async {
     isLoading = true;
     notifyListeners();
-
     try {
-      await _repository.update(model);
+      await _repo.update(model);
       await fetch();
       return true;
     } catch (e) {
       errorMessage = 'Erro ao atualizar: $e';
-      debugPrint(errorMessage);
+      return false;
+    } finally {
       isLoading = false;
       notifyListeners();
-      return false;
     }
   }
 
   Future<bool> delete(int id) async {
     isLoading = true;
     notifyListeners();
-
     try {
-      await _repository.delete(id);
+      await _repo.delete(id);
       await fetch();
       return true;
     } catch (e) {
-      errorMessage = 'Erro ao excluir: $e';
-      debugPrint(errorMessage);
-      isLoading = false;
-      notifyListeners();
-      return false;
-    }
-  }
-
-  Future<bool> fetchByNome(String nome) async {
-    try {
-      isLoading = true;
-      notifyListeners();
-
-      _lavoura = await _repository.getByNome(nome);
-      return true;
-    } catch (e) {
-      _lavoura = [];
-      print('Erro ao buscar: $e');
+      errorMessage = 'Erro ao deletar: $e';
       return false;
     } finally {
       isLoading = false;
@@ -97,16 +74,31 @@ class LavouraViewModel extends ChangeNotifier {
     }
   }
 
-  Future<LavouraModel?> getID(int id) async {
+  Future<bool> fetchByLavoura(int lavouraId) async {
+    isLoading = true;
+    notifyListeners();
+    try {
+      _lista = await _repo.getByLavoura(lavouraId);
+      return true;
+    } catch (e) {
+      _lista = [];
+      errorMessage = 'Erro: $e';
+      return false;
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<MovimentacaoEstoqueModel?> getID(int id) async {
     try {
       isLoading = true;
       notifyListeners();
 
-      final lavoura = await _repository.getID(id);
-      return lavoura;
+      final movimentacao = await _repo.getID(id);
+      return movimentacao;
     } catch (e) {
-      errorMessage = 'Erro ao buscar lavoura: $e';
-      debugPrint(errorMessage);
+      errorMessage = 'Erro ao buscar movimentação: $e';
       return null;
     } finally {
       isLoading = false;
