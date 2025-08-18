@@ -4,6 +4,8 @@ import 'package:flutter_fgl_1/viewmodels/ForneSementeViewModel.dart';
 import 'package:flutter_fgl_1/viewmodels/SementeViewModel.dart';
 import 'package:flutter_fgl_1/views/ForneSemente/FonecedorSementeListView.dart';
 import 'package:flutter_fgl_1/views/Semente/SementeFormView.dart';
+import 'package:flutter_fgl_1/services/RelatorioService.dart';
+import 'package:flutter_fgl_1/widgets/RelatorioButton.dart';
 import 'package:provider/provider.dart';
 
 class SementeListView extends StatefulWidget {
@@ -31,11 +33,9 @@ class _SementeListViewState extends State<SementeListView> {
     final scaffoldBgColor = Colors.grey[50]!;
 
     void showDetailsDialog(SementeModel semente) async {
-      final fornecedor = await fornecedorVM.getID(
-        semente.fornecedorSementeID,
-      ); 
+      final fornecedor = await fornecedorVM.getID(semente.fornecedorSementeID);
 
-      if (!mounted) return; 
+      if (!mounted) return;
 
       showDialog(
         context: context,
@@ -225,6 +225,30 @@ class _SementeListViewState extends State<SementeListView> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
+          FloatingActionButton(
+            heroTag: 'relatorioFAB',
+            mini: true,
+            backgroundColor: Colors.blue[600],
+            tooltip: 'Gerar Relatório PDF',
+            onPressed: () async {
+              try {
+                await RelatorioService.gerarRelatorioSementes(
+                  sementeVM.semente,
+                );
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Erro ao gerar relatório: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Icon(Icons.picture_as_pdf),
+          ),
+          const SizedBox(height: 12),
           FloatingActionButton(
             heroTag: 'fornecedorFAB',
             mini: true,

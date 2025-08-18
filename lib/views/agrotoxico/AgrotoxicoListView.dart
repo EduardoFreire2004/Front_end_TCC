@@ -5,6 +5,8 @@ import 'package:flutter_fgl_1/viewmodels/ForneAgrotoxicoViewModel.dart';
 import 'package:flutter_fgl_1/viewmodels/TipoAgrotoxicoViewModel.dart';
 import 'package:flutter_fgl_1/views/ForneAgrotoxico/FornecedorAgrotoxicoListView.dart';
 import 'package:flutter_fgl_1/views/TipoAgrotoxico/TipoAgrotoxicoListView.dart';
+import 'package:flutter_fgl_1/services/RelatorioService.dart';
+import 'package:flutter_fgl_1/widgets/RelatorioButton.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'AgrotoxicoFormView.dart';
@@ -394,6 +396,30 @@ class _AgrotoxicoListViewState extends State<AgrotoxicoListView> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
+          FloatingActionButton(
+            heroTag: 'relatorioFAB',
+            mini: true,
+            backgroundColor: Colors.blue[600],
+            tooltip: 'Gerar Relatório PDF',
+            onPressed: () async {
+              try {
+                await RelatorioService.gerarRelatorioAgrotoxicos(
+                  viewModel.lista,
+                );
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Erro ao gerar relatório: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Icon(Icons.picture_as_pdf),
+          ),
+          const SizedBox(height: 12),
           FloatingActionButton(
             heroTag: 'tipoFAB',
             mini: true,

@@ -5,6 +5,8 @@ import 'package:flutter_fgl_1/viewmodels/AplicacaoInsumoViewModel.dart';
 import 'package:flutter_fgl_1/viewmodels/InsumoViewModel.dart';
 import 'package:flutter_fgl_1/views/AplicacaoInsumo/AplicacaoInsumoFormView.dart';
 import 'package:flutter_fgl_1/views/Insumo/InsumoListView.dart';
+import 'package:flutter_fgl_1/services/RelatorioService.dart';
+import 'package:flutter_fgl_1/widgets/RelatorioButton.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -299,6 +301,30 @@ class _AplicacaoListViewState extends State<AplicacaoInsumoListView> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
+          FloatingActionButton(
+            heroTag: 'relatorioFAB',
+            mini: true,
+            backgroundColor: Colors.blue[600],
+            tooltip: 'Gerar Relatório PDF',
+            onPressed: () async {
+              try {
+                await RelatorioService.gerarRelatorioAplicacoesInsumos(
+                  aplicacaoVM.aplicacao,
+                );
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Erro ao gerar relatório: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Icon(Icons.picture_as_pdf),
+          ),
+          const SizedBox(height: 12),
           FloatingActionButton(
             heroTag: 'insumoFAB',
             mini: true,

@@ -81,9 +81,9 @@ class _MovimentacaoEstoqueListViewState
                   final mov = movimentacaoVM.lista[index];
                   final itemNome = _getItemNome(
                     context,
-                    mov.agrotoxicoID,
-                    mov.sementeID,
-                    mov.insumoID,
+                    mov.agrotoxicoID ?? 0 ,
+                    mov.sementeID ?? 0,
+                    mov.insumoID ?? 0,
                   );
 
                   return Card(
@@ -104,7 +104,7 @@ class _MovimentacaoEstoqueListViewState
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '${_getTipoMovimentacao(mov.movimentacao)} • Qtde: ${mov.qtde}',
+                            '${mov.movimentacao == 1 ? 'Entrada' : 'Saída'} • Qtde: ${mov.qtde}',
                           ),
                           Text(
                             DateFormat('dd/MM/yyyy HH:mm').format(mov.dataHora),
