@@ -34,10 +34,7 @@ class TipoAgrotoxicoRepo {
 
   Future<void> create(TipoAgrotoxicoModel tipo) async {
     try {
-      final response = await ApiService.post(
-        '/TipoAgrotoxicos',
-        jsonEncode(tipo.toJson()),
-      );
+      final response = await ApiService.post('/TipoAgrotoxicos', tipo.toJson());
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw Exception('Erro ao criar tipo (${response.statusCode}).');
@@ -55,7 +52,7 @@ class TipoAgrotoxicoRepo {
     try {
       final response = await ApiService.put(
         '/TipoAgrotoxicos/${tipo.id}',
-        jsonEncode(tipo.toJson()),
+        tipo.toJson(),
       );
 
       if (response.statusCode != 200 && response.statusCode != 204) {

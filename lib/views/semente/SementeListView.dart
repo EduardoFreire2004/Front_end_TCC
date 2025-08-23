@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fgl_1/models/SementeModel.dart';
-import 'package:flutter_fgl_1/viewmodels/ForneSementeViewModel.dart';
+import 'package:flutter_fgl_1/viewmodels/FornecedoresViewmodel.dart';
 import 'package:flutter_fgl_1/viewmodels/SementeViewModel.dart';
-import 'package:flutter_fgl_1/views/ForneSemente/FonecedorSementeListView.dart';
+import 'package:flutter_fgl_1/views/Fornecedores/FornecedoresListView.dart';
 import 'package:flutter_fgl_1/views/Semente/SementeFormView.dart';
 import 'package:flutter_fgl_1/services/RelatorioService.dart';
 import 'package:flutter_fgl_1/widgets/RelatorioButton.dart';
@@ -21,7 +21,7 @@ class _SementeListViewState extends State<SementeListView> {
   @override
   Widget build(BuildContext context) {
     final sementeVM = Provider.of<SementeViewModel>(context);
-    final fornecedorVM = Provider.of<ForneSementeViewModel>(
+    final fornecedorVM = Provider.of<FornecedoresViewModel>(
       context,
       listen: false,
     );
@@ -257,7 +257,7 @@ class _SementeListViewState extends State<SementeListView> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => FornecedorSementeListView()),
+                MaterialPageRoute(builder: (_) => FornecedoresListView()),
               );
             },
             child: const Icon(Icons.business),

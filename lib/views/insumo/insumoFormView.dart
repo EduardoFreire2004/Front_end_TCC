@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_fgl_1/models/InsumoModel.dart';
 import 'package:flutter_fgl_1/viewmodels/CategoriaInsumoViewModel.dart';
-import 'package:flutter_fgl_1/viewmodels/ForneInsumoViewModel.dart';
+import 'package:flutter_fgl_1/viewmodels/FornecedoresViewmodel.dart';
 import 'package:flutter_fgl_1/viewmodels/InsumoViewModel.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -91,7 +91,7 @@ class _InsumoFormPageState extends State<InsumoFormView> {
   @override
   Widget build(BuildContext context) {
     final categoriaVM = context.watch<CategoriaInsumoViewModel>();
-    final fornecedorVM = context.watch<ForneInsumoViewModel>();
+    final fornecedorVM = context.watch<FornecedoresViewModel>();
 
     return Scaffold(
       appBar: AppBar(
@@ -187,7 +187,7 @@ class _InsumoFormPageState extends State<InsumoFormView> {
               DropdownButtonFormField<int>(
                 value: _fornecedorID,
                 decoration: const InputDecoration(labelText: 'Fornecedor'),
-                items: fornecedorVM.forneInsumo
+                items: fornecedorVM.fornecedores
                     .map((e) => DropdownMenuItem(value: e.id, child: Text(e.nome)))
                     .toList(),
                 onChanged: (value) => setState(() => _fornecedorID = value),

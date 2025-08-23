@@ -13,7 +13,8 @@ class AplicacaoInsumoRepo {
         final List<dynamic> data = jsonDecode(response.body);
         return data
             .map(
-              (item) => AplicacaoInsumoModel.fromJson(item as Map<String, dynamic>),
+              (item) =>
+                  AplicacaoInsumoModel.fromJson(item as Map<String, dynamic>),
             )
             .toList();
       } else {
@@ -36,7 +37,7 @@ class AplicacaoInsumoRepo {
     try {
       final response = await ApiService.post(
         '/AplicacaoInsumos',
-        jsonEncode(aplicacao.toJson()),
+        aplicacao.toJson(),
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
@@ -55,7 +56,7 @@ class AplicacaoInsumoRepo {
     try {
       final response = await ApiService.put(
         '/AplicacaoInsumos/${aplicacao.id}',
-        jsonEncode(aplicacao.toJson()),
+        aplicacao.toJson(),
       );
 
       if (response.statusCode != 200 && response.statusCode != 204) {
@@ -65,8 +66,6 @@ class AplicacaoInsumoRepo {
       }
     } on SocketException {
       throw Exception('Sem conexão com a internet ao atualizar.');
-    } on TimeoutException {
-      throw Exception('Tempo excedido ao atualizar.');
     } catch (e) {
       throw Exception('Erro ao atualizar aplicação: $e');
     }
@@ -98,7 +97,8 @@ class AplicacaoInsumoRepo {
         final List<dynamic> data = jsonDecode(response.body);
         return data
             .map(
-              (item) => AplicacaoInsumoModel.fromJson(item as Map<String, dynamic>),
+              (item) =>
+                  AplicacaoInsumoModel.fromJson(item as Map<String, dynamic>),
             )
             .toList();
       } else {

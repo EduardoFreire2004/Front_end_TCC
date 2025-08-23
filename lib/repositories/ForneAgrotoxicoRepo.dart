@@ -1,20 +1,20 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
-import '../models/ForneAgrotoxicoModel.dart';
+import '../models/FornecedoresModel.dart';
 import '../services/api_service.dart';
 
 class ForneAgrotoxicoRepo {
-  Future<List<ForneAgrotoxicoModel>> getAll() async {
+  Future<List<FornecedoresModel>> getAll() async {
     try {
-      final response = await ApiService.get('/FornecedorAgrotoxicos');
+      final response = await ApiService.get('/Fornecedores');
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         return data
             .map(
               (item) =>
-                  ForneAgrotoxicoModel.fromJson(item as Map<String, dynamic>),
+                  FornecedoresModel.fromJson(item as Map<String, dynamic>),
             )
             .toList();
       } else {
@@ -33,11 +33,11 @@ class ForneAgrotoxicoRepo {
     }
   }
 
-  Future<void> create(ForneAgrotoxicoModel fornecedor) async {
+  Future<void> create(FornecedoresModel fornecedor) async {
     try {
       final response = await ApiService.post(
-        '/FornecedorAgrotoxicos',
-        jsonEncode(fornecedor.toJson()),
+        '/Fornecedores',
+        fornecedor.toJson(),
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
@@ -52,11 +52,11 @@ class ForneAgrotoxicoRepo {
     }
   }
 
-  Future<void> update(ForneAgrotoxicoModel fornecedor) async {
+  Future<void> update(FornecedoresModel fornecedor) async {
     try {
       final response = await ApiService.put(
-        '/FornecedorAgrotoxicos/${fornecedor.id}',
-        jsonEncode(fornecedor.toJson()),
+        '/Fornecedores/${fornecedor.id}',
+        fornecedor.toJson(),
       );
 
       if (response.statusCode != 200 && response.statusCode != 204) {
@@ -75,7 +75,7 @@ class ForneAgrotoxicoRepo {
 
   Future<void> delete(int id) async {
     try {
-      final response = await ApiService.delete('/FornecedorAgrotoxicos/$id');
+      final response = await ApiService.delete('/Fornecedores/$id');
 
       if (response.statusCode != 200 && response.statusCode != 204) {
         throw Exception('Erro ao deletar fornecedor (${response.statusCode}).');
@@ -89,14 +89,14 @@ class ForneAgrotoxicoRepo {
     }
   }
 
-  Future<ForneAgrotoxicoModel> getID(int id) async {
+  Future<FornecedoresModel> getID(int id) async {
     try {
-      final response = await ApiService.getID('/FornecedorAgrotoxicos/$id');
+      final response = await ApiService.getID('/Fornecedores/$id');
 
       if (response.statusCode == 200) {
         if (response.body.isNotEmpty) {
           final jsonMap = json.decode(response.body) as Map<String, dynamic>;
-          return ForneAgrotoxicoModel.fromJson(jsonMap);
+          return FornecedoresModel.fromJson(jsonMap);
         } else {
           throw Exception('Resposta vazia do servidor');
         }
@@ -112,22 +112,27 @@ class ForneAgrotoxicoRepo {
     }
   }
 
- Future<List<ForneAgrotoxicoModel>> getByParametro(String tipo, String valor) async {
-  try {
-    final endpoint = '/FornecedorAgrotoxicos/buscar?tipo=$tipo&valor=$valor';
-    final response = await ApiService.get(endpoint);
+  Future<List<FornecedoresModel>> getByParametro(
+    String tipo,
+    String valor,
+  ) async {
+    try {
+      final endpoint = '/Fornecedores/buscar?tipo=$tipo&valor=$valor';
+      final response = await ApiService.get(endpoint);
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.map((item) => ForneAgrotoxicoModel.fromJson(item)).toList();
-    } else {
-      throw Exception('Erro ${response.statusCode}: busca falhou.');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data
+            .map(
+              (item) =>
+                  FornecedoresModel.fromJson(item as Map<String, dynamic>),
+            )
+            .toList();
+      } else {
+        throw Exception('Erro ${response.statusCode}: busca falhou.');
+      }
+    } catch (e) {
+      throw Exception('Erro ao buscar por $tipo: $e');
     }
-  } catch (e) {
-    throw Exception('Erro ao buscar por $tipo: $e');
   }
-}
-
-
-
 }

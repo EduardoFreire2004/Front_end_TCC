@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fgl_1/viewmodels/CustosViewModel.dart';
 import 'package:provider/provider.dart';
 
-class CustoListView extends StatefulWidget {
+class CustosListView extends StatefulWidget {
   final int lavouraId;
-  const CustoListView({super.key, required this.lavouraId});
+  const CustosListView({super.key, required this.lavouraId});
 
   @override
-  State<CustoListView> createState() => _CustoListViewState();
+  State<CustosListView> createState() => _CustosListViewState();
 }
 
-class _CustoListViewState extends State<CustoListView> {
+class _CustosListViewState extends State<CustosListView> {
   @override
   void initState() {
     super.initState();

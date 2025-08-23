@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fgl_1/models/AgrotoxicoModel.dart';
 import 'package:flutter_fgl_1/viewmodels/AgrotoxicoViewModel.dart';
-import 'package:flutter_fgl_1/viewmodels/ForneAgrotoxicoViewModel.dart';
+import 'package:flutter_fgl_1/viewmodels/FornecedoresViewmodel.dart';
 import 'package:flutter_fgl_1/viewmodels/TipoAgrotoxicoViewModel.dart';
-import 'package:flutter_fgl_1/views/ForneAgrotoxico/FornecedorAgrotoxicoListView.dart';
+import 'package:flutter_fgl_1/views/Fornecedores/FornecedoresListView.dart';
 import 'package:flutter_fgl_1/views/TipoAgrotoxico/TipoAgrotoxicoListView.dart';
 import 'package:flutter_fgl_1/services/RelatorioService.dart';
 import 'package:flutter_fgl_1/widgets/RelatorioButton.dart';
@@ -46,7 +46,7 @@ class _AgrotoxicoListViewState extends State<AgrotoxicoListView> {
         context,
         listen: false,
       );
-      final fornecedorVM = Provider.of<ForneAgrotoxicoViewModel>(
+      final fornecedorVM = Provider.of<FornecedoresViewModel>(
         context,
         listen: false,
       );
@@ -442,9 +442,7 @@ class _AgrotoxicoListViewState extends State<AgrotoxicoListView> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => FornecedorAgrotoxicoListView(),
-                ),
+                MaterialPageRoute(builder: (_) => FornecedoresListView()),
               );
             },
             child: const Icon(Icons.business),

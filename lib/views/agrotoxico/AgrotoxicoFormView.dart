@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_fgl_1/models/AgrotoxicoModel.dart';
 import 'package:flutter_fgl_1/viewmodels/AgrotoxicoViewModel.dart';
-import 'package:flutter_fgl_1/viewmodels/ForneAgrotoxicoViewModel.dart';
+import 'package:flutter_fgl_1/viewmodels/FornecedoresViewmodel.dart';
 import 'package:flutter_fgl_1/viewmodels/TipoAgrotoxicoViewModel.dart';
-import 'package:flutter_fgl_1/views/ForneAgrotoxico/FornecedorAgrotoxicoFormView.dart';
+import 'package:flutter_fgl_1/views/Fornecedores/FornecedoresFormView.dart';
 import 'package:flutter_fgl_1/views/TipoAgrotoxico/TipoAgrotoxicoFormView.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -143,7 +143,7 @@ class _AgrotoxicoFormViewState extends State<AgrotoxicoFormView> {
 
   @override
   Widget build(BuildContext context) {
-    final fornecedorViewModel = Provider.of<ForneAgrotoxicoViewModel>(context);
+    final fornecedorViewModel = Provider.of<FornecedoresViewModel>(context);
     final tipoViewModel = Provider.of<TipoAgrotoxicoViewModel>(context);
 
     InputDecorationTheme formInputDecorationTheme = InputDecorationTheme(
@@ -197,7 +197,7 @@ class _AgrotoxicoFormViewState extends State<AgrotoxicoFormView> {
         ),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: fornecedorViewModel.forneAgrotoxico.isEmpty ||
+          child: fornecedorViewModel.fornecedores.isEmpty ||
                   tipoViewModel.tipo.isEmpty
               ? Center(
                   child: CircularProgressIndicator(color: primaryColor),
@@ -228,7 +228,7 @@ class _AgrotoxicoFormViewState extends State<AgrotoxicoFormView> {
                           Expanded(
                             child: DropdownButtonFormField<int>(
                               value: _fornecedorID,
-                              items: fornecedorViewModel.forneAgrotoxico
+                              items: fornecedorViewModel.fornecedores
                                   .map(
                                     (f) => DropdownMenuItem(
                                       value: f.id,
@@ -256,7 +256,7 @@ class _AgrotoxicoFormViewState extends State<AgrotoxicoFormView> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) =>
-                                      const FornecedorAgrotoxicoFormView(),
+                                      const FornecedoresFormView(),
                                 ),
                               );
                               fornecedorViewModel.fetch();

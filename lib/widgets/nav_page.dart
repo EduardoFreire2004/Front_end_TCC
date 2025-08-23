@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fgl_1/viewmodels/ThemaProviderViewModel.dart';
+import 'package:flutter_fgl_1/viewmodels/AuthViewModel.dart';
 import 'package:flutter_fgl_1/views/Agrotoxico/AgrotoxicoListView.dart';
-import 'package:flutter_fgl_1/views/ForneAgrotoxico/FornecedorAgrotoxicoListView.dart';
-import 'package:flutter_fgl_1/views/ForneInsumo/ForneInsumoListView.dart';
-import 'package:flutter_fgl_1/views/ForneSemente/FonecedorSementeListView.dart';
+import 'package:flutter_fgl_1/views/Fornecedores/FornecedoresListView.dart';
 import 'package:flutter_fgl_1/views/Insumo/InsumoListView.dart';
 import 'package:flutter_fgl_1/views/Semente/SementeListView.dart';
 import 'package:provider/provider.dart';
@@ -28,52 +27,50 @@ class NavBar extends StatelessWidget {
         children: [
           DrawerHeader(
             decoration: BoxDecoration(color: headerColor),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CircleAvatar(
-                  radius: 28,
-                  backgroundColor: Colors.white,
-                  child: Icon(Icons.person, size: 32, color: Colors.green[700]),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Eduardo Freire',
-                  style: TextStyle(
-                    color: headerTextColor,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+            child: Consumer<AuthViewModel>(
+              builder: (context, authViewModel, child) {
+                final usuario = authViewModel.usuario;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CircleAvatar(
+                      radius: 28,
+                      backgroundColor: Colors.white,
+                      child: Icon(
+                        Icons.person,
+                        size: 32,
+                        color: Colors.green[700],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      usuario?.nome ?? 'Usuário',
+                      style: TextStyle(
+                        color: headerTextColor,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (usuario?.email != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        usuario!.email,
+                        style: TextStyle(
+                          color: headerTextColor.withOpacity(0.8),
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ],
+                );
+              },
             ),
           ),
-          ExpansionTile(
-            leading: Icon(Icons.store, color: iconItemColor),
-            title: Text(
-              'Fornecedores',
-              style: TextStyle(
-                color: textItemColor,
-                fontWeight: textItemWeight,
-              ),
-            ),
-            children: [
-              _buildSubNavItem(
-                context,
-                'Fornecedor Agrotóxicos',
-                FornecedorAgrotoxicoListView(),
-              ),
-              _buildSubNavItem(
-                context,
-                'Fornecedor Sementes',
-                FornecedorSementeListView(),
-              ),
-              _buildSubNavItem(
-                context,
-                'Fornecedor Insumos',
-                FornecedorInsumoListView(),
-              ),
-            ],
+          _buildNavItem(
+            context,
+            Icons.bug_report,
+            'Fornecedores',
+            FornecedoresListView(),
           ),
           _buildNavItem(
             context,
@@ -81,18 +78,8 @@ class NavBar extends StatelessWidget {
             'Agrotóxicos',
             AgrotoxicoListView(),
           ),
-          _buildNavItem(
-            context,
-            Icons.grass,
-            'Sementes',
-            SementeListView(),
-          ),
-          _buildNavItem(
-            context,
-            Icons.science,
-            'Insumos',
-            InsumoListView(),
-          ),
+          _buildNavItem(context, Icons.grass, 'Sementes', SementeListView()),
+          _buildNavItem(context, Icons.science, 'Insumos', InsumoListView()),
           const Divider(),
           ListTile(
             leading: Icon(
@@ -108,6 +95,21 @@ class NavBar extends StatelessWidget {
             ),
             onTap: () {
               themeProvider.toggleTheme();
+              Navigator.pop(context);
+            },
+          ),
+          const Divider(),
+          ListTile(
+            leading: Icon(Icons.logout, color: Colors.red[600]),
+            title: Text(
+              'Sair',
+              style: TextStyle(
+                color: Colors.red[600],
+                fontWeight: textItemWeight,
+              ),
+            ),
+            onTap: () {
+              context.read<AuthViewModel>().logout();
               Navigator.pop(context);
             },
           ),

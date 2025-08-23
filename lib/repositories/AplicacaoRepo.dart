@@ -34,10 +34,7 @@ class AplicacaoRepo {
 
   Future<void> create(AplicacaoModel aplicacao) async {
     try {
-      final response = await ApiService.post(
-        '/Aplicacoes',
-        jsonEncode(aplicacao.toJson()),
-      );
+      final response = await ApiService.post('/Aplicacoes', aplicacao.toJson());
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw Exception('Erro ao criar aplicação (${response.statusCode}).');
@@ -55,7 +52,7 @@ class AplicacaoRepo {
     try {
       final response = await ApiService.put(
         '/Aplicacoes/${aplicacao.id}',
-        jsonEncode(aplicacao.toJson()),
+        aplicacao.toJson(),
       );
 
       if (response.statusCode != 200 && response.statusCode != 204) {

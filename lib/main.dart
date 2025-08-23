@@ -10,17 +10,18 @@ import 'package:flutter_fgl_1/viewmodels/AgrotoxicoViewModel.dart';
 import 'package:flutter_fgl_1/viewmodels/AplicacacaoViewModel.dart';
 import 'package:flutter_fgl_1/viewmodels/CategoriaInsumoViewModel.dart';
 import 'package:flutter_fgl_1/viewmodels/ColheitaViewModel.dart';
-import 'package:flutter_fgl_1/viewmodels/ForneAgrotoxicoViewModel.dart';
-import 'package:flutter_fgl_1/viewmodels/ForneInsumoViewModel.dart';
-import 'package:flutter_fgl_1/viewmodels/ForneSementeViewModel.dart';
+import 'package:flutter_fgl_1/viewmodels/FornecedoresViewmodel.dart';
 import 'package:flutter_fgl_1/viewmodels/InsumoViewModel.dart';
 import 'package:flutter_fgl_1/viewmodels/LavouraViewModel.dart';
 import 'package:flutter_fgl_1/viewmodels/PlantioViewModel.dart';
 import 'package:flutter_fgl_1/viewmodels/SementeViewModel.dart';
 import 'package:flutter_fgl_1/viewmodels/ThemaProviderViewModel.dart';
 import 'package:flutter_fgl_1/viewmodels/TipoAgrotoxicoViewModel.dart';
+import 'package:flutter_fgl_1/viewmodels/AuthViewModel.dart';
 
 import 'package:flutter_fgl_1/widgets/nav_page.dart';
+import 'package:flutter_fgl_1/views/Auth/LoginView.dart';
+import 'package:flutter_fgl_1/config/app_theme.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -36,43 +37,108 @@ class FGLApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => AuthViewModel()),
         ChangeNotifierProvider(
-          create: (_) => TipoAgrotoxicoViewModel()..fetch(),
+          create: (_) {
+            final viewModel = TipoAgrotoxicoViewModel();
+            viewModel.fetch();
+            return viewModel;
+          },
         ),
         ChangeNotifierProvider(
-          create: (_) => ForneAgrotoxicoViewModel()..fetch(),
+          create: (_) {
+            final viewModel = FornecedoresViewModel();
+            viewModel.fetch();
+            return viewModel;
+          },
         ),
-        ChangeNotifierProvider(create: (_) => AgrotoxicoViewModel()..fetch()),
-        ChangeNotifierProvider(create: (_) => AplicacaoViewModel()),
-        ChangeNotifierProvider(create: (_) => ForneInsumoViewModel()..fetch()),
         ChangeNotifierProvider(
-          create: (_) => CategoriaInsumoViewModel()..fetch(),
+          create: (_) {
+            final viewModel = AgrotoxicoViewModel();
+            viewModel.fetch();
+            return viewModel;
+          },
         ),
-        ChangeNotifierProvider(create: (_) => InsumoViewModel()..fetch()),
-        ChangeNotifierProvider(create: (_) => ForneSementeViewModel()..fetch()),
-        ChangeNotifierProvider(create: (_) => SementeViewModel()..fetch()),
-        ChangeNotifierProvider(create: (_) => PlantioViewModel()),
-        ChangeNotifierProvider(create: (_) => ColheitaViewModel()..fetch()),
-        ChangeNotifierProvider(create: (_) => LavouraViewModel()..fetch()),
-        ChangeNotifierProvider(create: (_) => AplicacaoInsumoViewModel()),
+        ChangeNotifierProvider(
+          create: (_) {
+            final viewModel = AplicacaoViewModel();
+            viewModel.fetch();
+            return viewModel;
+          },
+        ),
+        
+        ChangeNotifierProvider(
+          create: (_) {
+            final viewModel = CategoriaInsumoViewModel();
+            viewModel.fetch();
+            return viewModel;
+          },
+        ),
+        ChangeNotifierProvider(
+          create: (_) {
+            final viewModel = InsumoViewModel();
+            viewModel.fetch();
+            return viewModel;
+          },
+        ),
+        ChangeNotifierProvider(
+          create: (_) {
+            final viewModel = SementeViewModel();
+            viewModel.fetch();
+            return viewModel;
+          },
+        ),
+        ChangeNotifierProvider(
+          create: (_) {
+            final viewModel = PlantioViewModel();
+            viewModel.fetch();
+            return viewModel;
+          },
+        ),
+        ChangeNotifierProvider(
+          create: (_) {
+            final viewModel = ColheitaViewModel();
+            viewModel.fetch();
+            return viewModel;
+          },
+        ),
+        ChangeNotifierProvider(
+          create: (_) {
+            final viewModel = LavouraViewModel();
+            viewModel.fetch();
+            return viewModel;
+          },
+        ),
+        ChangeNotifierProvider(
+          create: (_) {
+            final viewModel = AplicacaoInsumoViewModel();
+            viewModel.fetch();
+            return viewModel;
+          },
+        ),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => CustoViewModel()),
-        ChangeNotifierProvider(create: (_) => MovimentacaoEstoqueViewModel())
-
+        ChangeNotifierProvider(
+          create: (_) {
+            final viewModel = CustoViewModel();
+            viewModel.fetch();
+            return viewModel;
+          },
+        ),
+        ChangeNotifierProvider(
+          create: (_) {
+            final viewModel = MovimentacaoEstoqueViewModel();
+            viewModel.fetch();
+            return viewModel;
+          },
+        ),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
             title: 'FGL - Gerenciamento de Lavouras',
-            theme: ThemeData(
-              primarySwatch: Colors.green,
-              appBarTheme: AppBarTheme(
-                backgroundColor: Colors.green[700],
-                foregroundColor: Colors.white,
-              ),
-            ),
-            darkTheme: ThemeData.dark(),
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
             themeMode: themeProvider.themeMode,
             locale: const Locale('pt', 'BR'),
             supportedLocales: const [Locale('pt', 'BR'), Locale('en', '')],
@@ -81,10 +147,27 @@ class FGLApp extends StatelessWidget {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            home: const MainScreenScaffold(),
+            home: const AuthWrapper(),
           );
         },
       ),
+    );
+  }
+}
+
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<AuthViewModel>(
+      builder: (context, authViewModel, child) {
+        if (authViewModel.isAuthenticated) {
+          return const MainScreenScaffold();
+        } else {
+          return const LoginView();
+        }
+      },
     );
   }
 }
@@ -95,7 +178,20 @@ class MainScreenScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('FGL')),
+      appBar: AppBar(
+        title: const Text('FGL'),
+        actions: [
+          Consumer<AuthViewModel>(
+            builder: (context, authViewModel, child) {
+              return IconButton(
+                icon: const Icon(Icons.logout),
+                onPressed: () => authViewModel.logout(),
+                tooltip: 'Sair',
+              );
+            },
+          ),
+        ],
+      ),
       drawer: const NavBar(),
       body: const LavouraListView(),
     );

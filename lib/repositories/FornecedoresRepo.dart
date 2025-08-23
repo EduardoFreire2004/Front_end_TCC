@@ -1,21 +1,26 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
-import '../models/ForneInsumoModel.dart';
+import '../models/FornecedoresModel.dart';
 import '../services/api_service.dart';
 
-class ForneInsumoRepo {
-  Future<List<ForneInsumoModel>> getAll() async {
+class FornecedoresRepo {
+  Future<List<FornecedoresModel>> getAll() async {
     try {
-      final response = await ApiService.get('/FornecedorInsumos');
+      final response = await ApiService.get('/Fornecedores');
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         return data
-            .map((item) => ForneInsumoModel.fromJson(item as Map<String, dynamic>))
+            .map(
+              (item) =>
+                  FornecedoresModel.fromJson(item as Map<String, dynamic>),
+            )
             .toList();
       } else {
-        throw Exception('Erro ${response.statusCode}: Não foi possível carregar os fornecedores.');
+        throw Exception(
+          'Erro ${response.statusCode}: Não foi possível carregar os fornecedores.',
+        );
       }
     } on SocketException {
       throw Exception('Sem conexão com a internet. Verifique sua rede.');
@@ -28,11 +33,11 @@ class ForneInsumoRepo {
     }
   }
 
-  Future<void> create(ForneInsumoModel fornecedor) async {
+  Future<void> create(FornecedoresModel fornecedor) async {
     try {
       final response = await ApiService.post(
-        '/FornecedorInsumos',
-        jsonEncode(fornecedor.toJson()),
+        '/Fornecedores',
+        fornecedor.toJson(),
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
@@ -47,15 +52,17 @@ class ForneInsumoRepo {
     }
   }
 
-  Future<void> update(ForneInsumoModel fornecedor) async {
+  Future<void> update(FornecedoresModel fornecedor) async {
     try {
       final response = await ApiService.put(
-        '/FornecedorInsumos/${fornecedor.id}',
-        jsonEncode(fornecedor.toJson()),
+        '/Fornecedores/${fornecedor.id}',
+        fornecedor.toJson(),
       );
 
       if (response.statusCode != 200 && response.statusCode != 204) {
-        throw Exception('Erro ao atualizar fornecedor (${response.statusCode}).');
+        throw Exception(
+          'Erro ao atualizar fornecedor (${response.statusCode}).',
+        );
       }
     } on SocketException {
       throw Exception('Sem conexão com a internet ao atualizar.');
@@ -68,7 +75,7 @@ class ForneInsumoRepo {
 
   Future<void> delete(int id) async {
     try {
-      final response = await ApiService.delete('/FornecedorInsumos/$id');
+      final response = await ApiService.delete('/Fornecedores/$id');
 
       if (response.statusCode != 200 && response.statusCode != 204) {
         throw Exception('Erro ao deletar fornecedor (${response.statusCode}).');
@@ -82,19 +89,19 @@ class ForneInsumoRepo {
     }
   }
 
-   Future<ForneInsumoModel> getID(int id) async {
+  Future<FornecedoresModel> getID(int id) async {
     try {
-      final response = await ApiService.getID('/FornecedorInsumos/$id');
+      final response = await ApiService.getID('/Fornecedores/$id');
 
       if (response.statusCode == 200) {
         if (response.body.isNotEmpty) {
           final jsonMap = json.decode(response.body) as Map<String, dynamic>;
-          return ForneInsumoModel.fromJson(jsonMap);
+          return FornecedoresModel.fromJson(jsonMap);
         } else {
           throw Exception('Resposta vazia do servidor');
         }
       } else {
-        throw Exception('Erro ao buscar fornecedor (${response.statusCode})');
+        throw Exception('Erro ao buscar tipo (${response.statusCode})');
       }
     } on SocketException {
       throw Exception('Falha de conexão. Verifique sua internet');
@@ -105,19 +112,27 @@ class ForneInsumoRepo {
     }
   }
 
-  Future<List<ForneInsumoModel>> getByParametro(String tipo, String valor) async {
-  try {
-    final endpoint = '/FornecedorInsumos/buscar?tipo=$tipo&valor=$valor';
-    final response = await ApiService.get(endpoint);
+  Future<List<FornecedoresModel>> getByParametro(
+    String tipo,
+    String valor,
+  ) async {
+    try {
+      final endpoint = '/Fornecedores/buscar?tipo=$tipo&valor=$valor';
+      final response = await ApiService.get(endpoint);
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.map((item) => ForneInsumoModel.fromJson(item)).toList();
-    } else {
-      throw Exception('Erro ${response.statusCode}: busca falhou.');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data
+            .map(
+              (item) =>
+                  FornecedoresModel.fromJson(item as Map<String, dynamic>),
+            )
+            .toList();
+      } else {
+        throw Exception('Erro ${response.statusCode}: busca falhou.');
+      }
+    } catch (e) {
+      throw Exception('Erro ao buscar por $tipo: $e');
     }
-  } catch (e) {
-    throw Exception('Erro ao buscar por $tipo: $e');
   }
-}
 }

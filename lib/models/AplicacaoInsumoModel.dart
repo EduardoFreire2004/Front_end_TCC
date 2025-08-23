@@ -4,6 +4,7 @@ class AplicacaoInsumoModel {
   int lavouraID;
   String descricao;
   DateTime dataHora;
+  double qtde;
 
   AplicacaoInsumoModel({
     this.id,
@@ -11,6 +12,7 @@ class AplicacaoInsumoModel {
     required this.lavouraID,
     required this.descricao,
     required this.dataHora,
+    required this.qtde,
   });
 
   factory AplicacaoInsumoModel.fromJson(Map<String, dynamic> map) {
@@ -20,6 +22,7 @@ class AplicacaoInsumoModel {
       lavouraID: map['lavouraID'],
       descricao: map['descricao'],
       dataHora: DateTime.parse(map['dataHora']),
+      qtde: map['qtde'],
     );
   }
 
@@ -30,6 +33,7 @@ class AplicacaoInsumoModel {
       'lavouraID': lavouraID,
       'descricao': descricao,
       'dataHora': dataHora.toIso8601String(),
+      'qtde': qtde,
     };
   }
 }

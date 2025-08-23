@@ -4,12 +4,12 @@ import 'package:flutter_fgl_1/views/Agrotoxico/AgrotoxicoListView.dart';
 import 'package:flutter_fgl_1/views/Aplicacao/AplicacaoListView.dart';
 import 'package:flutter_fgl_1/views/AplicacaoInsumo/AplicacaoInsumoListView.dart';
 import 'package:flutter_fgl_1/views/Colheita/ColheitaListView.dart';
-import 'package:flutter_fgl_1/views/ForneAgrotoxico/FornecedorAgrotoxicoListView.dart';
-import 'package:flutter_fgl_1/views/ForneInsumo/ForneInsumoListView.dart';
-import 'package:flutter_fgl_1/views/ForneSemente/FonecedorSementeListView.dart';
+import 'package:flutter_fgl_1/views/Fornecedores/FornecedoresListView.dart';
 import 'package:flutter_fgl_1/views/Insumo/InsumoListView.dart';
 import 'package:flutter_fgl_1/views/Plantio/PlantioListView.dart';
 import 'package:flutter_fgl_1/views/Semente/SementeListView.dart';
+import 'package:flutter_fgl_1/views/MovimentacaoEstoque/MovimentacaoEstoqueListView.dart';
+import 'package:flutter_fgl_1/views/Custos/CustosListView.dart';
 
 class LavouraDetalhesView extends StatelessWidget {
   final LavouraModel lavoura;
@@ -130,7 +130,33 @@ class LavouraDetalhesView extends StatelessWidget {
                     Icons.grass,
                     () => Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => ColheitaListView(lavouraId: lavoura.id!,)),
+                      MaterialPageRoute(
+                        builder:
+                            (_) => ColheitaListView(lavouraId: lavoura.id!),
+                      ),
+                    ),
+                  ),
+                  buildCard(
+                    'Custos',
+                    Icons.attach_money,
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => CustosListView(lavouraId: lavoura.id!),
+                      ),
+                    ),
+                  ),
+                  buildCard(
+                    'Movimetações de Estoque',
+                    Icons.inventory,
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (_) => MovimentacaoEstoqueListView(
+                              lavouraId: lavoura.id!,
+                            ),
+                      ),
                     ),
                   ),
                   buildCard(
@@ -151,81 +177,15 @@ class LavouraDetalhesView extends StatelessWidget {
                       MaterialPageRoute(builder: (_) => const InsumoListView()),
                     ),
                   ),
-                  buildCard('Fornecedores', Icons.store, () {
-                    showModalBottomSheet(
-                      context: context,
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(16),
-                        ),
-                      ),
-                      builder:
-                          (context) => SafeArea(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 12),
-                                  child: Text(
-                                    'Selecione o tipo de fornecedor',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                ListTile(
-                                  leading: const Icon(
-                                    Icons.bug_report,
-                                    color: Colors.green,
-                                  ),
-                                  title: const Text('Fornecedor Agrotóxico'),
-                                  onTap:
-                                      () => Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder:
-                                              (_) =>
-                                                  FornecedorAgrotoxicoListView(),
-                                        ),
-                                      ),
-                                ),
-                                ListTile(
-                                  leading: const Icon(
-                                    Icons.inventory,
-                                    color: Colors.green,
-                                  ),
-                                  title: const Text('Fornecedor Insumo'),
-                                  onTap:
-                                      () => Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder:
-                                              (_) => FornecedorInsumoListView(),
-                                        ),
-                                      ),
-                                ),
-                                ListTile(
-                                  leading: const Icon(
-                                    Icons.grass,
-                                    color: Colors.green,
-                                  ),
-                                  title: const Text('Fornecedor Semente'),
-                                  onTap:
-                                      () => Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder:
-                                              (_) =>
-                                                  FornecedorSementeListView(),
-                                        ),
-                                      ),
-                                ),
-                              ],
-                            ),
-                          ),
-                    );
-                  }),
+                  buildCard(
+                    'Fornecedores',
+                    Icons.inventory_2,
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const FornecedoresListView()),
+                    ),
+                  ),
+                  
                 ],
               ),
             ),

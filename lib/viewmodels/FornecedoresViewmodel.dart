@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import '../../models/ForneInsumoModel.dart';
-import '../../repositories/ForneInsumoRepo.dart';
+import '../../models/FornecedoresModel.dart';
+import '../../repositories/FornecedoresRepo.dart';
 
-class ForneInsumoViewModel extends ChangeNotifier {
-  final ForneInsumoRepo _repository = ForneInsumoRepo();
-  List<ForneInsumoModel> _forneInsumo = [];
+class FornecedoresViewModel extends ChangeNotifier {
+  final FornecedoresRepo _repository = FornecedoresRepo();
+  List<FornecedoresModel> _fornecedores = [];
   bool isLoading = false;
   String? errorMessage;
 
-  List<ForneInsumoModel> get forneInsumo => _forneInsumo;
+  List<FornecedoresModel> get fornecedores => _fornecedores;
 
   Future<void> fetch() async {
     isLoading = true;
@@ -16,9 +16,9 @@ class ForneInsumoViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _forneInsumo = await _repository.getAll();
+      _fornecedores = await _repository.getAll();
     } catch (e) {
-      _forneInsumo = [];
+      _fornecedores = [];
       errorMessage = e.toString();
       debugPrint('Erro em fetch(): $e');
     } finally {
@@ -27,23 +27,23 @@ class ForneInsumoViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> add(ForneInsumoModel model) async {
+  Future<void> add(FornecedoresModel model) async {
     isLoading = true;
     notifyListeners();
 
     try {
       await _repository.create(model);
-      await fetch(); 
+      await fetch();
     } catch (e) {
       errorMessage = 'Erro ao adicionar: $e';
       debugPrint(errorMessage);
       isLoading = false;
       notifyListeners();
-      rethrow; 
+      rethrow;
     }
   }
 
-  Future<void> update(ForneInsumoModel model) async {
+  Future<void> update(FornecedoresModel model) async {
     isLoading = true;
     notifyListeners();
 
@@ -75,7 +75,7 @@ class ForneInsumoViewModel extends ChangeNotifier {
     }
   }
 
-  Future<ForneInsumoModel?> getID(int id) async {
+  Future<FornecedoresModel?> getID(int id) async {
     try {
       isLoading = true;
       notifyListeners();
@@ -83,7 +83,7 @@ class ForneInsumoViewModel extends ChangeNotifier {
       final fornecedor = await _repository.getID(id);
       return fornecedor;
     } catch (e) {
-      errorMessage = 'Erro ao buscar fornecedor: $e';
+      errorMessage = 'Erro ao buscar agrotóxico: $e';
       debugPrint(errorMessage);
       return null;
     } finally {
@@ -97,9 +97,9 @@ class ForneInsumoViewModel extends ChangeNotifier {
       isLoading = true;
       notifyListeners();
 
-      _forneInsumo = await _repository.getByParametro(tipo, valor);
+      _fornecedores = await _repository.getByParametro(tipo, valor);
     } catch (e) {
-      _forneInsumo = [];
+      _fornecedores = [];
       print('Erro ao buscar: $e');
     } finally {
       isLoading = false;

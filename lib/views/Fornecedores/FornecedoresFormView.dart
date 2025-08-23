@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_fgl_1/models/ForneSementeModel.dart';
-import 'package:flutter_fgl_1/viewmodels/ForneSementeViewModel.dart';
 import 'package:provider/provider.dart';
+import '../../models/FornecedoresModel.dart';
+import '../../viewmodels/FornecedoresViewmodel.dart';
 
-class FornecedorSementeFormView extends StatefulWidget {
-  final ForneSementeModel? fornecedor;
+class FornecedoresFormView extends StatefulWidget {
+  final FornecedoresModel? fornecedor;
 
-  const FornecedorSementeFormView({Key? key, this.fornecedor})
+  const FornecedoresFormView({Key? key, this.fornecedor})
     : super(key: key);
 
   @override
-  State<FornecedorSementeFormView> createState() =>
-      _FornecedorSementeFormViewState();
+  State<FornecedoresFormView> createState() =>
+      _FornecedorAgrotoxicoFormViewState();
 }
 
-class _FornecedorSementeFormViewState extends State<FornecedorSementeFormView> {
+class _FornecedorAgrotoxicoFormViewState
+    extends State<FornecedoresFormView> {
   final _formKey = GlobalKey<FormState>();
   final _nomeController = TextEditingController();
   final _cnpjController = TextEditingController();
@@ -41,14 +42,14 @@ class _FornecedorSementeFormViewState extends State<FornecedorSementeFormView> {
 
   void _save() {
     if (_formKey.currentState!.validate()) {
-      final fornecedor = ForneSementeModel(
+      final fornecedor = FornecedoresModel(
         id: widget.fornecedor?.id,
         nome: _nomeController.text.trim(),
         cnpj: _cnpjController.text.trim(),
         telefone: _telefoneController.text.trim(),
       );
 
-      final viewModel = Provider.of<ForneSementeViewModel>(
+      final viewModel = Provider.of<FornecedoresViewModel>(
         context,
         listen: false,
       );
@@ -73,11 +74,11 @@ class _FornecedorSementeFormViewState extends State<FornecedorSementeFormView> {
   }
 
   bool _nomeJaExiste(String nome) {
-    final viewModel = Provider.of<ForneSementeViewModel>(
+    final viewModel = Provider.of<FornecedoresViewModel>(
       context,
       listen: false,
     );
-    final lista = viewModel.forneSemente;
+    final lista = viewModel.fornecedores;
 
     if (widget.fornecedor != null) {
       return lista.any(

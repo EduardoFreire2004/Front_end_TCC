@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fgl_1/models/InsumoModel.dart';
 import 'package:flutter_fgl_1/viewmodels/CategoriaInsumoViewModel.dart';
 import 'package:flutter_fgl_1/viewmodels/InsumoViewModel.dart';
-import 'package:flutter_fgl_1/viewmodels/ForneInsumoViewModel.dart';
+import 'package:flutter_fgl_1/viewmodels/FornecedoresViewmodel.dart';
 import 'package:flutter_fgl_1/views/CategoriaInsumo/CategoriaInsumoListView.dart';
-import 'package:flutter_fgl_1/views/ForneInsumo/ForneInsumoListView.dart';
+import 'package:flutter_fgl_1/views/Fornecedores/FornecedoresListView.dart';
 import 'package:flutter_fgl_1/views/Insumo/insumoFormView.dart';
 import 'package:flutter_fgl_1/services/RelatorioService.dart';
-import 'package:flutter_fgl_1/widgets/RelatorioButton.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -37,7 +36,7 @@ class _InsumoListViewState extends State<InsumoListView> {
         context,
         listen: false,
       );
-      final fornecedorVM = Provider.of<ForneInsumoViewModel>(
+      final fornecedorVM = Provider.of<FornecedoresViewModel>(
         context,
         listen: false,
       );
@@ -276,7 +275,7 @@ class _InsumoListViewState extends State<InsumoListView> {
                                     ],
                                   ),
                                 ),
-                                IconButton(
+                                IconButton( 
                                   icon: Icon(
                                     Icons.edit,
                                     color: Colors.blueGrey[600],
@@ -349,7 +348,7 @@ class _InsumoListViewState extends State<InsumoListView> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => FornecedorInsumoListView()),
+                MaterialPageRoute(builder: (_) => FornecedoresListView()),
               );
             },
             child: const Icon(Icons.business),

@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_fgl_1/viewmodels/ForneSementeViewModel.dart';
-import 'package:flutter_fgl_1/views/ForneSemente/FornecedorSementeFormView.dart';
 import 'package:provider/provider.dart';
+import '../../viewmodels/FornecedoresViewmodel.dart';
+import 'FornecedoresFormView.dart';
 
-class FornecedorSementeListView extends StatefulWidget {
+class FornecedoresListView extends StatefulWidget {
+  const FornecedoresListView({super.key});
+
   @override
-  State<FornecedorSementeListView> createState() =>
-      _FornecedorSementeListViewState();
+  State<FornecedoresListView> createState() =>
+      _FornecedorAgrotoxicoListViewState();
 }
 
-class _FornecedorSementeListViewState extends State<FornecedorSementeListView> {
+class _FornecedorAgrotoxicoListViewState
+    extends State<FornecedoresListView> {
   final TextEditingController _searchController = TextEditingController();
-  String _selectedSearchType = 'nome'; 
+  String _selectedSearchType = 'nome'; // Valor padrão
 
   @override
   void dispose() {
@@ -21,19 +24,17 @@ class _FornecedorSementeListViewState extends State<FornecedorSementeListView> {
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = Provider.of<ForneSementeViewModel>(context);
+    final viewModel = Provider.of<FornecedoresViewModel>(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
     final subtitleStyle = theme.textTheme.bodySmall?.copyWith(
       color: isDark ? Colors.grey[300] : Colors.grey[700],
     );
-        
-    final Color errorColor = Colors.redAccent;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Fornecedores de Sementes'),
+        title: const Text('Fornecedores'),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
           child: Padding(
@@ -109,15 +110,15 @@ class _FornecedorSementeListViewState extends State<FornecedorSementeListView> {
           children: [
             Expanded(
               child:
-                  viewModel.isLoading && viewModel.forneSemente.isEmpty
+                  viewModel.isLoading && viewModel.fornecedores.isEmpty
                       ? const Center(child: CircularProgressIndicator())
-                      : viewModel.forneSemente.isEmpty
+                      : viewModel.fornecedores.isEmpty
                       ? Center(
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: Text(
                             _searchController.text.isEmpty
-                                ? 'Nenhum fornecedor de semente cadastrado ainda.\nToque no botão "+" para adicionar.'
+                                ? 'Nenhum fornecedor cadastrado.'
                                 : 'Nenhum fornecedor encontrado para "${_searchController.text}".',
                             textAlign: TextAlign.center,
                             style: theme.textTheme.bodyMedium?.copyWith(
@@ -129,11 +130,12 @@ class _FornecedorSementeListViewState extends State<FornecedorSementeListView> {
                       )
                       : ListView.builder(
                         padding: const EdgeInsets.all(8.0),
-                        itemCount: viewModel.forneSemente.length,
+                        itemCount: viewModel.fornecedores.length,
                         itemBuilder: (context, index) {
-                          final fornecedor = viewModel.forneSemente[index];
+                          final fornecedor = viewModel.fornecedores[index];
                           return Dismissible(
                             key: Key(fornecedor.id.toString()),
+                            direction: DismissDirection.endToStart,
                             background: Container(
                               decoration: BoxDecoration(
                                 color: Colors.redAccent,
@@ -153,15 +155,14 @@ class _FornecedorSementeListViewState extends State<FornecedorSementeListView> {
                                 size: 28,
                               ),
                             ),
-                            direction: DismissDirection.endToStart,
                             confirmDismiss: (_) async {
                               final shouldDelete = await showDialog<bool>(
                                 context: context,
                                 builder:
                                     (context) => AlertDialog(
                                       title: const Text('Confirmar exclusão'),
-                                      content: const Text(
-                                        'Deseja realmente excluir este Fornecedor?',
+                                      content: Text(
+                                        'Deseja realmente excluir ${fornecedor.nome ?? 'este fornecedor'}?',
                                       ),
                                       actions: [
                                         TextButton(
@@ -176,7 +177,6 @@ class _FornecedorSementeListViewState extends State<FornecedorSementeListView> {
                                             if (fornecedor.id != null) {
                                               await viewModel.delete(
                                                 fornecedor.id!,
-                                              
                                               );
                                               Navigator.of(context).pop(true);
                                               WidgetsBinding.instance
@@ -189,7 +189,7 @@ class _FornecedorSementeListViewState extends State<FornecedorSementeListView> {
                                                           'Fornecedor excluído.',
                                                         ),
                                                         backgroundColor:
-                                                            errorColor,
+                                                            Colors.redAccent,
                                                       ),
                                                     );
                                                   });
@@ -213,100 +213,82 @@ class _FornecedorSementeListViewState extends State<FornecedorSementeListView> {
                                 horizontal: 8.0,
                                 vertical: 4.0,
                               ),
-                              elevation: 3.0,
+                              elevation: 2.0,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8.0),
                               ),
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(8.0),
-                                onTap: () {},
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12.0),
-                                  child: Row(
-                                    children: [
-                                      CircleAvatar(
-                                        backgroundColor:
-                                            isDark
-                                                ? Colors.green[800]
-                                                : Colors.green[100],
-                                        child: Text(
-                                          fornecedor.nome?.isNotEmpty == true
-                                              ? fornecedor.nome![0]
-                                                  .toUpperCase()
-                                              : '?',
-                                          style: TextStyle(
-                                            color:
-                                                isDark
-                                                    ? Colors.white
-                                                    : Colors.green[800],
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: <Widget>[
-                                            Text(
-                                              fornecedor.nome ??
-                                                  'Nome não disponível',
-                                              style: theme.textTheme.titleMedium
-                                                  ?.copyWith(
-                                                    fontWeight: FontWeight.bold,
-                                                    color:
-                                                        isDark
-                                                            ? Colors.green[200]
-                                                            : Colors.green[800],
-                                                  ),
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                            const SizedBox(height: 8.0),
-                                            if (fornecedor.cnpj?.isNotEmpty ??
-                                                false)
-                                              Text(
-                                                'CNPJ: ${fornecedor.cnpj}',
-                                                style: subtitleStyle,
-                                              ),
-                                            const SizedBox(height: 8.0),
-                                            if (fornecedor
-                                                    .telefone
-                                                    ?.isNotEmpty ??
-                                                false)
-                                              Text(
-                                                'TELEFONE: ${fornecedor.telefone}',
-                                                style: subtitleStyle,
-                                              ),
-                                          ],
-                                        ),
-                                      ),
-                                      IconButton(
-                                        icon: Icon(
-                                          Icons.edit,
-                                          color:
-                                              isDark
-                                                  ? Colors.blue[200]
-                                                  : Colors.blueGrey[600],
-                                        ),
-                                        tooltip: 'Editar Fornecedor',
-                                        onPressed:
-                                            () => Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder:
-                                                    (_) =>
-                                                        FornecedorSementeFormView(
-                                                          fornecedor:
-                                                              fornecedor,
-                                                        ),
-                                              ),
-                                            ),
-                                      ),
-                                    ],
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16.0,
+                                  vertical: 8.0,
+                                ),
+                                leading: CircleAvatar(
+                                  backgroundColor:
+                                      isDark
+                                          ? Colors.green[800]
+                                          : Colors.green[100],
+                                  child: Text(
+                                    fornecedor.nome?.substring(0, 1) ?? '?',
+                                    style: TextStyle(
+                                      color:
+                                          isDark
+                                              ? Colors.white
+                                              : Colors.green[800],
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
+                                title: Text(
+                                  fornecedor.nome ?? 'Nome não disponível',
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (fornecedor.cnpj?.isNotEmpty ?? false)
+                                      Text(
+                                        'CNPJ: ${fornecedor.cnpj}',
+                                        style: subtitleStyle,
+                                      ),
+                                    if (fornecedor.telefone?.isNotEmpty ??
+                                        false)
+                                      Text(
+                                        'Telefone: ${fornecedor.telefone}',
+                                        style: subtitleStyle,
+                                      ),
+                                  ],
+                                ),
+                                trailing: IconButton(
+                                  icon: Icon(
+                                    Icons.edit,
+                                    color: theme.primaryColor,
+                                  ),
+                                  onPressed:
+                                      () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (_) =>
+                                                  FornecedoresFormView(
+                                                    fornecedor: fornecedor,
+                                                  ),
+                                        ),
+                                      ),
+                                ),
+                                onTap:
+                                    () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (_) => FornecedoresFormView(
+                                              fornecedor: fornecedor,
+                                            ),
+                                      ),
+                                    ),
                               ),
                             ),
                           );
@@ -321,7 +303,9 @@ class _FornecedorSementeListViewState extends State<FornecedorSementeListView> {
         onPressed:
             () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => FornecedorSementeFormView()),
+              MaterialPageRoute(
+                builder: (_) => const FornecedoresFormView(),
+              ),
             ),
         tooltip: 'Adicionar Fornecedor',
         child: const Icon(Icons.add),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_fgl_1/models/AplicacaoModel.dart';
 import 'package:flutter_fgl_1/viewmodels/AgrotoxicoViewModel.dart';
-import 'package:flutter_fgl_1/viewmodels/AplicacacaoViewModel.dart';
+import 'package:flutter_fgl_1/viewmodels/AplicacacaoViewmodel.dart';
 import 'package:flutter_fgl_1/views/Agrotoxico/AgrotoxicoFormView.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -21,9 +21,11 @@ class _AplicacaoFormViewState extends State<AplicacaoFormView> {
   final _formKey = GlobalKey<FormState>();
   final _descricaoController = TextEditingController();
   final _dataHoraController = TextEditingController();
+  final _qtdeController = TextEditingController();
 
   int? _agrotoxicoID;
   DateTime? _dataHora;
+  double? _qtde;
 
   final Color primaryColor = Colors.green[700]!;
   final Color primaryColorDark = Colors.green[800]!;
@@ -40,9 +42,11 @@ class _AplicacaoFormViewState extends State<AplicacaoFormView> {
       _descricaoController.text = widget.aplicacao!.descricao;
       _agrotoxicoID = widget.aplicacao!.agrotoxicoID;
       _dataHora = widget.aplicacao!.dataHora;
+      _qtde = widget.aplicacao!.qtde;
       _dataHoraController.text = DateFormat(
         'dd/MM/yyyy HH:mm',
       ).format(_dataHora!);
+      _qtdeController.text = _qtde.toString();
     }
   }
 
@@ -50,6 +54,7 @@ class _AplicacaoFormViewState extends State<AplicacaoFormView> {
   void dispose() {
     _descricaoController.dispose();
     _dataHoraController.dispose();
+    _qtdeController.dispose();
     super.dispose();
   }
 
@@ -115,9 +120,11 @@ class _AplicacaoFormViewState extends State<AplicacaoFormView> {
       dataHora: _dataHora!,
       agrotoxicoID: _agrotoxicoID!,
       lavouraID: widget.lavouraId,
+      qtde: _qtde ?? double.parse(_qtdeController.text),
     );
 
     final viewModel = Provider.of<AplicacaoViewModel>(context, listen: false);
+
     if (widget.aplicacao == null) {
       viewModel.add(model);
     } else {
@@ -209,6 +216,35 @@ class _AplicacaoFormViewState extends State<AplicacaoFormView> {
                             },
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _qtdeController,
+                        decoration: const InputDecoration(
+                          labelText: 'Quantidade',
+                          prefixIcon: Icon(Icons.scale),
+                          hintText: 'Ex: 2.5',
+                        ),
+                        keyboardType: TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                            RegExp(r'^\d*\.?\d*'),
+                          ),
+                        ],
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Quantidade é obrigatória';
+                          }
+                          if (double.tryParse(value) == null) {
+                            return 'Digite uma quantidade válida';
+                          }
+                          if (double.parse(value) <= 0) {
+                            return 'Quantidade deve ser maior que zero';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 16),
                       TextFormField(

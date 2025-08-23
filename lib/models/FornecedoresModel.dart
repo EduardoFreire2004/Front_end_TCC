@@ -1,18 +1,18 @@
-class ForneAgrotoxicoModel {
+class FornecedoresModel {
   int? id;
   String nome;
   String cnpj;
   String telefone;
 
-  ForneAgrotoxicoModel({
+  FornecedoresModel({
     this.id,
     required this.nome,
     required this.cnpj,
     required this.telefone,
   });
 
-  factory ForneAgrotoxicoModel.fromJson(Map<String, dynamic> map) {
-    return ForneAgrotoxicoModel(
+  factory FornecedoresModel.fromJson(Map<String, dynamic> map) {
+    return FornecedoresModel(
       id: map['id'],
       nome: map['nome'],
       cnpj: map['cnpj'],

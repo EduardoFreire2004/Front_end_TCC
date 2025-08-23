@@ -269,7 +269,6 @@ class RelatorioService {
               children: [
                 _buildCelula(semente.id.toString()),
                 _buildCelula(semente.nome),
-                _buildCelula(semente.tipo),
                 _buildCelula(semente.marca),
                 _buildCelula(semente.qtde.toString()),
                 _buildCelula('R\$ ${semente.preco.toStringAsFixed(2)}'),

@@ -36,7 +36,7 @@ class AgrotoxicoRepo {
     try {
       final response = await ApiService.post(
         '/Agrotoxicos',
-        jsonEncode(agrotoxico.toJson()),
+        agrotoxico.toJson(),
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
@@ -55,7 +55,7 @@ class AgrotoxicoRepo {
     try {
       final response = await ApiService.put(
         '/Agrotoxicos/${agrotoxico.id}',
-        jsonEncode(agrotoxico.toJson()),
+        agrotoxico.toJson(),
       );
 
       if (response.statusCode != 200 && response.statusCode != 204) {

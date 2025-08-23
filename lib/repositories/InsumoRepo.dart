@@ -31,10 +31,7 @@ class InsumoRepo {
 
   Future<void> create(InsumoModel insumo) async {
     try {
-      final response = await ApiService.post(
-        '/Insumos',
-        jsonEncode(insumo.toJson()),
-      );
+      final response = await ApiService.post('/Insumos', insumo.toJson());
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw Exception('Erro ao criar insumo (${response.statusCode}).');
@@ -52,7 +49,7 @@ class InsumoRepo {
     try {
       final response = await ApiService.put(
         '/Insumos/${insumo.id}',
-        jsonEncode(insumo.toJson()),
+        insumo.toJson(),
       );
 
       if (response.statusCode != 200 && response.statusCode != 204) {

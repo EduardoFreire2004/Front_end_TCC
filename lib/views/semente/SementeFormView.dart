@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_fgl_1/models/SementeModel.dart';
-import 'package:flutter_fgl_1/viewmodels/ForneSementeViewModel.dart';
+import 'package:flutter_fgl_1/viewmodels/FornecedoresViewmodel.dart';
 import 'package:flutter_fgl_1/viewmodels/SementeViewModel.dart';
-import 'package:flutter_fgl_1/views/ForneSemente/FornecedorSementeFormView.dart';
+import 'package:flutter_fgl_1/views/Fornecedores/FornecedoresFormView.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
@@ -154,14 +154,14 @@ class _SementeFormViewState extends State<SementeFormView> {
 
   @override
   Widget build(BuildContext context) {
-    final fornecedorVM = Provider.of<ForneSementeViewModel>(context);
+    final fornecedorVM = Provider.of<FornecedoresViewModel>(context);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.semente == null ? "Nova Semente" : "Editar Semente"),
       ),
       body:
-          fornecedorVM.forneSemente.isEmpty
+          fornecedorVM.fornecedores.isEmpty
               ? Center(child: CircularProgressIndicator(color: primaryColor))
               : Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -244,7 +244,7 @@ class _SementeFormViewState extends State<SementeFormView> {
                                 prefixIcon: Icon(Icons.business),
                               ),
                               items:
-                                  fornecedorVM.forneSemente
+                                  fornecedorVM.fornecedores
                                       .map(
                                         (f) => DropdownMenuItem(
                                           value: f.id,
@@ -269,8 +269,7 @@ class _SementeFormViewState extends State<SementeFormView> {
                               await Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder:
-                                      (_) => const FornecedorSementeFormView(),
+                                  builder: (_) => const FornecedoresFormView(),
                                 ),
                               );
                               fornecedorVM.fetch();

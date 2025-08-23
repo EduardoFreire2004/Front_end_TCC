@@ -25,9 +25,11 @@ class _AplicacaoFormViewState extends State<AplicacaoInsumoFormView> {
   final _formKey = GlobalKey<FormState>();
   final _descricaoController = TextEditingController();
   final _dataHoraController = TextEditingController();
+  final _qtdeController = TextEditingController();
 
   int? _insumoID;
   DateTime? _dataHora;
+  double? _qtde;
 
   final Color primaryColor = Colors.green[700]!;
   final Color primaryColorDark = Colors.green[800]!;
@@ -44,9 +46,11 @@ class _AplicacaoFormViewState extends State<AplicacaoInsumoFormView> {
       _descricaoController.text = widget.aplicacao!.descricao;
       _insumoID = widget.aplicacao!.insumoID;
       _dataHora = widget.aplicacao!.dataHora;
+      _qtde = widget.aplicacao!.qtde;
       _dataHoraController.text = DateFormat(
         'dd/MM/yyyy HH:mm',
       ).format(_dataHora!);
+      _qtdeController.text = _qtde.toString();
     }
   }
 
@@ -54,6 +58,7 @@ class _AplicacaoFormViewState extends State<AplicacaoInsumoFormView> {
   void dispose() {
     _descricaoController.dispose();
     _dataHoraController.dispose();
+    _qtdeController.dispose();
     super.dispose();
   }
 
@@ -119,6 +124,7 @@ class _AplicacaoFormViewState extends State<AplicacaoInsumoFormView> {
       dataHora: _dataHora!,
       insumoID: _insumoID!,
       lavouraID: widget.lavouraId,
+      qtde: _qtde ?? double.parse(_qtdeController.text),
     );
 
     final viewModel = Provider.of<AplicacaoInsumoViewModel>(
@@ -215,6 +221,35 @@ class _AplicacaoFormViewState extends State<AplicacaoInsumoFormView> {
                             },
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _qtdeController,
+                        decoration: const InputDecoration(
+                          labelText: 'Quantidade',
+                          prefixIcon: Icon(Icons.scale),
+                          hintText: 'Ex: 2.5',
+                        ),
+                        keyboardType: TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                            RegExp(r'^\d*\.?\d*'),
+                          ),
+                        ],
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Quantidade é obrigatória';
+                          }
+                          if (double.tryParse(value) == null) {
+                            return 'Digite uma quantidade válida';
+                          }
+                          if (double.parse(value) <= 0) {
+                            return 'Quantidade deve ser maior que zero';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
