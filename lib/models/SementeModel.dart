@@ -22,7 +22,7 @@ class SementeModel {
   factory SementeModel.fromJson(Map<String, dynamic> map) {
     return SementeModel(
       id: map['id'],
-      fornecedorSementeID: map['fornecedorSementeID'],
+      fornecedorSementeID: map['fornecedorID'],
       data_Cadastro: DateTime.parse(map['data_Cadastro']),
       nome: map['nome'],
       tipo: map['tipo'],
@@ -35,7 +35,7 @@ class SementeModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id ?? 0,
-      'fornecedorSementeID': fornecedorSementeID,
+      'fornecedorID': fornecedorSementeID,
       'data_Cadastro': data_Cadastro.toIso8601String(),
       'nome': nome,
       'tipo': tipo,

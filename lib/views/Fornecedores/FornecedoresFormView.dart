@@ -7,16 +7,14 @@ import '../../viewmodels/FornecedoresViewmodel.dart';
 class FornecedoresFormView extends StatefulWidget {
   final FornecedoresModel? fornecedor;
 
-  const FornecedoresFormView({Key? key, this.fornecedor})
-    : super(key: key);
+  const FornecedoresFormView({Key? key, this.fornecedor}) : super(key: key);
 
   @override
   State<FornecedoresFormView> createState() =>
       _FornecedorAgrotoxicoFormViewState();
 }
 
-class _FornecedorAgrotoxicoFormViewState
-    extends State<FornecedoresFormView> {
+class _FornecedorAgrotoxicoFormViewState extends State<FornecedoresFormView> {
   final _formKey = GlobalKey<FormState>();
   final _nomeController = TextEditingController();
   final _cnpjController = TextEditingController();
@@ -164,9 +162,17 @@ class _FornecedorAgrotoxicoFormViewState
                     return 'Telefone é obrigatório';
                   }
                   final tel = value.replaceAll(RegExp(r'\D'), '');
+
+                  // Aceitar telefones com 10 ou 11 dígitos (com ou sem DDD)
                   if (tel.length < 10 || tel.length > 11) {
-                    return 'Telefone inválido';
+                    return 'Telefone deve ter 10 ou 11 dígitos';
                   }
+
+                  // Verificar se começa com 0 (DDD)
+                  if (tel.length == 11 && tel[0] != '0') {
+                    return 'DDD deve começar com 0';
+                  }
+
                   return null;
                 },
               ),

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fgl_1/models/AplicacaoModel.dart';
 import 'package:flutter_fgl_1/viewmodels/AgrotoxicoViewModel.dart';
-import 'package:flutter_fgl_1/viewmodels/AplicacacaoViewModel.dart';
+import 'package:flutter_fgl_1/services/aplicacao_service.dart';
 import 'package:flutter_fgl_1/views/Agrotoxico/AgrotoxicoListView.dart';
 import 'package:flutter_fgl_1/views/Aplicacao/AplicacaoFormView.dart';
-import 'package:flutter_fgl_1/services/RelatorioService.dart';
 import 'package:flutter_fgl_1/widgets/RelatorioButton.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -19,20 +18,86 @@ class AplicacaoListView extends StatefulWidget {
 }
 
 class _AplicacaoListViewState extends State<AplicacaoListView> {
+  final AplicacaoService _aplicacaoService = AplicacaoService();
+  List<AplicacaoModel> _aplicacoes = [];
+  bool _isLoading = false;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<AplicacaoViewModel>(
-        context,
-        listen: false,
-      ).fetchByLavoura(widget.lavouraId);
+    _carregarAplicacoes();
+  }
+
+  Future<void> _carregarAplicacoes() async {
+    setState(() {
+      _isLoading = true;
     });
+
+    try {
+      final aplicacoes = await _aplicacaoService
+          .buscarAplicacoesAgrotoxicoPorLavoura(widget.lavouraId);
+      setState(() {
+        _aplicacoes = aplicacoes;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _excluirAplicacao(AplicacaoModel aplicacao) async {
+    final confirmacao = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Confirmar Exclusão'),
+            content: const Text(
+              'Tem certeza que deseja excluir esta aplicação?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancelar'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Excluir'),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+              ),
+            ],
+          ),
+    );
+
+    if (confirmacao == true) {
+      try {
+        await _aplicacaoService.excluirAplicacaoAgrotoxico(aplicacao.id!);
+        await _carregarAplicacoes(); // Recarregar lista
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Aplicação excluída com sucesso!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Erro ao excluir: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final aplicacaoVM = Provider.of<AplicacaoViewModel>(context);
     final agrotoxicoVM = Provider.of<AgrotoxicoViewModel>(
       context,
       listen: false,
@@ -91,7 +156,7 @@ class _AplicacaoListViewState extends State<AplicacaoListView> {
                   buildDetailItem(
                     Icons.description,
                     'Descrição',
-                    aplicacao.descricao,
+                    aplicacao.descricao ?? '',
                   ),
                   buildDetailItem(
                     Icons.calendar_today,
@@ -99,13 +164,24 @@ class _AplicacaoListViewState extends State<AplicacaoListView> {
                     formatarDataHora(aplicacao.dataHora),
                   ),
                   buildDetailItem(Icons.science, 'Agrotóxico', nomeAgrotoxico),
+                  buildDetailItem(
+                    Icons.scale,
+                    'Quantidade',
+                    '${aplicacao.qtde} ${agrotoxico?.unidade_Medida ?? ''}',
+                  ),
+                  if (aplicacao.lavouraNome != null)
+                    buildDetailItem(
+                      Icons.grass,
+                      'Lavoura',
+                      aplicacao.lavouraNome!,
+                    ),
                 ],
               ),
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.of(dialogContext).pop(),
-                child: Text('Fechar', style: TextStyle(color: primaryColor)),
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Fechar'),
               ),
             ],
           );
@@ -113,27 +189,20 @@ class _AplicacaoListViewState extends State<AplicacaoListView> {
       );
     }
 
-    if (aplicacaoVM.errorMessage != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(aplicacaoVM.errorMessage!),
-            backgroundColor: errorColor,
-          ),
-        );
-      });
-    }
-
     return Scaffold(
       backgroundColor: scaffoldBgColor,
-      appBar: AppBar(title: const Text('Aplicações de Agrotóxicos')),
+      appBar: AppBar(
+        title: const Text('Aplicações de Agrotóxicos'),
+        backgroundColor: primaryColor,
+        foregroundColor: Colors.white,
+      ),
       body: RefreshIndicator(
-        onRefresh: () => aplicacaoVM.fetchByLavoura(widget.lavouraId),
+        onRefresh: _carregarAplicacoes,
         color: primaryColor,
         child:
-            aplicacaoVM.isLoading && aplicacaoVM.aplicacao.isEmpty
+            _isLoading && _aplicacoes.isEmpty
                 ? Center(child: CircularProgressIndicator(color: primaryColor))
-                : aplicacaoVM.aplicacao.isEmpty
+                : _aplicacoes.isEmpty
                 ? Center(
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
@@ -146,9 +215,9 @@ class _AplicacaoListViewState extends State<AplicacaoListView> {
                 )
                 : ListView.builder(
                   padding: const EdgeInsets.all(8.0),
-                  itemCount: aplicacaoVM.aplicacao.length,
+                  itemCount: _aplicacoes.length,
                   itemBuilder: (context, index) {
-                    final item = aplicacaoVM.aplicacao[index];
+                    final item = _aplicacoes[index];
                     return Dismissible(
                       key: Key(item.id.toString()),
                       direction: DismissDirection.endToStart,
@@ -187,24 +256,8 @@ class _AplicacaoListViewState extends State<AplicacaoListView> {
                                   TextButton(
                                     onPressed: () async {
                                       if (item.id != null) {
-                                        await aplicacaoVM.delete(
-                                          item.id!,
-                                          item.lavouraID,
-                                        );
+                                        await _excluirAplicacao(item);
                                         Navigator.of(context).pop(true);
-                                        WidgetsBinding.instance
-                                            .addPostFrameCallback((_) {
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: const Text(
-                                                    'Aplicação excluída.',
-                                                  ),
-                                                  backgroundColor: errorColor,
-                                                ),
-                                              );
-                                            });
                                       } else {
                                         Navigator.of(context).pop(false);
                                       }
@@ -250,7 +303,7 @@ class _AplicacaoListViewState extends State<AplicacaoListView> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        item.descricao,
+                                        item.descricao ?? '',
                                         style: TextStyle(
                                           fontSize: 18.0,
                                           fontWeight: FontWeight.bold,
@@ -303,29 +356,7 @@ class _AplicacaoListViewState extends State<AplicacaoListView> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          FloatingActionButton(
-            heroTag: 'relatorioFAB',
-            mini: true,
-            backgroundColor: Colors.blue[600],
-            tooltip: 'Gerar Relatório PDF',
-            onPressed: () async {
-              try {
-                await RelatorioService.gerarRelatorioAplicacoes(
-                  aplicacaoVM.aplicacao,
-                );
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Erro ao gerar relatório: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              }
-            },
-            child: const Icon(Icons.picture_as_pdf),
-          ),
+          RelatorioButton(texto: 'Relatórios', icone: Icons.picture_as_pdf),
           const SizedBox(height: 12),
           FloatingActionButton(
             heroTag: 'agrotoxicoFAB',

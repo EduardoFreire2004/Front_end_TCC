@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../models/LavouraModel.dart';
 import '../../repositories/LavouraRepo.dart';
+import '../services/viewmodel_manager.dart';
 
-class LavouraViewModel extends ChangeNotifier {
+class LavouraViewModel extends RefreshableViewModel {
   final LavouraRepo _repository = LavouraRepo();
   List<LavouraModel> _lavoura = [];
   bool isLoading = false;
@@ -78,6 +79,19 @@ class LavouraViewModel extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+  }
+
+  @override
+  void clearData() {
+    _lavoura = [];
+    isLoading = false;
+    errorMessage = null;
+    notifyListeners();
+  }
+
+  // Método para recarregar dados após login
+  Future<void> refreshAfterLogin() async {
+    await fetch();
   }
 
   Future<bool> fetchByNome(String nome) async {

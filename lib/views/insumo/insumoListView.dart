@@ -6,7 +6,6 @@ import 'package:flutter_fgl_1/viewmodels/FornecedoresViewmodel.dart';
 import 'package:flutter_fgl_1/views/CategoriaInsumo/CategoriaInsumoListView.dart';
 import 'package:flutter_fgl_1/views/Fornecedores/FornecedoresListView.dart';
 import 'package:flutter_fgl_1/views/Insumo/insumoFormView.dart';
-import 'package:flutter_fgl_1/services/RelatorioService.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -275,7 +274,7 @@ class _InsumoListViewState extends State<InsumoListView> {
                                     ],
                                   ),
                                 ),
-                                IconButton( 
+                                IconButton(
                                   icon: Icon(
                                     Icons.edit,
                                     color: Colors.blueGrey[600],
@@ -309,19 +308,15 @@ class _InsumoListViewState extends State<InsumoListView> {
             mini: true,
             backgroundColor: Colors.blue[600],
             tooltip: 'Gerar Relatório PDF',
-            onPressed: () async {
-              try {
-                await RelatorioService.gerarRelatorioInsumos(insumoVM.insumo);
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Erro ao gerar relatório: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              }
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Funcionalidade de relatório será implementada via API',
+                  ),
+                  backgroundColor: Colors.orange,
+                ),
+              );
             },
             child: const Icon(Icons.picture_as_pdf),
           ),

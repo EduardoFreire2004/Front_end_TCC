@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../models/TipoMovimentacaoModel.dart';
 import '../../repositories/TipoMovimentacaoRepo.dart';
+import '../services/viewmodel_manager.dart';
 
-class TipoMovimetacaoViewModel extends ChangeNotifier {
+class TipoMovimetacaoViewModel extends RefreshableViewModel {
   final TipoMovimentacaoRepo _repository = TipoMovimentacaoRepo();
   List<TipoMovimentacaoModel> _tipo = [];
   bool isLoading = false;
@@ -33,13 +34,13 @@ class TipoMovimetacaoViewModel extends ChangeNotifier {
 
     try {
       await _repository.create(model);
-      await fetch(); 
+      await fetch();
     } catch (e) {
       errorMessage = 'Erro ao adicionar: $e';
       debugPrint(errorMessage);
       isLoading = false;
       notifyListeners();
-      rethrow; 
+      rethrow;
     }
   }
 
@@ -57,6 +58,19 @@ class TipoMovimetacaoViewModel extends ChangeNotifier {
       notifyListeners();
       rethrow;
     }
+  }
+
+  @override
+  void clearData() {
+    _tipo = [];
+    isLoading = false;
+    errorMessage = null;
+    notifyListeners();
+  }
+
+  // Método para recarregar dados após login
+  Future<void> refreshAfterLogin() async {
+    await fetch();
   }
 
   Future<void> delete(int id) async {

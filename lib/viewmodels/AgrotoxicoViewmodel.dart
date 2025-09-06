@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../models/AgrotoxicoModel.dart';
 import '../../repositories/AgrotoxicoRepo.dart';
+import '../services/viewmodel_manager.dart';
 
-class AgrotoxicoViewModel extends ChangeNotifier {
+class AgrotoxicoViewModel extends RefreshableViewModel {
   final AgrotoxicoRepo _repository = AgrotoxicoRepo();
   List<AgrotoxicoModel> _lista = [];
   bool isLoading = false;
@@ -78,6 +79,19 @@ class AgrotoxicoViewModel extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+  }
+
+  @override
+  void clearData() {
+    _lista = [];
+    isLoading = false;
+    errorMessage = null;
+    notifyListeners();
+  }
+
+  // Método para recarregar dados após login
+  Future<void> refreshAfterLogin() async {
+    await fetch();
   }
 
   Future<AgrotoxicoModel?> getID(int id) async {

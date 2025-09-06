@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/MovimentacaoEstoqueModel.dart';
+import '../../models/TipoMovimentacaoModel.dart';
 import '../../viewmodels/MovimentacaoEstoqueViewModel.dart';
 import '../../viewmodels/AgrotoxicoViewModel.dart';
 import '../../viewmodels/SementeViewModel.dart';
@@ -27,7 +28,7 @@ class _MovimentacaoEstoqueFormViewState
     extends State<MovimentacaoEstoqueFormView> {
   final _formKey = GlobalKey<FormState>();
 
-  int? _movimentacao; // 1 - Entrada, 2 - Saída
+  int? _movimentacao; // 1 = Entrada, 2 = Saída
   int? _selectedAgrotoxico;
   int? _selectedSemente;
   int? _selectedInsumo;
@@ -59,75 +60,136 @@ class _MovimentacaoEstoqueFormViewState
     if (!_formKey.currentState!.validate()) return;
     _formKey.currentState!.save();
 
-    final movimentacaoModel = MovimentacaoEstoqueModel(
-      id: widget.movimentacao?.id,
-      lavouraID: widget.lavouraId,
-      movimentacao: _movimentacao!,
-      agrotoxicoID: _selectedAgrotoxico ?? 0,
-      sementeID: _selectedSemente ?? 0,
-      insumoID: _selectedInsumo ?? 0,
-      qtde: _qtde!,
-      dataHora: _dataHora,
-      descricao: _descricao ?? '',
-    );
+    // Validação adicional seguindo a documentação da API
+    if (_movimentacao == null) {
+      _showError('Selecione o tipo de movimentação');
+      return;
+    }
 
-    // Garante que apenas um tipo foi selecionado
+    // Verificar se apenas um tipo de item foi selecionado
     int tiposSelecionados = 0;
     if (_selectedAgrotoxico != null) tiposSelecionados++;
     if (_selectedSemente != null) tiposSelecionados++;
     if (_selectedInsumo != null) tiposSelecionados++;
+
     if (tiposSelecionados != 1) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Selecione apenas um tipo: Agrotóxico, Semente ou Insumo',
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showError('Selecione apenas um tipo: Agrotóxico, Semente ou Insumo');
       return;
     }
 
+    // Verificar se a quantidade é positiva
+    if (_qtde == null || _qtde! <= 0) {
+      _showError('A quantidade deve ser maior que zero');
+      return;
+    }
+
+    // Verificar estoque suficiente para saídas
+    if (_movimentacao == 2) {
+      // Saída
+      final movimentacaoVM = Provider.of<MovimentacaoEstoqueViewModel>(
+        context,
+        listen: false,
+      );
+
+      final itemId = _selectedAgrotoxico ?? _selectedSemente ?? _selectedInsumo;
+      if (itemId != null &&
+          !movimentacaoVM.hasEstoqueSuficiente(itemId, _qtde!)) {
+        final saldo = movimentacaoVM.getSaldoAtual(itemId);
+        _showError(
+          'Estoque insuficiente. Estoque atual: ${saldo.toStringAsFixed(2)}, Quantidade solicitada: ${_qtde!.toStringAsFixed(2)}',
+        );
+        return;
+      }
+    }
+
+    final movimentacaoModel = MovimentacaoEstoqueModel(
+      id: widget.movimentacao?.id,
+      lavouraID: widget.lavouraId,
+      movimentacao: _movimentacao!,
+      agrotoxicoID: _selectedAgrotoxico,
+      sementeID: _selectedSemente,
+      insumoID: _selectedInsumo,
+      qtde: _qtde!,
+      dataHora: _dataHora,
+      descricao: _descricao,
+    );
+
     try {
+      final movimentacaoVM = Provider.of<MovimentacaoEstoqueViewModel>(
+        context,
+        listen: false,
+      );
+
       if (widget.movimentacao != null) {
         // Atualizando
-        await Provider.of<MovimentacaoEstoqueViewModel>(
-          context,
-          listen: false,
-        ).update(movimentacaoModel);
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Movimentação atualizada com sucesso!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        final success = await movimentacaoVM.update(movimentacaoModel);
+        if (success) {
+          if (!mounted) return;
+          _showSuccess('Movimentação atualizada com sucesso!');
+          Navigator.pop(context, true);
+        } else {
+          if (!mounted) return;
+          _showError(
+            movimentacaoVM.errorMessage ?? 'Erro ao atualizar movimentação',
+          );
+        }
       } else {
         // Criando nova
-        await Provider.of<MovimentacaoEstoqueViewModel>(
-          context,
-          listen: false,
-        ).add(movimentacaoModel);
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Movimentação criada com sucesso!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        final success = await movimentacaoVM.add(movimentacaoModel);
+        if (success) {
+          if (!mounted) return;
+          _showSuccess('Movimentação criada com sucesso!');
+          Navigator.pop(context, true);
+        } else {
+          if (!mounted) return;
+          _showError(
+            movimentacaoVM.errorMessage ?? 'Erro ao criar movimentação',
+          );
+        }
       }
-      if (!mounted) return;
-      Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erro ao salvar: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showError('Erro ao salvar: $e');
     }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red[600],
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _showSuccess(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green[600],
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _clearOtherSelections(String selectedType) {
+    setState(() {
+      switch (selectedType) {
+        case 'agrotoxico':
+          _selectedSemente = null;
+          _selectedInsumo = null;
+          break;
+        case 'semente':
+          _selectedAgrotoxico = null;
+          _selectedInsumo = null;
+          break;
+        case 'insumo':
+          _selectedAgrotoxico = null;
+          _selectedSemente = null;
+          break;
+      }
+    });
   }
 
   @override
@@ -144,6 +206,7 @@ class _MovimentacaoEstoqueFormViewState
               : 'Nova Movimentação de Estoque',
         ),
         backgroundColor: Colors.green[700],
+        foregroundColor: Colors.white,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -151,158 +214,361 @@ class _MovimentacaoEstoqueFormViewState
           key: _formKey,
           child: ListView(
             children: [
-              DropdownButtonFormField<int>(
-                decoration: const InputDecoration(
-                  labelText: 'Tipo de Movimentação',
+              // Tipo de Movimentação
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Tipo de Movimentação *',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<int>(
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          hintText: 'Selecione o tipo',
+                        ),
+                        value: _movimentacao,
+                        items:
+                            TipoMovimentacao.dropdownItems.map((item) {
+                              return DropdownMenuItem<int>(
+                                value: item['value'],
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      item['value'] == 1
+                                          ? Icons.arrow_downward
+                                          : Icons.arrow_upward,
+                                      color:
+                                          item['value'] == 1
+                                              ? Colors.green
+                                              : Colors.red,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(item['label']),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                        onChanged:
+                            (value) => setState(() => _movimentacao = value),
+                        validator:
+                            (value) =>
+                                value == null ? 'Selecione o tipo' : null,
+                      ),
+                    ],
+                  ),
                 ),
-                value: _movimentacao,
-                items: const [
-                  DropdownMenuItem(value: 1, child: Text('Entrada')),
-                  DropdownMenuItem(value: 2, child: Text('Saída')),
-                ],
-                onChanged: (value) => setState(() => _movimentacao = value),
-                validator: (value) => value == null ? 'Selecione o tipo' : null,
               ),
               const SizedBox(height: 16),
 
-              // Agrotóxico
-              DropdownButtonFormField<int>(
-                decoration: const InputDecoration(labelText: 'Agrotóxico'),
-                value: _selectedAgrotoxico,
-                items: [
-                  const DropdownMenuItem<int>(
-                    value: null,
-                    child: Text('Selecione um agrotóxico'),
-                  ),
-                  ...agroVM.lista.map(
-                    (a) => DropdownMenuItem(value: a.id, child: Text(a.nome)),
-                  ),
-                ],
-                onChanged: (value) {
-                  setState(() {
-                    _selectedAgrotoxico = value;
-                    if (value != null) {
-                      _selectedSemente = null;
-                      _selectedInsumo = null;
-                    }
-                  });
-                },
-              ),
+              // Seleção de Item
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Selecione o Item *',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Selecione apenas um tipo de item',
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                      const SizedBox(height: 16),
 
-              // Semente
-              DropdownButtonFormField<int>(
-                decoration: const InputDecoration(labelText: 'Semente'),
-                value: _selectedSemente,
-                items: [
-                  const DropdownMenuItem<int>(
-                    value: null,
-                    child: Text('Selecione uma semente'),
-                  ),
-                  ...sementeVM.semente.map(
-                    (s) => DropdownMenuItem(value: s.id, child: Text(s.nome)),
-                  ),
-                ],
-                onChanged: (value) {
-                  setState(() {
-                    _selectedSemente = value;
-                    if (value != null) {
-                      _selectedAgrotoxico = null;
-                      _selectedInsumo = null;
-                    }
-                  });
-                },
-              ),
+                      // Agrotóxico
+                      DropdownButtonFormField<int>(
+                        decoration: InputDecoration(
+                          labelText: 'Agrotóxico',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        value: _selectedAgrotoxico,
+                        items: [
+                          const DropdownMenuItem<int>(
+                            value: null,
+                            child: Text('Selecione um agrotóxico'),
+                          ),
+                          ...agroVM.lista.map(
+                            (a) => DropdownMenuItem(
+                              value: a.id,
+                              child: Text(a.nome),
+                            ),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedAgrotoxico = value;
+                            if (value != null) {
+                              _clearOtherSelections('agrotoxico');
+                            }
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 16),
 
-              // Insumo
-              DropdownButtonFormField<int>(
-                decoration: const InputDecoration(labelText: 'Insumo'),
-                value: _selectedInsumo,
-                items: [
-                  const DropdownMenuItem<int>(
-                    value: null,
-                    child: Text('Selecione um insumo'),
+                      // Semente
+                      DropdownButtonFormField<int>(
+                        decoration: InputDecoration(
+                          labelText: 'Semente',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        value: _selectedSemente,
+                        items: [
+                          const DropdownMenuItem<int>(
+                            value: null,
+                            child: Text('Selecione uma semente'),
+                          ),
+                          ...sementeVM.semente.map(
+                            (s) => DropdownMenuItem(
+                              value: s.id,
+                              child: Text(s.nome),
+                            ),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedSemente = value;
+                            if (value != null) {
+                              _clearOtherSelections('semente');
+                            }
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Insumo
+                      DropdownButtonFormField<int>(
+                        decoration: InputDecoration(
+                          labelText: 'Insumo',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        value: _selectedInsumo,
+                        items: [
+                          const DropdownMenuItem<int>(
+                            value: null,
+                            child: Text('Selecione um insumo'),
+                          ),
+                          ...insumoVM.insumo.map(
+                            (i) => DropdownMenuItem(
+                              value: i.id,
+                              child: Text(i.nome),
+                            ),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedInsumo = value;
+                            if (value != null) {
+                              _clearOtherSelections('insumo');
+                            }
+                          });
+                        },
+                      ),
+                    ],
                   ),
-                  ...insumoVM.insumo.map(
-                    (i) => DropdownMenuItem(value: i.id, child: Text(i.nome)),
-                  ),
-                ],
-                onChanged: (value) {
-                  setState(() {
-                    _selectedInsumo = value;
-                    if (value != null) {
-                      _selectedAgrotoxico = null;
-                      _selectedSemente = null;
-                    }
-                  });
-                },
-              ),
-              const SizedBox(height: 16),
-
-              TextFormField(
-                decoration: const InputDecoration(labelText: 'Quantidade'),
-                keyboardType: TextInputType.number,
-                initialValue: _qtde?.toString(),
-                onSaved: (value) => _qtde = double.tryParse(value ?? '0'),
-                validator:
-                    (value) =>
-                        value == null || value.isEmpty
-                            ? 'Informe a quantidade'
-                            : null,
-              ),
-              const SizedBox(height: 16),
-
-              TextFormField(
-                decoration: const InputDecoration(labelText: 'Descrição'),
-                initialValue: _descricao,
-                onSaved: (value) => _descricao = value,
-              ),
-              const SizedBox(height: 16),
-
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(
-                  'Data: ${DateFormat('dd/MM/yyyy HH:mm').format(_dataHora)}',
                 ),
-                trailing: Icon(Icons.calendar_today, color: Colors.green[700]),
-                onTap: () async {
-                  final currentContext = context;
-                  if (!mounted) return;
-                  final date = await showDatePicker(
-                    context: currentContext,
-                    initialDate: _dataHora,
-                    firstDate: DateTime(2000),
-                    lastDate: DateTime(2100),
-                  );
-                  if (date != null && mounted) {
-                    final time = await showTimePicker(
-                      context: currentContext,
-                      initialTime: TimeOfDay.fromDateTime(_dataHora),
-                    );
-                    if (time != null && mounted) {
-                      setState(() {
-                        _dataHora = DateTime(
-                          date.year,
-                          date.month,
-                          date.day,
-                          time.hour,
-                          time.minute,
-                        );
-                      });
-                    }
-                  }
-                },
+              ),
+              const SizedBox(height: 16),
+
+              // Quantidade e Descrição
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Detalhes da Movimentação',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      TextFormField(
+                        decoration: InputDecoration(
+                          labelText: 'Quantidade *',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          suffixText: 'kg/L',
+                        ),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        initialValue: _qtde?.toString(),
+                        onSaved:
+                            (value) => _qtde = double.tryParse(value ?? '0'),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Informe a quantidade';
+                          }
+                          final qtde = double.tryParse(value);
+                          if (qtde == null || qtde <= 0) {
+                            return 'A quantidade deve ser maior que zero';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      TextFormField(
+                        decoration: InputDecoration(
+                          labelText: 'Descrição',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          hintText: 'Descrição opcional da movimentação',
+                        ),
+                        initialValue: _descricao,
+                        onSaved: (value) => _descricao = value,
+                        maxLines: 3,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Data e Hora
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Data e Hora da Movimentação',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: Icon(
+                          Icons.calendar_today,
+                          color: Colors.green[700],
+                        ),
+                        title: Text(
+                          'Data: ${DateFormat('dd/MM/yyyy').format(_dataHora)}',
+                        ),
+                        subtitle: Text(
+                          'Hora: ${DateFormat('HH:mm').format(_dataHora)}',
+                        ),
+                        trailing: ElevatedButton(
+                          onPressed: () async {
+                            final currentContext = context;
+                            if (!mounted) return;
+
+                            final date = await showDatePicker(
+                              context: currentContext,
+                              initialDate: _dataHora,
+                              firstDate: DateTime(2000),
+                              lastDate: DateTime(2100),
+                              builder: (context, child) {
+                                return Theme(
+                                  data: Theme.of(context).copyWith(
+                                    colorScheme: ColorScheme.light(
+                                      primary: Colors.green[600]!,
+                                      onPrimary: Colors.white,
+                                      onSurface: Colors.black,
+                                    ),
+                                  ),
+                                  child: child!,
+                                );
+                              },
+                            );
+
+                            if (date != null && mounted) {
+                              final time = await showTimePicker(
+                                context: currentContext,
+                                initialTime: TimeOfDay.fromDateTime(_dataHora),
+                                builder: (context, child) {
+                                  return Theme(
+                                    data: Theme.of(context).copyWith(
+                                      colorScheme: ColorScheme.light(
+                                        primary: Colors.green[600]!,
+                                        onPrimary: Colors.white,
+                                        onSurface: Colors.black,
+                                      ),
+                                    ),
+                                    child: child!,
+                                  );
+                                },
+                              );
+
+                              if (time != null && mounted) {
+                                setState(() {
+                                  _dataHora = DateTime(
+                                    date.year,
+                                    date.month,
+                                    date.day,
+                                    time.hour,
+                                    time.minute,
+                                  );
+                                });
+                              }
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green[600],
+                            foregroundColor: Colors.white,
+                          ),
+                          child: const Text('Alterar'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
               const SizedBox(height: 24),
 
-              ElevatedButton(
-                onPressed: _saveForm,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green[700],
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-                child: Text(
-                  widget.movimentacao != null ? 'Atualizar' : 'Salvar',
-                  style: const TextStyle(fontSize: 16, color: Colors.white),
+              // Botão Salvar
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: _saveForm,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green[700],
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 4,
+                  ),
+                  child: Text(
+                    widget.movimentacao != null ? 'Atualizar' : 'Salvar',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
             ],

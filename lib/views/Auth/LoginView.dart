@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../viewmodels/AuthViewModel.dart';
-import '../../viewmodels/ThemaProviderViewModel.dart';
 import '../../config/app_colors.dart';
 
 class LoginView extends StatefulWidget {
@@ -16,7 +15,10 @@ class _LoginViewState extends State<LoginView> {
   final _nomeController = TextEditingController();
   final _emailController = TextEditingController();
   final _senhaController = TextEditingController();
+  final _confirmarSenhaController = TextEditingController();
+  final _telefoneController = TextEditingController();
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
   bool _isLogin = true;
 
   @override
@@ -24,6 +26,8 @@ class _LoginViewState extends State<LoginView> {
     _nomeController.dispose();
     _emailController.dispose();
     _senhaController.dispose();
+    _confirmarSenhaController.dispose();
+    _telefoneController.dispose();
     super.dispose();
   }
 
@@ -102,8 +106,38 @@ class _LoginViewState extends State<LoginView> {
                             ),
                             validator: (value) {
                               if (!_isLogin &&
-                                  (value == null || value.isEmpty)) {
+                                  (value == null || value.trim().isEmpty)) {
                                 return 'Por favor, insira seu nome';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Campo de telefone (apenas para cadastro)
+                          TextFormField(
+                            controller: _telefoneController,
+                            keyboardType: TextInputType.phone,
+                            decoration: InputDecoration(
+                              labelText: 'Telefone (opcional)',
+                              prefixIcon: const Icon(Icons.phone),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Colors.green[700]!,
+                                  width: 2,
+                                ),
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value != null && value.isNotEmpty) {
+                                final tel = value.replaceAll(RegExp(r'\D'), '');
+                                if (tel.length < 10 || tel.length > 11) {
+                                  return 'Telefone deve ter 10 ou 11 dígitos';
+                                }
                               }
                               return null;
                             },
@@ -181,6 +215,55 @@ class _LoginViewState extends State<LoginView> {
                             return null;
                           },
                         ),
+                        const SizedBox(height: 16),
+
+                        // Campo de confirmar senha (apenas para cadastro)
+                        if (!_isLogin) ...[
+                          TextFormField(
+                            controller: _confirmarSenhaController,
+                            obscureText: _obscureConfirmPassword,
+                            decoration: InputDecoration(
+                              labelText: 'Confirmar Senha',
+                              prefixIcon: const Icon(Icons.lock_outline),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscureConfirmPassword
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _obscureConfirmPassword =
+                                        !_obscureConfirmPassword;
+                                  });
+                                },
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Colors.green[700]!,
+                                  width: 2,
+                                ),
+                              ),
+                            ),
+                            validator: (value) {
+                              if (!_isLogin) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Por favor, confirme sua senha';
+                                }
+                                if (value != _senhaController.text) {
+                                  return 'As senhas não coincidem';
+                                }
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+
                         const SizedBox(height: 24),
 
                         // Botão de ação
@@ -259,6 +342,12 @@ class _LoginViewState extends State<LoginView> {
                           onPressed: () {
                             setState(() {
                               _isLogin = !_isLogin;
+                              // Limpar campos ao alternar
+                              if (_isLogin) {
+                                _nomeController.clear();
+                                _confirmarSenhaController.clear();
+                                _telefoneController.clear();
+                              }
                               context.read<AuthViewModel>().clearError();
                             });
                           },
@@ -296,7 +385,7 @@ class _LoginViewState extends State<LoginView> {
                 _nomeController.text,
                 _emailController.text,
                 _senhaController.text,
-                null,
+                _telefoneController.text.trim(),
               );
 
       if (success && mounted) {
@@ -304,6 +393,8 @@ class _LoginViewState extends State<LoginView> {
         _nomeController.clear();
         _emailController.clear();
         _senhaController.clear();
+        _confirmarSenhaController.clear();
+        _telefoneController.clear();
         // O AuthWrapper irá redirecionar automaticamente para a tela principal
         // Não é necessário navegar manualmente
       }

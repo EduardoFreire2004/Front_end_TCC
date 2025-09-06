@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../models/CustosModel.dart';
 import '../../repositories/CustosRepo.dart';
+import '../services/viewmodel_manager.dart';
 
-class CustoViewModel extends ChangeNotifier {
+class CustoViewModel extends RefreshableViewModel {
   final CustoRepo _repository = CustoRepo();
 
   List<CustoModel> _custos = [];
@@ -74,6 +75,19 @@ class CustoViewModel extends ChangeNotifier {
       notifyListeners();
       rethrow;
     }
+  }
+
+  @override
+  void clearData() {
+    _custos = [];
+    isLoading = false;
+    errorMessage = null;
+    notifyListeners();
+  }
+
+  // Método para recarregar dados após login
+  Future<void> refreshAfterLogin() async {
+    await fetch();
   }
 
   Future<void> delete(int id, int lavouraId) async {

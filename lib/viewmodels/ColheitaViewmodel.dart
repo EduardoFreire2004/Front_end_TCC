@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fgl_1/models/RendimentoColheitaModel.dart';
 import '../../models/ColheitaModel.dart';
 import '../../repositories/ColheitaRepo.dart';
+import '../services/viewmodel_manager.dart';
 
-class ColheitaViewModel extends ChangeNotifier {
+class ColheitaViewModel extends RefreshableViewModel {
   final ColheitaRepo _repository = ColheitaRepo();
   List<ColheitaModel> _colheita = [];
   bool isLoading = false;
@@ -78,6 +79,20 @@ class ColheitaViewModel extends ChangeNotifier {
     }
   }
 
+  @override
+  void clearData() {
+    _colheita = [];
+    rendimento = null;
+    isLoading = false;
+    errorMessage = null;
+    notifyListeners();
+  }
+
+  // Método para recarregar dados após login
+  Future<void> refreshAfterLogin() async {
+    await fetch();
+  }
+
   Future<void> fetchByLavoura(int lavouraId) async {
     try {
       isLoading = true;
@@ -91,7 +106,6 @@ class ColheitaViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
-
 
   Future<void> carregarRendimento(int lavouraId) async {
     try {

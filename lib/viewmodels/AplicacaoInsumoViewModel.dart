@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fgl_1/models/AplicacaoInsumoModel.dart';
 import '../../repositories/AplicacaoInsumoRepo.dart';
+import '../services/viewmodel_manager.dart';
 
-class AplicacaoInsumoViewModel extends ChangeNotifier {
+class AplicacaoInsumoViewModel extends RefreshableViewModel {
   final AplicacaoInsumoRepo _repository = AplicacaoInsumoRepo();
   List<AplicacaoInsumoModel> _aplicacaoInsumo = [];
   bool isLoading = false;
@@ -33,7 +34,7 @@ class AplicacaoInsumoViewModel extends ChangeNotifier {
 
     try {
       await _repository.create(model);
-      await fetchByLavoura(model.lavouraID!);
+      await fetchByLavoura(model.lavouraID);
     } catch (e) {
       errorMessage = 'Erro ao adicionar: $e';
       debugPrint(errorMessage);
@@ -49,7 +50,7 @@ class AplicacaoInsumoViewModel extends ChangeNotifier {
 
     try {
       await _repository.update(model);
-      await fetchByLavoura(model.lavouraID!);
+      await fetchByLavoura(model.lavouraID);
     } catch (e) {
       errorMessage = 'Erro ao atualizar: $e';
       debugPrint(errorMessage);
@@ -73,6 +74,19 @@ class AplicacaoInsumoViewModel extends ChangeNotifier {
       notifyListeners();
       rethrow;
     }
+  }
+
+  @override
+  void clearData() {
+    _aplicacaoInsumo = [];
+    isLoading = false;
+    errorMessage = null;
+    notifyListeners();
+  }
+
+  // Método para recarregar dados após login
+  Future<void> refreshAfterLogin() async {
+    await fetch();
   }
 
   Future<void> fetchByLavoura(int lavouraId) async {

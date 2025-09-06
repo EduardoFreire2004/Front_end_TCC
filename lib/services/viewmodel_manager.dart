@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import '../viewmodels/base_viewmodel.dart';
 
 class ViewModelManager {
@@ -31,4 +30,18 @@ class ViewModelManager {
       }
     }
   }
+
+  // Método para recarregar dados de todos os ViewModels após login
+  Future<void> refreshAllDataAfterLogin() async {
+    for (final viewModel in _viewModels) {
+      if (viewModel is RefreshableViewModel) {
+        await viewModel.refreshAfterLogin();
+      }
+    }
+  }
+}
+
+// Interface para ViewModels que podem ser recarregados
+abstract class RefreshableViewModel extends BaseViewModel {
+  Future<void> refreshAfterLogin();
 }

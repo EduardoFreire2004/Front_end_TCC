@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../models/PlantioModel.dart';
 import '../../repositories/PlantioRepo.dart';
+import '../services/viewmodel_manager.dart';
 
-class PlantioViewModel extends ChangeNotifier {
+class PlantioViewModel extends RefreshableViewModel {
   final PlantioRepo _repository = PlantioRepo();
   List<PlantioModel> _plantio = [];
   bool isLoading = false;
@@ -74,6 +75,19 @@ class PlantioViewModel extends ChangeNotifier {
       isLoading = false;
       notifyListeners();
     }
+  }
+
+  @override
+  void clearData() {
+    _plantio = [];
+    isLoading = false;
+    errorMessage = null;
+    notifyListeners();
+  }
+
+  // Método para recarregar dados após login
+  Future<void> refreshAfterLogin() async {
+    await fetch();
   }
 
   Future<void> fetchByLavoura(int lavouraId) async {

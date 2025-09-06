@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter_fgl_1/viewmodels/AplicacaoInsumoViewModel.dart';
-import 'package:flutter_fgl_1/viewmodels/CustosViewModel.dart';
+import 'package:flutter_fgl_1/viewmodels/CustoViewModel.dart';
+import 'package:flutter_fgl_1/services/custo_service.dart';
 import 'package:flutter_fgl_1/viewmodels/MovimentacaoEstoqueViewModel.dart';
 import 'package:flutter_fgl_1/views/Lavoura/LavouraListView.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -22,11 +24,39 @@ import 'package:flutter_fgl_1/viewmodels/AuthViewModel.dart';
 import 'package:flutter_fgl_1/widgets/nav_page.dart';
 import 'package:flutter_fgl_1/views/Auth/LoginView.dart';
 import 'package:flutter_fgl_1/config/app_theme.dart';
+import 'package:flutter_fgl_1/config/list_config.dart';
 import 'package:provider/provider.dart';
+
+// Configuração global para listas
+class CustomScrollBehavior extends ScrollBehavior {
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) {
+    // Define a física de scroll padrão para todas as listas
+    return ListConfig.defaultScrollPhysics;
+  }
+
+  @override
+  Widget buildScrollbar(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    // Configuração padrão da scrollbar
+    return ListConfig.defaultScrollbar(child: child);
+  }
+
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+    PointerDeviceKind.trackpad,
+  };
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('pt_BR', null);
+
   runApp(const FGLApp());
 }
 
@@ -66,7 +96,7 @@ class FGLApp extends StatelessWidget {
             return viewModel;
           },
         ),
-        
+
         ChangeNotifierProvider(
           create: (_) {
             final viewModel = CategoriaInsumoViewModel();
@@ -119,9 +149,9 @@ class FGLApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(
           create: (_) {
-            final viewModel = CustoViewModel();
-            viewModel.fetch();
-            return viewModel;
+            // CustoViewModel requer um CustoService que precisa de token
+            // Será criado dinamicamente quando necessário
+            return CustoViewModel(CustoService(token: ''));
           },
         ),
         ChangeNotifierProvider(
@@ -147,6 +177,7 @@ class FGLApp extends StatelessWidget {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
+            scrollBehavior: CustomScrollBehavior(),
             home: const AuthWrapper(),
           );
         },

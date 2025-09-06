@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../models/SementeModel.dart';
 import '../../repositories/SementeRepo.dart';
+import '../services/viewmodel_manager.dart';
 
-class SementeViewModel extends ChangeNotifier {
+class SementeViewModel extends RefreshableViewModel {
   final SementeRepo _repository = SementeRepo();
   List<SementeModel> _semente = [];
   bool isLoading = false;
@@ -78,6 +79,19 @@ class SementeViewModel extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+  }
+
+  @override
+  void clearData() {
+    _semente = [];
+    isLoading = false;
+    errorMessage = null;
+    notifyListeners();
+  }
+
+  // Método para recarregar dados após login
+  Future<void> refreshAfterLogin() async {
+    await fetch();
   }
 
   Future<SementeModel?> getID(int id) async {

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../models/AplicacaoModel.dart';
 import '../../repositories/AplicacaoRepo.dart';
+import '../services/viewmodel_manager.dart';
 
-class AplicacaoViewModel extends ChangeNotifier {
+class AplicacaoViewModel extends RefreshableViewModel {
   final AplicacaoRepo _repository = AplicacaoRepo();
   List<AplicacaoModel> _aplicacao = [];
   bool isLoading = false;
@@ -73,6 +74,19 @@ class AplicacaoViewModel extends ChangeNotifier {
       notifyListeners();
       rethrow;
     }
+  }
+
+  @override
+  void clearData() {
+    _aplicacao = [];
+    isLoading = false;
+    errorMessage = null;
+    notifyListeners();
+  }
+
+  // Método para recarregar dados após login
+  Future<void> refreshAfterLogin() async {
+    await fetch();
   }
 
   Future<void> fetchByLavoura(int lavouraId) async {

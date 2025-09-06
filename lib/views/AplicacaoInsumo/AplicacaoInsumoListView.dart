@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fgl_1/models/AplicacaoInsumoModel.dart';
-import 'package:flutter_fgl_1/models/InsumoModel.dart';
 import 'package:flutter_fgl_1/viewmodels/AplicacaoInsumoViewModel.dart';
 import 'package:flutter_fgl_1/viewmodels/InsumoViewModel.dart';
 import 'package:flutter_fgl_1/views/AplicacaoInsumo/AplicacaoInsumoFormView.dart';
 import 'package:flutter_fgl_1/views/Insumo/InsumoListView.dart';
-import 'package:flutter_fgl_1/services/RelatorioService.dart';
-import 'package:flutter_fgl_1/widgets/RelatorioButton.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -89,7 +86,7 @@ class _AplicacaoListViewState extends State<AplicacaoInsumoListView> {
                   buildDetailItem(
                     Icons.description,
                     'Descrição',
-                    aplicacao.descricao,
+                    aplicacao.descricao ?? '',
                   ),
                   buildDetailItem(
                     Icons.calendar_today,
@@ -248,7 +245,7 @@ class _AplicacaoListViewState extends State<AplicacaoInsumoListView> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        item.descricao,
+                                        item.descricao ?? '',
                                         style: TextStyle(
                                           fontSize: 18.0,
                                           fontWeight: FontWeight.bold,
@@ -306,21 +303,15 @@ class _AplicacaoListViewState extends State<AplicacaoInsumoListView> {
             mini: true,
             backgroundColor: Colors.blue[600],
             tooltip: 'Gerar Relatório PDF',
-            onPressed: () async {
-              try {
-                await RelatorioService.gerarRelatorioAplicacoesInsumos(
-                  aplicacaoVM.aplicacao,
-                );
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Erro ao gerar relatório: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              }
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Funcionalidade de relatório será implementada via API',
+                  ),
+                  backgroundColor: Colors.orange,
+                ),
+              );
             },
             child: const Icon(Icons.picture_as_pdf),
           ),

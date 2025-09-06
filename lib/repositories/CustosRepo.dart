@@ -87,8 +87,7 @@ class CustoRepo {
 
   Future<List<CustoModel>> fetchByLavoura(int lavouraId) async {
     try {
-      final response =
-          await ApiService.get('/Custos/porlavoura/$lavouraId');
+      final response = await ApiService.get('/Custos/lavoura/$lavouraId');
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);

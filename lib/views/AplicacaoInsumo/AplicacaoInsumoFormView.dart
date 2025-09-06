@@ -43,7 +43,7 @@ class _AplicacaoFormViewState extends State<AplicacaoInsumoFormView> {
   void initState() {
     super.initState();
     if (widget.aplicacao != null) {
-      _descricaoController.text = widget.aplicacao!.descricao;
+      _descricaoController.text = widget.aplicacao!.descricao ?? '';
       _insumoID = widget.aplicacao!.insumoID;
       _dataHora = widget.aplicacao!.dataHora;
       _qtde = widget.aplicacao!.qtde;

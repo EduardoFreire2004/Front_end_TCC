@@ -14,7 +14,9 @@ class PlantioRepo {
             .map((item) => PlantioModel.fromJson(item as Map<String, dynamic>))
             .toList();
       } else {
-        throw Exception('Erro ${response.statusCode}: Não foi possível carregar os plantios.');
+        throw Exception(
+          'Erro ${response.statusCode}: Não foi possível carregar os plantios.',
+        );
       }
     } on SocketException {
       throw Exception('Sem conexão com a internet. Verifique sua rede.');
@@ -81,18 +83,14 @@ class PlantioRepo {
     }
   }
 
-   Future<List<PlantioModel>> fetchByLavoura(int lavouraId) async {
+  Future<List<PlantioModel>> fetchByLavoura(int lavouraId) async {
     try {
-      final response = await ApiService.get(
-        '/Plantios/porlavoura/$lavouraId',
-      );
+      final response = await ApiService.get('/Plantios/porlavoura/$lavouraId');
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         return data
-            .map(
-              (item) => PlantioModel.fromJson(item as Map<String, dynamic>),
-            )
+            .map((item) => PlantioModel.fromJson(item as Map<String, dynamic>))
             .toList();
       } else {
         throw Exception(

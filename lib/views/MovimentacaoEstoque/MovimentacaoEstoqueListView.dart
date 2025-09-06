@@ -23,42 +23,57 @@ class _MovimentacaoEstoqueListViewState
   @override
   void initState() {
     super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
     final movimentacaoVM = Provider.of<MovimentacaoEstoqueViewModel>(
       context,
       listen: false,
     );
-    movimentacaoVM.fetchByLavoura(widget.lavouraId);
+
+    // Carregar movimentações da lavoura
+    await movimentacaoVM.fetchByLavoura(widget.lavouraId);
 
     // Carregar nomes para exibir
-    Provider.of<AgrotoxicoViewModel>(context, listen: false).fetch();
-    Provider.of<SementeViewModel>(context, listen: false).fetch();
-    Provider.of<InsumoViewModel>(context, listen: false).fetch();
+    await Future.wait([
+      Provider.of<AgrotoxicoViewModel>(context, listen: false).fetch(),
+      Provider.of<SementeViewModel>(context, listen: false).fetch(),
+      Provider.of<InsumoViewModel>(context, listen: false).fetch(),
+    ]);
   }
 
   String _getItemNome(
     BuildContext context,
-    int agrotoxicoID,
-    int sementeID,
-    int insumoID,
+    int? agrotoxicoID,
+    int? sementeID,
+    int? insumoID,
   ) {
-    if (agrotoxicoID != 0) {
+    if (agrotoxicoID != null) {
       final lista =
           Provider.of<AgrotoxicoViewModel>(context, listen: false).lista;
       final item = lista.where((a) => a.id == agrotoxicoID).toList();
       return item.isNotEmpty ? item.first.nome : 'Agrotóxico #$agrotoxicoID';
     }
-    if (sementeID != 0) {
+    if (sementeID != null) {
       final lista =
           Provider.of<SementeViewModel>(context, listen: false).semente;
       final item = lista.where((s) => s.id == sementeID).toList();
       return item.isNotEmpty ? item.first.nome : 'Semente #$sementeID';
     }
-    if (insumoID != 0) {
+    if (insumoID != null) {
       final lista = Provider.of<InsumoViewModel>(context, listen: false).insumo;
       final item = lista.where((i) => i.id == insumoID).toList();
       return item.isNotEmpty ? item.first.nome : 'Insumo #$insumoID';
     }
     return 'Item desconhecido';
+  }
+
+  String _getTipoItem(int? agrotoxicoID, int? sementeID, int? insumoID) {
+    if (agrotoxicoID != null) return 'Agrotóxico';
+    if (sementeID != null) return 'Semente';
+    if (insumoID != null) return 'Insumo';
+    return 'N/A';
   }
 
   Future<void> _deleteMovimentacao(int id) async {
@@ -86,28 +101,47 @@ class _MovimentacaoEstoqueListViewState
 
     if (confirmed == true) {
       try {
-        await Provider.of<MovimentacaoEstoqueViewModel>(
+        final movimentacaoVM = Provider.of<MovimentacaoEstoqueViewModel>(
           context,
           listen: false,
-        ).delete(id);
-
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Movimentação excluída com sucesso!'),
-            backgroundColor: Colors.green,
-          ),
         );
+
+        final success = await movimentacaoVM.delete(id);
+
+        if (success) {
+          if (!mounted) return;
+          _showSuccess('Movimentação excluída com sucesso!');
+        } else {
+          if (!mounted) return;
+          _showError(
+            movimentacaoVM.errorMessage ?? 'Erro ao excluir movimentação',
+          );
+        }
       } catch (e) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro ao excluir: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        _showError('Erro ao excluir: $e');
       }
     }
+  }
+
+  void _showSuccess(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green[600],
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red[600],
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   @override
@@ -118,109 +152,29 @@ class _MovimentacaoEstoqueListViewState
       appBar: AppBar(
         title: const Text('Movimentações de Estoque'),
         backgroundColor: Colors.green[700],
+        foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _loadData,
+            tooltip: 'Atualizar',
+          ),
+        ],
       ),
       body: RefreshIndicator(
-        onRefresh: () => movimentacaoVM.fetchByLavoura(widget.lavouraId),
+        onRefresh: _loadData,
         child:
             movimentacaoVM.isLoading
                 ? const Center(child: CircularProgressIndicator())
+                : movimentacaoVM.hasError
+                ? _buildErrorWidget(movimentacaoVM)
                 : movimentacaoVM.lista.isEmpty
-                ? const Center(child: Text('Nenhuma movimentação encontrada.'))
-                : ListView.builder(
-                  itemCount: movimentacaoVM.lista.length,
-                  itemBuilder: (context, index) {
-                    final mov = movimentacaoVM.lista[index];
-                    final itemNome = _getItemNome(
-                      context,
-                      mov.agrotoxicoID ?? 0,
-                      mov.sementeID ?? 0,
-                      mov.insumoID ?? 0,
-                    );
-
-                    return Card(
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      child: ListTile(
-                        leading: Icon(
-                          mov.movimentacao == 1
-                              ? Icons.arrow_downward
-                              : Icons.arrow_upward,
-                          color:
-                              mov.movimentacao == 1 ? Colors.green : Colors.red,
-                        ),
-                        title: Text(itemNome),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${mov.movimentacao == 1 ? 'Entrada' : 'Saída'} • Qtde: ${mov.qtde}',
-                            ),
-                            Text(
-                              DateFormat(
-                                'dd/MM/yyyy HH:mm',
-                              ).format(mov.dataHora),
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                            if (mov.descricao.isNotEmpty)
-                              Text(
-                                mov.descricao,
-                                style: const TextStyle(fontSize: 12),
-                              ),
-                          ],
-                        ),
-                        trailing: PopupMenuButton<String>(
-                          onSelected: (value) async {
-                            if (value == 'edit') {
-                              final result = await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder:
-                                      (_) => MovimentacaoEstoqueFormView(
-                                        lavouraId: widget.lavouraId,
-                                        movimentacao: mov,
-                                      ),
-                                ),
-                              );
-                              if (result == true && mounted) {
-                                movimentacaoVM.fetchByLavoura(widget.lavouraId);
-                              }
-                            } else if (value == 'delete') {
-                              await _deleteMovimentacao(mov.id!);
-                            }
-                          },
-                          itemBuilder:
-                              (context) => [
-                                const PopupMenuItem(
-                                  value: 'edit',
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.edit, color: Colors.blue),
-                                      SizedBox(width: 8),
-                                      Text('Editar'),
-                                    ],
-                                  ),
-                                ),
-                                const PopupMenuItem(
-                                  value: 'delete',
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.delete, color: Colors.red),
-                                      SizedBox(width: 8),
-                                      Text('Excluir'),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
+                ? _buildEmptyWidget()
+                : _buildMovimentacoesList(movimentacaoVM),
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.green[700],
+        foregroundColor: Colors.white,
         onPressed: () async {
           final result = await Navigator.push(
             context,
@@ -231,14 +185,232 @@ class _MovimentacaoEstoqueListViewState
             ),
           );
           if (result == true && mounted) {
-            Provider.of<MovimentacaoEstoqueViewModel>(
-              context,
-              listen: false,
-            ).fetchByLavoura(widget.lavouraId);
+            _loadData();
           }
         },
         child: const Icon(Icons.add),
+        tooltip: 'Nova Movimentação',
       ),
+    );
+  }
+
+  Widget _buildErrorWidget(MovimentacaoEstoqueViewModel movimentacaoVM) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline, size: 64, color: Colors.red[400]),
+          const SizedBox(height: 16),
+          Text(
+            'Erro ao carregar dados',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.red[700],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            movimentacaoVM.errorMessage ?? 'Erro desconhecido',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.red[600]),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: _loadData,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green[600],
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Tentar Novamente'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyWidget() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey[400]),
+          const SizedBox(height: 16),
+          Text(
+            'Nenhuma movimentação encontrada',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Clique no botão + para criar uma nova movimentação',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.grey[500]),
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMovimentacoesList(MovimentacaoEstoqueViewModel movimentacaoVM) {
+    return ListView.builder(
+      itemCount: movimentacaoVM.lista.length,
+      itemBuilder: (context, index) {
+        final mov = movimentacaoVM.lista[index];
+        final itemNome = _getItemNome(
+          context,
+          mov.agrotoxicoID,
+          mov.sementeID,
+          mov.insumoID,
+        );
+        final tipoItem = _getTipoItem(
+          mov.agrotoxicoID,
+          mov.sementeID,
+          mov.insumoID,
+        );
+
+        return Card(
+          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: ListTile(
+            leading: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color:
+                    mov.movimentacao == 1 ? Colors.green[100] : Colors.red[100],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                mov.movimentacao == 1
+                    ? Icons.arrow_downward
+                    : Icons.arrow_upward,
+                color: mov.movimentacao == 1 ? Colors.green : Colors.red,
+                size: 20,
+              ),
+            ),
+            title: Text(
+              itemNome,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color:
+                            mov.movimentacao == 1
+                                ? Colors.green[100]
+                                : Colors.red[100],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        mov.movimentacao == 1 ? 'ENTRADA' : 'SAÍDA',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color:
+                              mov.movimentacao == 1
+                                  ? Colors.green[700]
+                                  : Colors.red[700],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.blue[100],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        tipoItem,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue[700],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Quantidade: ${mov.qtde.toStringAsFixed(2)} kg/L',
+                  style: const TextStyle(fontWeight: FontWeight.w500),
+                ),
+                Text(
+                  DateFormat('dd/MM/yyyy HH:mm').format(mov.dataHora),
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+                if (mov.descricao != null && mov.descricao!.isNotEmpty)
+                  Text(
+                    mov.descricao!,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+              ],
+            ),
+            trailing: PopupMenuButton<String>(
+              onSelected: (value) async {
+                if (value == 'edit') {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (_) => MovimentacaoEstoqueFormView(
+                            lavouraId: widget.lavouraId,
+                            movimentacao: mov,
+                          ),
+                    ),
+                  );
+                  if (result == true && mounted) {
+                    _loadData();
+                  }
+                } else if (value == 'delete') {
+                  await _deleteMovimentacao(mov.id!);
+                }
+              },
+              itemBuilder:
+                  (context) => [
+                    const PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit, color: Colors.blue),
+                          SizedBox(width: 8),
+                          Text('Editar'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete, color: Colors.red),
+                          Text('Excluir'),
+                        ],
+                      ),
+                    ),
+                  ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

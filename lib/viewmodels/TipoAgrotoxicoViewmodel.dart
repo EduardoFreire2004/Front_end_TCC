@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../models/TipoAgrotoxicoModel.dart';
 import '../../repositories/TipoAgrotoxicoRepo.dart';
+import '../services/viewmodel_manager.dart';
 
-class TipoAgrotoxicoViewModel extends ChangeNotifier {
+class TipoAgrotoxicoViewModel extends RefreshableViewModel {
   final TipoAgrotoxicoRepo _repository = TipoAgrotoxicoRepo();
   List<TipoAgrotoxicoModel> _tipo = [];
   bool isLoading = false;
@@ -73,6 +74,19 @@ class TipoAgrotoxicoViewModel extends ChangeNotifier {
       notifyListeners();
       rethrow;
     }
+  }
+
+  @override
+  void clearData() {
+    _tipo = [];
+    isLoading = false;
+    errorMessage = null;
+    notifyListeners();
+  }
+
+  // Método para recarregar dados após login
+  Future<void> refreshAfterLogin() async {
+    await fetch();
   }
 
   Future<TipoAgrotoxicoModel?> getID(int id) async {

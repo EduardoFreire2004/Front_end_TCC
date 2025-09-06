@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../models/FornecedoresModel.dart';
 import '../../repositories/FornecedoresRepo.dart';
+import '../services/viewmodel_manager.dart';
 
-class FornecedoresViewModel extends ChangeNotifier {
+class FornecedoresViewModel extends RefreshableViewModel {
   final FornecedoresRepo _repository = FornecedoresRepo();
   List<FornecedoresModel> _fornecedores = [];
   bool isLoading = false;
@@ -73,6 +74,19 @@ class FornecedoresViewModel extends ChangeNotifier {
       notifyListeners();
       rethrow;
     }
+  }
+
+  @override
+  void clearData() {
+    _fornecedores = [];
+    isLoading = false;
+    errorMessage = null;
+    notifyListeners();
+  }
+
+  // Método para recarregar dados após login
+  Future<void> refreshAfterLogin() async {
+    await fetch();
   }
 
   Future<FornecedoresModel?> getID(int id) async {

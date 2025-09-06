@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../models/CategoriaInsumoModel.dart';
 import '../../repositories/CategoriaInsumoRepo.dart';
+import '../services/viewmodel_manager.dart';
 
-class CategoriaInsumoViewModel extends ChangeNotifier {
+class CategoriaInsumoViewModel extends RefreshableViewModel {
   final CategoriaInsumoRepo _repository = CategoriaInsumoRepo();
   List<CategoriaInsumoModel> _categoriaInsumo = [];
   bool isLoading = false;
@@ -73,6 +74,19 @@ class CategoriaInsumoViewModel extends ChangeNotifier {
       notifyListeners();
       rethrow;
     }
+  }
+
+  @override
+  void clearData() {
+    _categoriaInsumo = [];
+    isLoading = false;
+    errorMessage = null;
+    notifyListeners();
+  }
+
+  // Método para recarregar dados após login
+  Future<void> refreshAfterLogin() async {
+    await fetch();
   }
 
   Future<CategoriaInsumoModel?> getID(int id) async {

@@ -5,6 +5,7 @@ import 'package:flutter_fgl_1/views/Agrotoxico/AgrotoxicoListView.dart';
 import 'package:flutter_fgl_1/views/Fornecedores/FornecedoresListView.dart';
 import 'package:flutter_fgl_1/views/Insumo/InsumoListView.dart';
 import 'package:flutter_fgl_1/views/Semente/SementeListView.dart';
+import 'package:flutter_fgl_1/views/RelatoriosScreen.dart';
 import 'package:provider/provider.dart';
 
 class NavBar extends StatelessWidget {
@@ -80,6 +81,12 @@ class NavBar extends StatelessWidget {
           ),
           _buildNavItem(context, Icons.grass, 'Sementes', SementeListView()),
           _buildNavItem(context, Icons.science, 'Insumos', InsumoListView()),
+          _buildNavItem(
+            context,
+            Icons.assessment,
+            'Relatórios',
+            RelatoriosScreen(),
+          ),
           const Divider(),
           ListTile(
             leading: Icon(
@@ -129,22 +136,6 @@ class NavBar extends StatelessWidget {
       title: Text(
         title,
         style: TextStyle(color: Colors.green[800], fontWeight: FontWeight.w500),
-      ),
-      onTap: () {
-        Navigator.pop(context);
-        Navigator.push(context, MaterialPageRoute(builder: (_) => page));
-      },
-    );
-  }
-
-  ListTile _buildSubNavItem(BuildContext context, String title, Widget page) {
-    return ListTile(
-      dense: true,
-      visualDensity: VisualDensity.compact,
-      contentPadding: EdgeInsets.only(left: 72),
-      title: Text(
-        title,
-        style: TextStyle(color: Colors.green[800], fontWeight: FontWeight.w400),
       ),
       onTap: () {
         Navigator.pop(context);

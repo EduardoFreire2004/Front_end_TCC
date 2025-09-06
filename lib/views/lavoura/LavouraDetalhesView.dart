@@ -9,15 +9,31 @@ import 'package:flutter_fgl_1/views/Insumo/InsumoListView.dart';
 import 'package:flutter_fgl_1/views/Plantio/PlantioListView.dart';
 import 'package:flutter_fgl_1/views/Semente/SementeListView.dart';
 import 'package:flutter_fgl_1/views/MovimentacaoEstoque/MovimentacaoEstoqueListView.dart';
-import 'package:flutter_fgl_1/views/Custos/CustosListView.dart';
+import 'package:flutter_fgl_1/views/Relatorios/RelatoriosMainScreen.dart';
+import 'package:flutter_fgl_1/views/Relatorios/RelatorioCompletoLavouraScreen.dart';
+import 'package:flutter_fgl_1/views/Custos/CustosView.dart';
+import 'package:flutter_fgl_1/config/app_colors.dart';
 
-class LavouraDetalhesView extends StatelessWidget {
+class LavouraDetalhesView extends StatefulWidget {
   final LavouraModel lavoura;
 
   const LavouraDetalhesView({super.key, required this.lavoura});
 
   @override
-  Widget build(BuildContext context) {
+  State<LavouraDetalhesView> createState() => _LavouraDetalhesViewState();
+}
+
+class _LavouraDetalhesViewState extends State<LavouraDetalhesView> {
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  Widget _buildLavouraSection() {
     final Color primaryColor = Colors.green[700]!;
     final Color titleColor = Colors.green[800]!;
     final Color cardColor = Colors.green.shade50;
@@ -54,143 +70,517 @@ class LavouraDetalhesView extends StatelessWidget {
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(title: Text('Lavoura: ${lavoura.nome}')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              lavoura.nome,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: titleColor,
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header da lavoura
+          Text(
+            widget.lavoura.nome,
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: titleColor,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Área: ${widget.lavoura.area} ha',
+            style: TextStyle(fontSize: 16, color: subtitleColor),
+          ),
+          const Divider(height: 24, thickness: 1),
+
+          // Seção: Operações da Lavoura
+          Text(
+            'Operações da Lavoura',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: titleColor,
+            ),
+          ),
+          const SizedBox(height: 16),
+          GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: 2,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: 1.2,
+            children: [
+              buildCard(
+                'Plantios',
+                Icons.agriculture,
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (_) => PlantioListView(lavouraId: widget.lavoura.id!),
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Área: ${lavoura.area} ha',
-              style: TextStyle(fontSize: 16, color: subtitleColor),
-            ),
-            const Divider(height: 24, thickness: 1),
-            Expanded(
-              child: GridView.count(
-                crossAxisCount: 3,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 1.0,
-                children: [
-                  buildCard(
-                    'Aplicações de Agrotóxicos',
-                    Icons.local_florist,
-                    () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (_) => AplicacaoListView(lavouraId: lavoura.id!),
-                      ),
-                    ),
+              buildCard(
+                'Aplicações de Agrotóxicos',
+                Icons.local_florist,
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (_) => AplicacaoListView(lavouraId: widget.lavoura.id!),
                   ),
-                  buildCard(
-                    'Plantios',
-                    Icons.agriculture,
-                    () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => PlantioListView(lavouraId: lavoura.id!),
-                      ),
-                    ),
+                ),
+              ),
+              buildCard(
+                'Aplicações de Insumos',
+                Icons.local_florist,
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (_) => AplicacaoInsumoListView(
+                          lavouraId: widget.lavoura.id!,
+                        ),
                   ),
-                  buildCard(
-                    'Aplicações de Insumos',
-                    Icons.local_florist,
-                    () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (_) =>
-                                AplicacaoInsumoListView(lavouraId: lavoura.id!),
-                      ),
-                    ),
+                ),
+              ),
+              buildCard(
+                'Custos',
+                Icons.attach_money,
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (_) => CustosView(
+                          lavouraId: widget.lavoura.id!,
+                          nomeLavoura: widget.lavoura.nome,
+                        ),
                   ),
-                  buildCard(
-                    'Sementes',
-                    Icons.spa,
-                    () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const SementeListView(),
-                      ),
-                    ),
+                ),
+              ),
+              buildCard(
+                'Colheitas',
+                Icons.grass,
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (_) => ColheitaListView(lavouraId: widget.lavoura.id!),
                   ),
-                  buildCard(
-                    'Colheitas',
-                    Icons.grass,
-                    () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (_) => ColheitaListView(lavouraId: lavoura.id!),
-                      ),
+                ),
+              ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const RelatoriosMainScreen(),
                     ),
+                  );
+                },
+                child: Card(
+                  color: Colors.green[100],
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: BorderSide(color: Colors.green[600]!, width: 2),
                   ),
-                  buildCard(
-                    'Custos',
-                    Icons.attach_money,
-                    () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => CustosListView(lavouraId: lavoura.id!),
-                      ),
-                    ),
-                  ),
-                  buildCard(
-                    'Movimetações de Estoque',
-                    Icons.inventory,
-                    () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (_) => MovimentacaoEstoqueListView(
-                              lavouraId: lavoura.id!,
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Icon(
+                              Icons.assessment,
+                              size: 32,
+                              color: Colors.green[700],
                             ),
-                      ),
+                            Positioned(
+                              right: 0,
+                              top: 0,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: Colors.green[600],
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.check,
+                                  size: 12,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Relatórios PDF',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green[800],
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Novo Sistema',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.green[600],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  buildCard(
-                    'Agrotóxicos',
-                    Icons.science,
-                    () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const AgrotoxicoListView(),
-                      ),
-                    ),
-                  ),
-                  buildCard(
-                    'Insumos',
-                    Icons.inventory_2,
-                    () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const InsumoListView()),
-                    ),
-                  ),
-                  buildCard(
-                    'Fornecedores',
-                    Icons.inventory_2,
-                    () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const FornecedoresListView()),
-                    ),
-                  ),
-                  
-                ],
+                ),
               ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (_) => RelatorioCompletoLavouraScreen(
+                            lavouraId: widget.lavoura.id!,
+                            nomeLavoura: widget.lavoura.nome,
+                          ),
+                    ),
+                  );
+                },
+                child: Card(
+                  color: Colors.blue[100],
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: BorderSide(color: Colors.blue[600]!, width: 2),
+                  ),
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Icon(
+                              Icons.agriculture,
+                              size: 32,
+                              color: Colors.blue[700],
+                            ),
+                            Positioned(
+                              right: 0,
+                              top: 0,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue[600],
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.check,
+                                  size: 12,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Relatório Completo',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue[800],
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Dados Consolidados',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.blue[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          // Referência visual para próxima seção
+          const SizedBox(height: 32),
+          _buildNextSectionHint(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEstoqueSection() {
+    final Color primaryColor = Colors.green[700]!;
+    final Color titleColor = Colors.green[800]!;
+    final Color cardColor = Colors.green.shade50;
+    final Color subtitleColor = Colors.grey[700]!;
+
+    Widget buildCard(String title, IconData icon, VoidCallback onTap) {
+      return GestureDetector(
+        onTap: onTap,
+        child: Card(
+          color: cardColor,
+          elevation: 3,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 32, color: primaryColor),
+                const SizedBox(height: 8),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: titleColor,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
+      );
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header da lavoura
+          Text(
+            widget.lavoura.nome,
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: titleColor,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Área: ${widget.lavoura.area} ha',
+            style: TextStyle(fontSize: 16, color: subtitleColor),
+          ),
+          const Divider(height: 24, thickness: 1),
+
+          // Seção: Gestão de Estoque
+          Text(
+            'Gestão de Estoque',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: titleColor,
+            ),
+          ),
+          const SizedBox(height: 16),
+          GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: 2,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: 1.2,
+            children: [
+              buildCard(
+                'Agrotóxicos',
+                Icons.science,
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AgrotoxicoListView()),
+                ),
+              ),
+              buildCard(
+                'Sementes',
+                Icons.spa,
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SementeListView()),
+                ),
+              ),
+              buildCard(
+                'Insumos',
+                Icons.inventory_2,
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const InsumoListView()),
+                ),
+              ),
+              buildCard(
+                'Fornecedores',
+                Icons.inventory_2,
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const FornecedoresListView(),
+                  ),
+                ),
+              ),
+              buildCard(
+                'Movimentações de Estoque',
+                Icons.inventory,
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (_) => MovimentacaoEstoqueListView(
+                          lavouraId: widget.lavoura.id!,
+                        ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          // Referência visual para seção anterior
+          const SizedBox(height: 32),
+          _buildPreviousSectionHint(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNextSectionHint() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.orange[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.orange[200]!),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.swipe_left, color: Colors.orange[600], size: 24),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Deslize para a esquerda',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange[800],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Acesse a gestão de estoque desta lavoura',
+                  style: TextStyle(fontSize: 12, color: Colors.orange[700]),
+                ),
+              ],
+            ),
+          ),
+          Icon(Icons.arrow_forward_ios, color: Colors.orange[600], size: 16),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPreviousSectionHint() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.blue[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.blue[200]!),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.arrow_back_ios, color: Colors.blue[600], size: 16),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Deslize para a direita',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue[800],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Volte para as operações da lavoura',
+                  style: TextStyle(fontSize: 12, color: Colors.blue[700]),
+                ),
+              ],
+            ),
+          ),
+          Icon(Icons.swipe_right, color: Colors.blue[600], size: 24),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPageIndicator() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(2, (index) {
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          width: _currentPage == index ? 24 : 8,
+          height: 8,
+          decoration: BoxDecoration(
+            color:
+                _currentPage == index
+                    ? AppColors.primaryGreen
+                    : Colors.grey[300],
+            borderRadius: BorderRadius.circular(4),
+          ),
+        );
+      }),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          _currentPage == 0
+              ? 'Lavoura: ${widget.lavoura.nome}'
+              : 'Estoque: ${widget.lavoura.nome}',
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(40),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: _buildPageIndicator(),
+          ),
+        ),
+      ),
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) {
+          setState(() {
+            _currentPage = index;
+          });
+        },
+        children: [_buildLavouraSection(), _buildEstoqueSection()],
       ),
     );
   }

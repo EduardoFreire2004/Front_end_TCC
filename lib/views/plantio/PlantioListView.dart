@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fgl_1/models/PlantioModel.dart';
-import 'package:flutter_fgl_1/models/SementeModel.dart';
 import 'package:flutter_fgl_1/viewmodels/PlantioViewModel.dart';
 import 'package:flutter_fgl_1/viewmodels/SementeViewModel.dart';
 import 'package:flutter_fgl_1/views/Plantio/PlantioFormView.dart';
 import 'package:flutter_fgl_1/views/Semente/SementeListView.dart';
-import 'package:flutter_fgl_1/services/RelatorioService.dart';
-import 'package:flutter_fgl_1/widgets/RelatorioButton.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -317,21 +314,15 @@ class _PlantioListViewState extends State<PlantioListView> {
             mini: true,
             backgroundColor: Colors.blue[600],
             tooltip: 'Gerar Relatório PDF',
-            onPressed: () async {
-              try {
-                await RelatorioService.gerarRelatorioPlantios(
-                  plantioVM.plantio,
-                );
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Erro ao gerar relatório: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              }
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Funcionalidade de relatório será implementada via API',
+                  ),
+                  backgroundColor: Colors.orange,
+                ),
+              );
             },
             child: const Icon(Icons.picture_as_pdf),
           ),

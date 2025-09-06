@@ -1,6 +1,4 @@
-import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-import '../models/AuthResponseModel.dart';
 import '../models/UsuarioModel.dart';
 import '../services/viewmodel_manager.dart';
 import 'base_viewmodel.dart';
@@ -42,19 +40,49 @@ class AuthViewModel extends BaseViewModel {
     try {
       final response = await AuthService.login(email, senha);
 
-      if (response.success) {
+      if (response.success && response.hasAuthData) {
         _isAuthenticated = true;
         _usuario = response.usuario;
         notifyListeners();
+
+        // Recarregar dados de todos os ViewModels após login bem-sucedido
+        await ViewModelManager().refreshAllDataAfterLogin();
+
         return true;
       } else {
-        setError('Email ou senha inválidos');
+        // Verificar se há mensagem específica de erro
+        if (response.message != null && response.message!.isNotEmpty) {
+          setError(response.message!);
+        } else if (!response.success) {
+          setError('Falha na autenticação. Tente novamente.');
+        } else if (!response.hasAuthData) {
+          setError('Resposta inválida do servidor. Tente novamente.');
+        } else {
+          setError('Email ou senha incorretos');
+        }
+
         _isAuthenticated = false;
         notifyListeners();
         return false;
       }
     } catch (e) {
-      setError('Erro ao fazer login: $e');
+      String errorMessage = 'Erro ao fazer login';
+
+      if (e.toString().contains('timeout') ||
+          e.toString().contains('TimeoutException')) {
+        errorMessage =
+            'Tempo de resposta excedido. Verifique sua conexão e tente novamente.';
+      } else if (e.toString().contains('SocketException') ||
+          e.toString().contains('ClientException')) {
+        errorMessage =
+            'Sem conexão com a internet. Verifique sua rede e tente novamente.';
+      } else if (e.toString().contains('retry')) {
+        errorMessage = 'Problema de conexão. Tentando novamente...';
+      } else {
+        errorMessage = 'Erro ao fazer login: $e';
+      }
+
+      setError(errorMessage);
       _isAuthenticated = false;
       notifyListeners();
       return false;
@@ -81,19 +109,44 @@ class AuthViewModel extends BaseViewModel {
         telefone,
       );
 
-      if (response.success) {
+      if (response.success && response.isValid) {
         _isAuthenticated = true;
         _usuario = response.usuario;
         notifyListeners();
+
+        // Recarregar dados de todos os ViewModels após cadastro bem-sucedido
+        await ViewModelManager().refreshAllDataAfterLogin();
+
         return true;
       } else {
-        setError('Erro ao cadastrar usuário');
+        // Verificar se há mensagem específica de erro
+        if (!response.isValid) {
+          setError('Resposta inválida do servidor. Tente novamente.');
+        } else {
+          setError('Erro ao cadastrar usuário. Tente novamente.');
+        }
         _isAuthenticated = false;
         notifyListeners();
         return false;
       }
     } catch (e) {
-      setError('Erro ao cadastrar: $e');
+      String errorMessage = 'Erro ao cadastrar';
+
+      if (e.toString().contains('timeout') ||
+          e.toString().contains('TimeoutException')) {
+        errorMessage =
+            'Tempo de resposta excedido. O cadastro pode estar demorando mais do que o esperado.';
+      } else if (e.toString().contains('SocketException') ||
+          e.toString().contains('ClientException')) {
+        errorMessage =
+            'Sem conexão com a internet. Verifique sua rede e tente novamente.';
+      } else if (e.toString().contains('retry')) {
+        errorMessage = 'Problema de conexão. Tentando novamente...';
+      } else {
+        errorMessage = 'Erro ao cadastrar: $e';
+      }
+
+      setError(errorMessage);
       _isAuthenticated = false;
       notifyListeners();
       return false;
@@ -135,6 +188,45 @@ class AuthViewModel extends BaseViewModel {
       _isAuthenticated = false;
       _usuario = null;
       notifyListeners();
+      return false;
+    }
+  }
+
+  // Obter perfil do usuário
+  Future<UsuarioModel?> obterPerfil() async {
+    try {
+      final perfil = await AuthService.obterPerfil();
+      if (perfil != null) {
+        _usuario = perfil;
+        notifyListeners();
+      }
+      return perfil;
+    } catch (e) {
+      setError('Erro ao obter perfil: $e');
+      return null;
+    }
+  }
+
+  // Verificar se o token está próximo de expirar
+  bool get isTokenExpiringSoon {
+    final expiresAt = AuthService.tokenExpiresAt;
+    if (expiresAt == null) return true;
+
+    final threshold = expiresAt.subtract(const Duration(minutes: 5));
+    return DateTime.now().isAfter(threshold);
+  }
+
+  // Renovar token
+  Future<bool> renovarToken() async {
+    try {
+      final success = await AuthService.refreshTokenMethod();
+      if (success) {
+        _usuario = AuthService.usuario;
+        notifyListeners();
+      }
+      return success;
+    } catch (e) {
+      setError('Erro ao renovar token: $e');
       return false;
     }
   }

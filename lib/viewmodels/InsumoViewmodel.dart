@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../models/InsumoModel.dart';
 import '../../repositories/InsumoRepo.dart';
+import '../services/viewmodel_manager.dart';
 
-class InsumoViewModel extends ChangeNotifier {
+class InsumoViewModel extends RefreshableViewModel {
   final InsumoRepo _repository = InsumoRepo();
   List<InsumoModel> _insumo = [];
   bool isLoading = false;
@@ -78,6 +79,19 @@ class InsumoViewModel extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+  }
+
+  @override
+  void clearData() {
+    _insumo = [];
+    isLoading = false;
+    errorMessage = null;
+    notifyListeners();
+  }
+
+  // Método para recarregar dados após login
+  Future<void> refreshAfterLogin() async {
+    await fetch();
   }
 
   Future<InsumoModel?> getID(int id) async {
