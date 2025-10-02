@@ -19,8 +19,6 @@
 ## 🔧 Próximos passos para resolver o problema:
 
 ### 1. Verificar API Key no Google Cloud Console
-A API Key `AIzaSyDcsY2_h9F1RiULYumcj4o6zpxwmGjtQCU` precisa estar ativa e com as APIs corretas habilitadas:
-
 1. Acesse [Google Cloud Console](https://console.cloud.google.com/)
 2. Selecione o projeto `fgl1-d05a3`
 3. Vá em "APIs & Services" > "Library"
