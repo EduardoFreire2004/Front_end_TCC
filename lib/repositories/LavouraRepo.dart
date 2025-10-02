@@ -31,13 +31,12 @@ class LavouraRepo {
 
   Future<void> create(LavouraModel lavoura) async {
     try {
-      final response = await ApiService.post(
-        '/Lavouras',
-        jsonEncode(lavoura.toJson()),
-      );
+      final response = await ApiService.post('/Lavouras', lavoura.toJson());
 
       if (response.statusCode != 200 && response.statusCode != 201) {
-        throw Exception('Erro ao criar lavoura (${response.statusCode}).');
+        throw Exception(
+          'Erro ao criar lavoura (${response.statusCode}): ${response.body}',
+        );
       }
     } on SocketException {
       throw Exception('Sem conexão com a internet ao tentar criar.');
@@ -83,14 +82,14 @@ class LavouraRepo {
     }
   }
 
-   Future<List<LavouraModel>> getByNome(String nome) async {
+  Future<List<LavouraModel>> getByNome(String nome) async {
     try {
       final endpoint = '/Lavouras/nome/$nome';
       final response = await ApiService.get(endpoint);
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
-        return data.map((item) =>  LavouraModel.fromJson(item)).toList();
+        return data.map((item) => LavouraModel.fromJson(item)).toList();
       } else {
         throw Exception('Erro ${response.statusCode}: busca falhou.');
       }
@@ -121,5 +120,5 @@ class LavouraRepo {
       throw Exception('Erro ao buscar lavoura: $e');
     }
   }
-
 }
+

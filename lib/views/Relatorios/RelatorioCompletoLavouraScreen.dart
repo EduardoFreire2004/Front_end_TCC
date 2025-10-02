@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fgl_1/services/lavoura_relatorio_service.dart';
 import 'package:flutter_fgl_1/models/RelatorioDto.dart';
 import 'package:flutter_fgl_1/config/app_colors.dart';
-import 'package:flutter_fgl_1/services/pdf_service.dart';
 
 class RelatorioCompletoLavouraScreen extends StatefulWidget {
   final int lavouraId;
@@ -72,16 +71,6 @@ class _RelatorioCompletoLavouraScreenState
       );
       return;
     }
-
-    await PdfService.generateRelatorioCompletoPDF(
-      nomeLavoura: widget.nomeLavoura,
-      plantios: _dadosLavoura!['plantios'] as List<PlantioDto>,
-      aplicacoesAgrotoxicos:
-          _dadosLavoura!['aplicacoesAgrotoxicos'] as List<AplicacaoDto>,
-      aplicacoesInsumos:
-          _dadosLavoura!['aplicacoesInsumos'] as List<AplicacaoDto>,
-      context: context,
-    );
   }
 
   Widget _buildInfoCard(
@@ -208,7 +197,6 @@ class _RelatorioCompletoLavouraScreenState
           children: [
             const SizedBox(height: 4),
             Text('Data: ${plantio.dataPlantio}'),
-            Text('Status: ${plantio.status}'),
           ],
         ),
         trailing: Column(

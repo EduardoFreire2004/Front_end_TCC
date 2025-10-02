@@ -62,11 +62,11 @@ class AplicacaoRepo {
       final response = await ApiService.post('/Aplicacoes', aplicacao.toJson());
 
       if (response.statusCode == 201) {
-        // Retorna a aplicação criada com todos os campos
+
         final data = jsonDecode(response.body);
         return AplicacaoModel.fromJson(data as Map<String, dynamic>);
       } else if (response.statusCode == 400) {
-        // Erro de validação (ex: estoque insuficiente)
+
         final errorData = jsonDecode(response.body);
         throw Exception(errorData['message'] ?? 'Erro ao criar aplicação');
       } else {
@@ -90,7 +90,7 @@ class AplicacaoRepo {
 
       if (response.statusCode != 200 && response.statusCode != 204) {
         if (response.statusCode == 400) {
-          // Erro de validação (ex: estoque insuficiente)
+
           final errorData = jsonDecode(response.body);
           throw Exception(
             errorData['message'] ?? 'Erro ao atualizar aplicação',
@@ -155,21 +155,18 @@ class AplicacaoRepo {
     }
   }
 
-  // Método para verificar se há estoque suficiente antes de criar aplicação
   Future<bool> verificarEstoqueDisponivel(
     int agrotoxicoId,
     double quantidade,
   ) async {
     try {
-      // Este método pode ser implementado para verificar estoque antes de criar aplicação
-      // Por enquanto, retorna true (a API fará a validação)
+
       return true;
     } catch (e) {
       throw Exception('Erro ao verificar estoque: $e');
     }
   }
 
-  // Método para buscar aplicações com filtros
   Future<List<AplicacaoModel>> buscarComFiltros({
     int? lavouraId,
     int? agrotoxicoId,
@@ -177,7 +174,7 @@ class AplicacaoRepo {
     DateTime? dataFim,
   }) async {
     try {
-      // Construir query string com filtros
+
       final queryParams = <String>[];
 
       if (lavouraId != null) {
@@ -220,3 +217,4 @@ class AplicacaoRepo {
     }
   }
 }
+

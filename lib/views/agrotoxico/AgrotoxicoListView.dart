@@ -457,3 +457,4 @@ class _AgrotoxicoListViewState extends State<AgrotoxicoListView> {
     );
   }
 }
+

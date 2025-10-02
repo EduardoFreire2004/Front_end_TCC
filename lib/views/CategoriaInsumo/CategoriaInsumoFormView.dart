@@ -84,7 +84,6 @@ class _TipoAgrotoxicoFormViewState extends State<CategoriaInsumoFormView> {
   @override
   Widget build(BuildContext context) {
     final primaryColor = Colors.green[700];
-    final errorColor = Colors.redAccent;
 
     return Scaffold(
       appBar: AppBar(
@@ -158,3 +157,4 @@ class _TipoAgrotoxicoFormViewState extends State<CategoriaInsumoFormView> {
     );
   }
 }
+

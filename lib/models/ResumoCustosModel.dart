@@ -174,3 +174,4 @@ class ResumoCustosModel {
         totalColheitas.hashCode;
   }
 }
+

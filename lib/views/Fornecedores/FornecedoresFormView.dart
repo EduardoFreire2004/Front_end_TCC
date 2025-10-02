@@ -163,12 +163,10 @@ class _FornecedorAgrotoxicoFormViewState extends State<FornecedoresFormView> {
                   }
                   final tel = value.replaceAll(RegExp(r'\D'), '');
 
-                  // Aceitar telefones com 10 ou 11 dígitos (com ou sem DDD)
                   if (tel.length < 10 || tel.length > 11) {
                     return 'Telefone deve ter 10 ou 11 dígitos';
                   }
 
-                  // Verificar se começa com 0 (DDD)
                   if (tel.length == 11 && tel[0] != '0') {
                     return 'DDD deve começar com 0';
                   }
@@ -274,3 +272,4 @@ class _TelefoneInputFormatter extends TextInputFormatter {
     );
   }
 }
+

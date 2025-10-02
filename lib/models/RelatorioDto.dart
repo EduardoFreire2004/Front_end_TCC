@@ -64,7 +64,6 @@ class RelatorioAplicacoesDto {
   }
 }
 
-// Novo modelo para a resposta real do backend
 class RelatorioAplicacoesResponseDto {
   final bool success;
   final List<AplicacaoDto> data;
@@ -92,6 +91,33 @@ class RelatorioAplicacoesResponseDto {
   }
 }
 
+class RelatorioColheitasResponseDto {
+  final bool success;
+  final List<ColheitaDto> data;
+  final int totalRegistros;
+  final String? error;
+
+  RelatorioColheitasResponseDto({
+    required this.success,
+    required this.data,
+    required this.totalRegistros,
+    this.error,
+  });
+
+  factory RelatorioColheitasResponseDto.fromJson(Map<String, dynamic> json) {
+    return RelatorioColheitasResponseDto(
+      success: json['success'] ?? false,
+      data:
+          (json['data'] as List?)
+              ?.map((c) => ColheitaDto.fromJson(c))
+              .toList() ??
+          [],
+      totalRegistros: json['totalRegistros'] ?? 0,
+      error: json['error'],
+    );
+  }
+}
+
 class RelatorioColheitasDto {
   final LavouraDto lavoura;
   final EstatisticasColheitasDto estatisticas;
@@ -105,12 +131,15 @@ class RelatorioColheitasDto {
 
   factory RelatorioColheitasDto.fromJson(Map<String, dynamic> json) {
     return RelatorioColheitasDto(
-      lavoura: LavouraDto.fromJson(json['lavoura']),
-      estatisticas: EstatisticasColheitasDto.fromJson(json['estatisticas']),
+      lavoura: LavouraDto.fromJson(json['lavoura'] ?? {}),
+      estatisticas: EstatisticasColheitasDto.fromJson(
+        json['estatisticas'] ?? {},
+      ),
       colheitas:
-          (json['colheitas'] as List)
-              .map((c) => ColheitaDto.fromJson(c))
-              .toList(),
+          (json['colheitas'] as List?)
+              ?.map((c) => ColheitaDto.fromJson(c))
+              .toList() ??
+          [],
     );
   }
 }
@@ -162,7 +191,6 @@ class RelatorioEstoqueDto {
   }
 }
 
-// Classes auxiliares
 class LavouraDto {
   final String nome;
   final double area;
@@ -171,7 +199,7 @@ class LavouraDto {
 
   factory LavouraDto.fromJson(Map<String, dynamic> json) {
     return LavouraDto(
-      nome: json['nome'] ?? '',
+      nome: json['nome'] ?? 'Lavoura não especificada',
       area: (json['area'] ?? 0.0).toDouble(),
     );
   }
@@ -336,13 +364,11 @@ class PlantioDto {
   final String cultura;
   final String dataPlantio;
   final double areaPlantada;
-  final String status;
 
   PlantioDto({
     required this.cultura,
     required this.dataPlantio,
     required this.areaPlantada,
-    required this.status,
   });
 
   factory PlantioDto.fromJson(Map<String, dynamic> json) {
@@ -350,7 +376,6 @@ class PlantioDto {
       cultura: json['cultura'] ?? '',
       dataPlantio: json['dataPlantio'] ?? '',
       areaPlantada: (json['areaPlantada'] ?? 0.0).toDouble(),
-      status: json['status'] ?? '',
     );
   }
 }
@@ -388,29 +413,43 @@ class AplicacaoDto {
 }
 
 class ColheitaDto {
+  final int id;
   final String cultura;
-  final String dataColheita;
-  final double areaColhida;
+  final String lavoura;
+  final DateTime dataColheita;
   final double quantidadeColhida;
   final double produtividade;
+  final String? observacoes;
 
   ColheitaDto({
+    required this.id,
     required this.cultura,
+    required this.lavoura,
     required this.dataColheita,
-    required this.areaColhida,
     required this.quantidadeColhida,
     required this.produtividade,
+    this.observacoes,
   });
 
   factory ColheitaDto.fromJson(Map<String, dynamic> json) {
     return ColheitaDto(
+      id: json['id'] ?? 0,
       cultura: json['cultura'] ?? '',
-      dataColheita: json['dataColheita'] ?? '',
-      areaColhida: (json['areaColhida'] ?? 0.0).toDouble(),
+      lavoura: json['lavoura'] ?? '',
+      dataColheita: DateTime.parse(
+        json['dataColheita'] ?? DateTime.now().toIso8601String(),
+      ),
       quantidadeColhida: (json['quantidadeColhida'] ?? 0.0).toDouble(),
       produtividade: (json['produtividade'] ?? 0.0).toDouble(),
+      observacoes: json['observacoes'],
     );
   }
+
+  double get areaColhida =>
+      quantidadeColhida / produtividade; // Calculado baseado na produtividade
+  String get unidadeMedida => 'kg'; // Assumindo kg como padrão
+  String get lavouraNome => lavoura;
+  String get qualidade => ''; // Não disponível na API atual
 }
 
 class CustoDto {
@@ -454,3 +493,4 @@ class MovimentacaoDto {
     );
   }
 }
+

@@ -43,7 +43,6 @@ class _MovimentacaoEstoqueFormViewState
     Provider.of<SementeViewModel>(context, listen: false).fetch();
     Provider.of<InsumoViewModel>(context, listen: false).fetch();
 
-    // Se estiver editando, preencher os campos
     if (widget.movimentacao != null) {
       final mov = widget.movimentacao!;
       _movimentacao = mov.movimentacao;
@@ -60,13 +59,18 @@ class _MovimentacaoEstoqueFormViewState
     if (!_formKey.currentState!.validate()) return;
     _formKey.currentState!.save();
 
-    // Validação adicional seguindo a documentação da API
     if (_movimentacao == null) {
       _showError('Selecione o tipo de movimentação');
       return;
     }
 
-    // Verificar se apenas um tipo de item foi selecionado
+    if (_movimentacao != 1) {
+      _showError(
+        'Apenas movimentações do tipo Entrada são permitidas nesta tela. Saídas são geradas automaticamente por Aplicação, Plantio e Aplicação de Insumo.',
+      );
+      return;
+    }
+
     int tiposSelecionados = 0;
     if (_selectedAgrotoxico != null) tiposSelecionados++;
     if (_selectedSemente != null) tiposSelecionados++;
@@ -77,35 +81,17 @@ class _MovimentacaoEstoqueFormViewState
       return;
     }
 
-    // Verificar se a quantidade é positiva
     if (_qtde == null || _qtde! <= 0) {
       _showError('A quantidade deve ser maior que zero');
       return;
     }
 
-    // Verificar estoque suficiente para saídas
-    if (_movimentacao == 2) {
-      // Saída
-      final movimentacaoVM = Provider.of<MovimentacaoEstoqueViewModel>(
-        context,
-        listen: false,
-      );
-
-      final itemId = _selectedAgrotoxico ?? _selectedSemente ?? _selectedInsumo;
-      if (itemId != null &&
-          !movimentacaoVM.hasEstoqueSuficiente(itemId, _qtde!)) {
-        final saldo = movimentacaoVM.getSaldoAtual(itemId);
-        _showError(
-          'Estoque insuficiente. Estoque atual: ${saldo.toStringAsFixed(2)}, Quantidade solicitada: ${_qtde!.toStringAsFixed(2)}',
-        );
-        return;
-      }
-    }
+    // Saídas não são mais permitidas manualmente nesta tela; validação acima já cobre
 
     final movimentacaoModel = MovimentacaoEstoqueModel(
       id: widget.movimentacao?.id,
       lavouraID: widget.lavouraId,
-      movimentacao: _movimentacao!,
+      movimentacao: 1,
       agrotoxicoID: _selectedAgrotoxico,
       sementeID: _selectedSemente,
       insumoID: _selectedInsumo,
@@ -121,7 +107,6 @@ class _MovimentacaoEstoqueFormViewState
       );
 
       if (widget.movimentacao != null) {
-        // Atualizando
         final success = await movimentacaoVM.update(movimentacaoModel);
         if (success) {
           if (!mounted) return;
@@ -134,7 +119,6 @@ class _MovimentacaoEstoqueFormViewState
           );
         }
       } else {
-        // Criando nova
         final success = await movimentacaoVM.add(movimentacaoModel);
         if (success) {
           if (!mounted) return;
@@ -214,7 +198,6 @@ class _MovimentacaoEstoqueFormViewState
           key: _formKey,
           child: ListView(
             children: [
-              // Tipo de Movimentação
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -237,27 +220,19 @@ class _MovimentacaoEstoqueFormViewState
                           hintText: 'Selecione o tipo',
                         ),
                         value: _movimentacao,
-                        items:
-                            TipoMovimentacao.dropdownItems.map((item) {
-                              return DropdownMenuItem<int>(
-                                value: item['value'],
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      item['value'] == 1
-                                          ? Icons.arrow_downward
-                                          : Icons.arrow_upward,
-                                      color:
-                                          item['value'] == 1
-                                              ? Colors.green
-                                              : Colors.red,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(item['label']),
-                                  ],
-                                ),
-                              );
-                            }).toList(),
+                        items: [
+                          // Somente Entrada (1)
+                          DropdownMenuItem<int>(
+                            value: 1,
+                            child: Row(
+                              children: [
+                                Icon(Icons.arrow_downward, color: Colors.green),
+                                const SizedBox(width: 8),
+                                const Text('Entrada'),
+                              ],
+                            ),
+                          ),
+                        ],
                         onChanged:
                             (value) => setState(() => _movimentacao = value),
                         validator:
@@ -270,7 +245,6 @@ class _MovimentacaoEstoqueFormViewState
               ),
               const SizedBox(height: 16),
 
-              // Seleção de Item
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -291,7 +265,6 @@ class _MovimentacaoEstoqueFormViewState
                       ),
                       const SizedBox(height: 16),
 
-                      // Agrotóxico
                       DropdownButtonFormField<int>(
                         decoration: InputDecoration(
                           labelText: 'Agrotóxico',
@@ -323,7 +296,6 @@ class _MovimentacaoEstoqueFormViewState
                       ),
                       const SizedBox(height: 16),
 
-                      // Semente
                       DropdownButtonFormField<int>(
                         decoration: InputDecoration(
                           labelText: 'Semente',
@@ -355,7 +327,6 @@ class _MovimentacaoEstoqueFormViewState
                       ),
                       const SizedBox(height: 16),
 
-                      // Insumo
                       DropdownButtonFormField<int>(
                         decoration: InputDecoration(
                           labelText: 'Insumo',
@@ -391,7 +362,6 @@ class _MovimentacaoEstoqueFormViewState
               ),
               const SizedBox(height: 16),
 
-              // Quantidade e Descrição
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -452,7 +422,6 @@ class _MovimentacaoEstoqueFormViewState
               ),
               const SizedBox(height: 16),
 
-              // Data e Hora
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -548,7 +517,6 @@ class _MovimentacaoEstoqueFormViewState
               ),
               const SizedBox(height: 24),
 
-              // Botão Salvar
               SizedBox(
                 width: double.infinity,
                 height: 56,

@@ -22,6 +22,6 @@ abstract class BaseViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Método que deve ser implementado por todos os ViewModels para limpar dados
   void clearData();
 }
+

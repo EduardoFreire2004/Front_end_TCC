@@ -350,3 +350,4 @@ class _AplicacaoListViewState extends State<AplicacaoInsumoListView> {
     );
   }
 }
+

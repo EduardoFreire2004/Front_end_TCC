@@ -51,9 +51,8 @@ class MovimentacaoEstoqueModel {
     'descricao': descricao,
   };
 
-  // Validação seguindo as regras da API
   bool isValid() {
-    // Verifica se apenas um tipo de item foi informado
+
     int tiposInformados = 0;
     if (agrotoxicoID != null) tiposInformados++;
     if (sementeID != null) tiposInformados++;
@@ -63,17 +62,14 @@ class MovimentacaoEstoqueModel {
       return false;
     }
 
-    // Verifica se a quantidade é positiva
     if (qtde <= 0) {
       return false;
     }
 
-    // Verifica se a lavoura foi informada
     if (lavouraID <= 0) {
       return false;
     }
 
-    // Verifica se o tipo de movimentação é válido
     if (movimentacao != 1 && movimentacao != 2) {
       return false;
     }
@@ -81,7 +77,6 @@ class MovimentacaoEstoqueModel {
     return true;
   }
 
-  // Retorna o tipo de item selecionado
   String getTipoItem() {
     if (agrotoxicoID != null) return 'Agrotóxico';
     if (sementeID != null) return 'Semente';
@@ -89,13 +84,12 @@ class MovimentacaoEstoqueModel {
     return 'N/A';
   }
 
-  // Retorna o ID do item selecionado
   int? getItemId() {
     return agrotoxicoID ?? sementeID ?? insumoID;
   }
 
-  // Retorna o nome do tipo de movimentação
   String getTipoMovimentacao() {
     return movimentacao == 1 ? 'Entrada' : 'Saída';
   }
 }
+

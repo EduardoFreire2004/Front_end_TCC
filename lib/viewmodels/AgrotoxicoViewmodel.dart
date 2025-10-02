@@ -89,7 +89,6 @@ class AgrotoxicoViewModel extends RefreshableViewModel {
     notifyListeners();
   }
 
-  // Método para recarregar dados após login
   Future<void> refreshAfterLogin() async {
     await fetch();
   }
@@ -128,3 +127,4 @@ class AgrotoxicoViewModel extends RefreshableViewModel {
     }
   }
 }
+

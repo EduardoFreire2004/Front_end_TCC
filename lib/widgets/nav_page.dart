@@ -5,7 +5,6 @@ import 'package:flutter_fgl_1/views/Agrotoxico/AgrotoxicoListView.dart';
 import 'package:flutter_fgl_1/views/Fornecedores/FornecedoresListView.dart';
 import 'package:flutter_fgl_1/views/Insumo/InsumoListView.dart';
 import 'package:flutter_fgl_1/views/Semente/SementeListView.dart';
-import 'package:flutter_fgl_1/views/RelatoriosScreen.dart';
 import 'package:provider/provider.dart';
 
 class NavBar extends StatelessWidget {
@@ -81,12 +80,6 @@ class NavBar extends StatelessWidget {
           ),
           _buildNavItem(context, Icons.grass, 'Sementes', SementeListView()),
           _buildNavItem(context, Icons.science, 'Insumos', InsumoListView()),
-          _buildNavItem(
-            context,
-            Icons.assessment,
-            'Relatórios',
-            RelatoriosScreen(),
-          ),
           const Divider(),
           ListTile(
             leading: Icon(
@@ -144,3 +137,4 @@ class NavBar extends StatelessWidget {
     );
   }
 }
+

@@ -101,3 +101,4 @@ class HistoricoCustoModel {
         unidadeMedida.hashCode;
   }
 }
+

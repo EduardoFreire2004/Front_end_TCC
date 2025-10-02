@@ -7,13 +7,12 @@ class AuthViewModel extends BaseViewModel {
   bool _isAuthenticated = false;
   UsuarioModel? _usuario;
 
-  // Getters
   bool get isAuthenticated => _isAuthenticated;
   UsuarioModel? get usuario => _usuario;
 
   AuthViewModel() {
     _checkAuthStatus();
-    // Registrar este ViewModel no manager
+
     ViewModelManager().registerViewModel(this);
   }
 
@@ -25,14 +24,12 @@ class AuthViewModel extends BaseViewModel {
     notifyListeners();
   }
 
-  // Verificar status de autenticação
   Future<void> _checkAuthStatus() async {
     _isAuthenticated = AuthService.isAuthenticated;
     _usuario = AuthService.usuario;
     notifyListeners();
   }
 
-  // Login
   Future<bool> login(String email, String senha) async {
     setLoading(true);
     clearError();
@@ -45,12 +42,11 @@ class AuthViewModel extends BaseViewModel {
         _usuario = response.usuario;
         notifyListeners();
 
-        // Recarregar dados de todos os ViewModels após login bem-sucedido
         await ViewModelManager().refreshAllDataAfterLogin();
 
         return true;
       } else {
-        // Verificar se há mensagem específica de erro
+
         if (response.message != null && response.message!.isNotEmpty) {
           setError(response.message!);
         } else if (!response.success) {
@@ -91,7 +87,6 @@ class AuthViewModel extends BaseViewModel {
     }
   }
 
-  // Cadastro
   Future<bool> cadastrar(
     String nome,
     String email,
@@ -114,12 +109,11 @@ class AuthViewModel extends BaseViewModel {
         _usuario = response.usuario;
         notifyListeners();
 
-        // Recarregar dados de todos os ViewModels após cadastro bem-sucedido
         await ViewModelManager().refreshAllDataAfterLogin();
 
         return true;
       } else {
-        // Verificar se há mensagem específica de erro
+
         if (!response.isValid) {
           setError('Resposta inválida do servidor. Tente novamente.');
         } else {
@@ -155,7 +149,6 @@ class AuthViewModel extends BaseViewModel {
     }
   }
 
-  // Logout
   Future<void> logout() async {
     setLoading(true);
 
@@ -165,7 +158,6 @@ class AuthViewModel extends BaseViewModel {
       _usuario = null;
       clearError();
 
-      // Limpar todos os dados dos outros ViewModels
       ViewModelManager().clearDataExcept(this);
     } catch (e) {
       setError('Erro ao fazer logout: $e');
@@ -174,7 +166,6 @@ class AuthViewModel extends BaseViewModel {
     }
   }
 
-  // Verificar token
   Future<bool> verificarToken() async {
     try {
       final isValid = await AuthService.verificarToken();
@@ -192,7 +183,6 @@ class AuthViewModel extends BaseViewModel {
     }
   }
 
-  // Obter perfil do usuário
   Future<UsuarioModel?> obterPerfil() async {
     try {
       final perfil = await AuthService.obterPerfil();
@@ -207,7 +197,6 @@ class AuthViewModel extends BaseViewModel {
     }
   }
 
-  // Verificar se o token está próximo de expirar
   bool get isTokenExpiringSoon {
     final expiresAt = AuthService.tokenExpiresAt;
     if (expiresAt == null) return true;
@@ -216,7 +205,6 @@ class AuthViewModel extends BaseViewModel {
     return DateTime.now().isAfter(threshold);
   }
 
-  // Renovar token
   Future<bool> renovarToken() async {
     try {
       final success = await AuthService.refreshTokenMethod();
@@ -231,3 +219,4 @@ class AuthViewModel extends BaseViewModel {
     }
   }
 }
+

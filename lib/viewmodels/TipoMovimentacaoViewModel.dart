@@ -68,7 +68,6 @@ class TipoMovimetacaoViewModel extends RefreshableViewModel {
     notifyListeners();
   }
 
-  // Método para recarregar dados após login
   Future<void> refreshAfterLogin() async {
     await fetch();
   }
@@ -89,3 +88,4 @@ class TipoMovimetacaoViewModel extends RefreshableViewModel {
     }
   }
 }
+

@@ -25,7 +25,6 @@ class _CustosViewState extends State<CustosView> with TickerProviderStateMixin {
   DateTime? _dataInicio;
   DateTime? _dataFim;
 
-  // Definir cores localmente
   final Color primaryColor = Colors.green[700]!;
   final Color titleColor = Colors.green[800]!;
   final Color subtitleColor = Colors.grey[700]!;
@@ -35,13 +34,11 @@ class _CustosViewState extends State<CustosView> with TickerProviderStateMixin {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
 
-    // Inicializar ViewModel com token de autenticação
     final token = AuthService.token;
     if (token != null) {
       final custoService = CustoService(token: token);
       _custoViewModel = CustoViewModel(custoService);
 
-      // Carregar custos do último mês por padrão
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _custoViewModel.calcularCustosUltimoMes(widget.lavouraId);
       });
@@ -135,7 +132,7 @@ class _CustosViewState extends State<CustosView> with TickerProviderStateMixin {
         ),
         body: Column(
           children: [
-            // Seletor de Período
+
             Container(
               padding: const EdgeInsets.all(16),
               color: Colors.white,
@@ -265,7 +262,7 @@ class _CustosViewState extends State<CustosView> with TickerProviderStateMixin {
                 ],
               ),
             ),
-            // Conteúdo das Tabs
+
             Expanded(
               child: TabBarView(
                 controller: _tabController,
@@ -344,7 +341,7 @@ class _CustosViewState extends State<CustosView> with TickerProviderStateMixin {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Card do Custo Total
+
               Card(
                 elevation: 4,
                 shape: RoundedRectangleBorder(
@@ -394,7 +391,6 @@ class _CustosViewState extends State<CustosView> with TickerProviderStateMixin {
               ),
               const SizedBox(height: 20),
 
-              // Grid de Categorias
               GridView.count(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -438,7 +434,6 @@ class _CustosViewState extends State<CustosView> with TickerProviderStateMixin {
 
               const SizedBox(height: 20),
 
-              // Card de Colheitas
               if (custo.custoColheitas > 0)
                 Card(
                   elevation: 2,
@@ -777,3 +772,4 @@ class _CustosViewState extends State<CustosView> with TickerProviderStateMixin {
     );
   }
 }
+

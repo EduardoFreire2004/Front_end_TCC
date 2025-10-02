@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fgl_1/models/AplicacaoModel.dart';
+import 'package:flutter_fgl_1/viewmodels/AplicacacaoViewModel.dart';
 import 'package:flutter_fgl_1/viewmodels/AgrotoxicoViewModel.dart';
-import 'package:flutter_fgl_1/services/aplicacao_service.dart';
-import 'package:flutter_fgl_1/views/Agrotoxico/AgrotoxicoListView.dart';
 import 'package:flutter_fgl_1/views/Aplicacao/AplicacaoFormView.dart';
-import 'package:flutter_fgl_1/widgets/RelatorioButton.dart';
+import 'package:flutter_fgl_1/views/Agrotoxico/AgrotoxicoListView.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -18,90 +17,21 @@ class AplicacaoListView extends StatefulWidget {
 }
 
 class _AplicacaoListViewState extends State<AplicacaoListView> {
-  final AplicacaoService _aplicacaoService = AplicacaoService();
-  List<AplicacaoModel> _aplicacoes = [];
-  bool _isLoading = false;
-
   @override
   void initState() {
     super.initState();
-    _carregarAplicacoes();
-  }
-
-  Future<void> _carregarAplicacoes() async {
-    setState(() {
-      _isLoading = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<AplicacaoViewModel>(
+        context,
+        listen: false,
+      ).fetchByLavoura(widget.lavouraId);
     });
-
-    try {
-      final aplicacoes = await _aplicacaoService
-          .buscarAplicacoesAgrotoxicoPorLavoura(widget.lavouraId);
-      setState(() {
-        _aplicacoes = aplicacoes;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  Future<void> _excluirAplicacao(AplicacaoModel aplicacao) async {
-    final confirmacao = await showDialog<bool>(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Confirmar Exclusão'),
-            content: const Text(
-              'Tem certeza que deseja excluir esta aplicação?',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancelar'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text('Excluir'),
-                style: TextButton.styleFrom(foregroundColor: Colors.red),
-              ),
-            ],
-          ),
-    );
-
-    if (confirmacao == true) {
-      try {
-        await _aplicacaoService.excluirAplicacaoAgrotoxico(aplicacao.id!);
-        await _carregarAplicacoes(); // Recarregar lista
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Aplicação excluída com sucesso!'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Erro ao excluir: ${e.toString()}'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final agrotoxicoVM = Provider.of<AgrotoxicoViewModel>(
-      context,
-      listen: false,
-    );
+    final aplicacaoVM = Provider.of<AplicacaoViewModel>(context);
+    final agrotoxicoVM = Provider.of<AgrotoxicoViewModel>(context, listen: false);
 
     final Color primaryColor = Colors.green[700]!;
     final Color titleColor = Colors.green[800]!;
@@ -163,25 +93,14 @@ class _AplicacaoListViewState extends State<AplicacaoListView> {
                     'Data e Hora',
                     formatarDataHora(aplicacao.dataHora),
                   ),
-                  buildDetailItem(Icons.science, 'Agrotóxico', nomeAgrotoxico),
-                  buildDetailItem(
-                    Icons.scale,
-                    'Quantidade',
-                    '${aplicacao.qtde} ${agrotoxico?.unidade_Medida ?? ''}',
-                  ),
-                  if (aplicacao.lavouraNome != null)
-                    buildDetailItem(
-                      Icons.grass,
-                      'Lavoura',
-                      aplicacao.lavouraNome!,
-                    ),
+                  buildDetailItem(Icons.bug_report, 'Agrotóxico', nomeAgrotoxico),
                 ],
               ),
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Fechar'),
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: Text('Fechar', style: TextStyle(color: primaryColor)),
               ),
             ],
           );
@@ -189,174 +108,210 @@ class _AplicacaoListViewState extends State<AplicacaoListView> {
       );
     }
 
+    if (aplicacaoVM.errorMessage != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(aplicacaoVM.errorMessage!),
+            backgroundColor: errorColor,
+          ),
+        );
+      });
+    }
+
     return Scaffold(
       backgroundColor: scaffoldBgColor,
-      appBar: AppBar(
-        title: const Text('Aplicações de Agrotóxicos'),
-        backgroundColor: primaryColor,
-        foregroundColor: Colors.white,
-      ),
+      appBar: AppBar(title: const Text('Aplicações de Agrotóxicos')),
       body: RefreshIndicator(
-        onRefresh: _carregarAplicacoes,
+        onRefresh: () => aplicacaoVM.fetchByLavoura(widget.lavouraId),
         color: primaryColor,
         child:
-            _isLoading && _aplicacoes.isEmpty
+            aplicacaoVM.isLoading && aplicacaoVM.aplicacao.isEmpty
                 ? Center(child: CircularProgressIndicator(color: primaryColor))
-                : _aplicacoes.isEmpty
-                ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(
-                      'Nenhuma aplicação registrada.\nToque no botão "+" para adicionar.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                    ),
-                  ),
-                )
-                : ListView.builder(
-                  padding: const EdgeInsets.all(8.0),
-                  itemCount: _aplicacoes.length,
-                  itemBuilder: (context, index) {
-                    final item = _aplicacoes[index];
-                    return Dismissible(
-                      key: Key(item.id.toString()),
-                      direction: DismissDirection.endToStart,
-                      background: Container(
-                        decoration: BoxDecoration(
-                          color: errorColor,
-                          borderRadius: BorderRadius.circular(8.0),
+                : aplicacaoVM.aplicacao.isEmpty
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Text(
+                            'Nenhuma aplicação registrada.\nToque no botão "+" para adicionar.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                          ),
                         ),
-                        alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 8.0,
-                          vertical: 4.0,
-                        ),
-                        child: const Icon(
-                          Icons.delete_sweep,
-                          color: Colors.white,
-                          size: 28,
-                        ),
-                      ),
-                      confirmDismiss: (_) async {
-                        final shouldDelete = await showDialog<bool>(
-                          context: context,
-                          builder:
-                              (context) => AlertDialog(
-                                title: const Text('Confirmar exclusão'),
-                                content: const Text(
-                                  'Deseja realmente excluir esta Aplicação?',
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed:
-                                        () => Navigator.of(context).pop(false),
-                                    child: const Text('Cancelar'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () async {
-                                      if (item.id != null) {
-                                        await _excluirAplicacao(item);
-                                        Navigator.of(context).pop(true);
-                                      } else {
-                                        Navigator.of(context).pop(false);
-                                      }
-                                    },
-                                    child: const Text(
-                                      'Excluir',
-                                      style: TextStyle(color: Colors.red),
-                                    ),
-                                  ),
-                                ],
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(8.0),
+                        itemCount: aplicacaoVM.aplicacao.length,
+                        itemBuilder: (context, index) {
+                          final item = aplicacaoVM.aplicacao[index];
+                          return Dismissible(
+                            key: Key(item.id.toString()),
+                            direction: DismissDirection.endToStart,
+                            background: Container(
+                              decoration: BoxDecoration(
+                                color: errorColor,
+                                borderRadius: BorderRadius.circular(8.0),
                               ),
-                        );
-                        return shouldDelete ?? false;
-                      },
-                      onDismissed: (_) {},
-                      child: Card(
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 8.0,
-                          vertical: 4.0,
-                        ),
-                        elevation: 3.0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(8.0),
-                          onTap: () => showDetailsDialog(item),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12.0),
-                            child: Row(
-                              children: [
-                                CircleAvatar(
-                                  backgroundColor: iconColor.withOpacity(0.1),
-                                  child: Icon(
-                                    Icons.local_florist,
-                                    color: iconColor,
+                              alignment: Alignment.centerRight,
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 8.0,
+                                vertical: 4.0,
+                              ),
+                              child: const Icon(
+                                Icons.delete_sweep,
+                                color: Colors.white,
+                                size: 28,
+                              ),
+                            ),
+                            confirmDismiss: (_) async {
+                              final shouldDelete = await showDialog<bool>(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('Confirmar exclusão'),
+                                  content: const Text(
+                                    'Deseja realmente excluir esta Aplicação?',
                                   ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        item.descricao ?? '',
-                                        style: TextStyle(
-                                          fontSize: 18.0,
-                                          fontWeight: FontWeight.bold,
-                                          color: titleColor,
-                                        ),
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(false),
+                                      child: const Text('Cancelar'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () async {
+                                        if (item.id != null) {
+                                          await aplicacaoVM.delete(
+                                            item.id!,
+                                            item.lavouraID,
+                                          );
+                                          Navigator.of(context).pop(true);
+                                          WidgetsBinding.instance
+                                              .addPostFrameCallback((_) {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: const Text(
+                                                  'Aplicação excluída.',
+                                                ),
+                                                backgroundColor: errorColor,
+                                              ),
+                                            );
+                                          });
+                                        } else {
+                                          Navigator.of(context).pop(false);
+                                        }
+                                      },
+                                      child: const Text(
+                                        'Excluir',
+                                        style: TextStyle(color: Colors.red),
                                       ),
-                                      const SizedBox(height: 4.0),
-                                      Text(
-                                        DateFormat(
-                                          'dd/MM/yyyy HH:mm',
-                                        ).format(item.dataHora),
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: subtitleColor,
+                                    ),
+                                  ],
+                                ),
+                              );
+                              return shouldDelete ?? false;
+                            },
+                            onDismissed: (_) {},
+                            child: Card(
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 8.0,
+                                vertical: 4.0,
+                              ),
+                              elevation: 3.0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(8.0),
+                                onTap: () => showDetailsDialog(item),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12.0),
+                                  child: Row(
+                                    children: [
+                                      CircleAvatar(
+                                        backgroundColor: iconColor.withOpacity(0.1),
+                                        child: Icon(
+                                          Icons.local_florist,
+                                          color: iconColor,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              item.descricao ?? '',
+                                              style: TextStyle(
+                                                fontSize: 18.0,
+                                                fontWeight: FontWeight.bold,
+                                                color: titleColor,
+                                              ),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            const SizedBox(height: 4.0),
+                                            Text(
+                                              DateFormat(
+                                                'dd/MM/yyyy HH:mm',
+                                              ).format(item.dataHora),
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                color: subtitleColor,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: Icon(
+                                          Icons.edit,
+                                          color: Colors.blueGrey[600],
+                                        ),
+                                        tooltip: 'Editar Aplicação',
+                                        onPressed: () => Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => AplicacaoFormView(
+                                              aplicacao: item,
+                                              lavouraId: widget.lavouraId,
+                                            ),
+                                          ),
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
-                                IconButton(
-                                  icon: Icon(
-                                    Icons.edit,
-                                    color: Colors.blueGrey[600],
-                                  ),
-                                  tooltip: 'Editar Aplicação',
-                                  onPressed:
-                                      () => Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder:
-                                              (_) => AplicacaoFormView(
-                                                aplicacao: item,
-                                                lavouraId: widget.lavouraId,
-                                              ),
-                                        ),
-                                      ),
-                                ),
-                              ],
+                              ),
                             ),
-                          ),
-                        ),
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
       ),
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          RelatorioButton(texto: 'Relatórios', icone: Icons.picture_as_pdf),
+          FloatingActionButton(
+            heroTag: 'relatorioFAB',
+            mini: true,
+            backgroundColor: Colors.blue[600],
+            tooltip: 'Gerar Relatório PDF',
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Funcionalidade de relatório será implementada via API',
+                  ),
+                  backgroundColor: Colors.orange,
+                ),
+              );
+            },
+            child: const Icon(Icons.picture_as_pdf),
+          ),
           const SizedBox(height: 12),
           FloatingActionButton(
             heroTag: 'agrotoxicoFAB',
@@ -369,20 +324,20 @@ class _AplicacaoListViewState extends State<AplicacaoListView> {
                 MaterialPageRoute(builder: (_) => const AgrotoxicoListView()),
               );
             },
-            child: const Icon(Icons.science_outlined),
+            child: const Icon(Icons.bug_report),
           ),
           const SizedBox(height: 12),
           FloatingActionButton(
             heroTag: 'addFAB',
             backgroundColor: Colors.green,
-            onPressed:
-                () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder:
-                        (_) => AplicacaoFormView(lavouraId: widget.lavouraId),
-                  ),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => AplicacaoFormView(
+                  lavouraId: widget.lavouraId,
                 ),
+              ),
+            ),
             child: const Icon(Icons.add),
           ),
         ],
@@ -390,3 +345,4 @@ class _AplicacaoListViewState extends State<AplicacaoListView> {
     );
   }
 }
+

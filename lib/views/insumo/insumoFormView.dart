@@ -39,17 +39,22 @@ class _InsumoFormPageState extends State<InsumoFormView> {
       _dataCadastro = insumo.data_Cadastro;
       _categoriaID = insumo.categoriaID;
       _fornecedorID = insumo.fornecedorID;
-      _precoController.text = insumo.preco != null
-          ? toCurrencyString(insumo.preco!.toStringAsFixed(2),
-              leadingSymbol: 'R\$ ', useSymbolPadding: true)
-          : '';
+      _precoController.text =
+          insumo.preco != null
+              ? toCurrencyString(
+                insumo.preco.toStringAsFixed(2),
+                leadingSymbol: 'R\$ ',
+                useSymbolPadding: true,
+              )
+              : '';
     }
   }
 
   Future<void> _salvar() async {
     if (_formKey.currentState!.validate()) {
-      final precoText =
-          _precoController.text.replaceAll(RegExp(r'[^0-9,]'), '').replaceAll(',', '.');
+      final precoText = _precoController.text
+          .replaceAll(RegExp(r'[^0-9,]'), '')
+          .replaceAll(',', '.');
       final preco = double.tryParse(precoText) ?? 0.0;
 
       final model = InsumoModel(
@@ -72,9 +77,9 @@ class _InsumoFormPageState extends State<InsumoFormView> {
         }
         if (mounted) Navigator.pop(context);
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao salvar: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erro ao salvar: $e')));
       }
     }
   }
@@ -107,15 +112,23 @@ class _InsumoFormPageState extends State<InsumoFormView> {
               TextFormField(
                 controller: _nomeController,
                 decoration: const InputDecoration(labelText: 'Nome'),
-                validator: (value) =>
-                    value == null || value.trim().isEmpty ? 'Campo obrigatório' : null,
+                validator:
+                    (value) =>
+                        value == null || value.trim().isEmpty
+                            ? 'Campo obrigatório'
+                            : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _unidadeController,
-                decoration: const InputDecoration(labelText: 'Unidade de Medida'),
-                validator: (value) =>
-                    value == null || value.trim().isEmpty ? 'Campo obrigatório' : null,
+                decoration: const InputDecoration(
+                  labelText: 'Unidade de Medida',
+                ),
+                validator:
+                    (value) =>
+                        value == null || value.trim().isEmpty
+                            ? 'Campo obrigatório'
+                            : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -123,9 +136,11 @@ class _InsumoFormPageState extends State<InsumoFormView> {
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(labelText: 'Quantidade'),
                 validator: (value) {
-                  if (value == null || value.trim().isEmpty) return 'Campo obrigatório';
+                  if (value == null || value.trim().isEmpty)
+                    return 'Campo obrigatório';
                   final numValue = double.tryParse(value.replaceAll(',', '.'));
-                  if (numValue == null || numValue <= 0) return 'Valor inválido';
+                  if (numValue == null || numValue <= 0)
+                    return 'Valor inválido';
                   return null;
                 },
               ),
@@ -159,7 +174,9 @@ class _InsumoFormPageState extends State<InsumoFormView> {
               const SizedBox(height: 16),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                title: Text('Data de Cadastro: ${DateFormat('dd/MM/yyyy').format(_dataCadastro)}'),
+                title: Text(
+                  'Data de Cadastro: ${DateFormat('dd/MM/yyyy').format(_dataCadastro)}',
+                ),
                 trailing: const Icon(Icons.calendar_today),
                 onTap: () async {
                   final data = await showDatePicker(
@@ -177,21 +194,35 @@ class _InsumoFormPageState extends State<InsumoFormView> {
               DropdownButtonFormField<int>(
                 value: _categoriaID,
                 decoration: const InputDecoration(labelText: 'Categoria'),
-                items: categoriaVM.categoriaInsumo
-                    .map((e) => DropdownMenuItem(value: e.id, child: Text(e.descricao)))
-                    .toList(),
+                items:
+                    categoriaVM.categoriaInsumo
+                        .map(
+                          (e) => DropdownMenuItem(
+                            value: e.id,
+                            child: Text(e.descricao),
+                          ),
+                        )
+                        .toList(),
                 onChanged: (value) => setState(() => _categoriaID = value),
-                validator: (value) => value == null ? 'Campo obrigatório' : null,
+                validator:
+                    (value) => value == null ? 'Campo obrigatório' : null,
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<int>(
                 value: _fornecedorID,
                 decoration: const InputDecoration(labelText: 'Fornecedor'),
-                items: fornecedorVM.fornecedores
-                    .map((e) => DropdownMenuItem(value: e.id, child: Text(e.nome)))
-                    .toList(),
+                items:
+                    fornecedorVM.fornecedores
+                        .map(
+                          (e) => DropdownMenuItem(
+                            value: e.id,
+                            child: Text(e.nome),
+                          ),
+                        )
+                        .toList(),
                 onChanged: (value) => setState(() => _fornecedorID = value),
-                validator: (value) => value == null ? 'Campo obrigatório' : null,
+                validator:
+                    (value) => value == null ? 'Campo obrigatório' : null,
               ),
               const SizedBox(height: 24),
               ElevatedButton(
@@ -208,3 +239,4 @@ class _InsumoFormPageState extends State<InsumoFormView> {
     );
   }
 }
+

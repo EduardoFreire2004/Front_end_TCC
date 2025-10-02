@@ -119,7 +119,7 @@ class _LavouraListViewState extends State<LavouraListView> {
   Widget _buildEstoqueSection() {
     return RefreshIndicator(
       onRefresh: () async {
-        // TODO: Implementar refresh para estoque
+
       },
       color: AppColors.primaryGreen,
       child: ListConfig.defaultListView(
@@ -131,7 +131,7 @@ class _LavouraListViewState extends State<LavouraListView> {
             icon: Icons.pest_control,
             color: Colors.red,
             onTap: () {
-              // TODO: Navegar para tela de agrotóxicos
+
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Funcionalidade em desenvolvimento'),
@@ -146,7 +146,7 @@ class _LavouraListViewState extends State<LavouraListView> {
             icon: Icons.science,
             color: Colors.blue,
             onTap: () {
-              // TODO: Navegar para tela de insumos
+
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Funcionalidade em desenvolvimento'),
@@ -161,7 +161,7 @@ class _LavouraListViewState extends State<LavouraListView> {
             icon: Icons.eco,
             color: Colors.green,
             onTap: () {
-              // TODO: Navegar para tela de sementes
+
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Funcionalidade em desenvolvimento'),
@@ -176,7 +176,7 @@ class _LavouraListViewState extends State<LavouraListView> {
             icon: Icons.swap_horiz,
             color: Colors.orange,
             onTap: () {
-              // TODO: Navegar para tela de movimentações
+
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Funcionalidade em desenvolvimento'),
@@ -347,3 +347,4 @@ class _LavouraListViewState extends State<LavouraListView> {
     );
   }
 }
+

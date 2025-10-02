@@ -7,31 +7,25 @@ import 'package:flutter_fgl_1/services/custo_service.dart';
 class CustoViewModel extends ChangeNotifier {
   final CustoService _custoService;
 
-  // Estado dos custos calculados
   CustoCalculadoModel? _custoAtual;
   ResumoCustosModel? _resumoAtual;
   List<HistoricoCustoModel> _historico = [];
 
-  // Estados de loading
   bool _isLoadingCustos = false;
   bool _isLoadingResumo = false;
   bool _isLoadingHistorico = false;
   bool _isUpdating = false;
 
-  // Estados de erro
   String? _errorCustos;
   String? _errorResumo;
   String? _errorHistorico;
   String? _errorUpdate;
 
-  // Filtros de data
   DateTime? _dataInicio;
   DateTime? _dataFim;
 
-  // Construtor
   CustoViewModel(this._custoService);
 
-  // Getters para o estado
   CustoCalculadoModel? get custoAtual => _custoAtual;
   ResumoCustosModel? get resumoAtual => _resumoAtual;
   List<HistoricoCustoModel> get historico => _historico;
@@ -49,7 +43,6 @@ class CustoViewModel extends ChangeNotifier {
   DateTime? get dataInicio => _dataInicio;
   DateTime? get dataFim => _dataFim;
 
-  // 🧮 CALCULAR CUSTOS COMPLETOS DA LAVOURA
   Future<void> calcularCustosLavoura({
     required int lavouraId,
     DateTime? dataInicio,
@@ -79,7 +72,6 @@ class CustoViewModel extends ChangeNotifier {
     }
   }
 
-  // 🧮 CALCULAR CUSTOS DO ÚLTIMO MÊS
   Future<void> calcularCustosUltimoMes(int lavouraId) async {
     try {
       _isLoadingCustos = true;
@@ -88,7 +80,6 @@ class CustoViewModel extends ChangeNotifier {
 
       _custoAtual = await _custoService.calcularCustosUltimoMes(lavouraId);
 
-      // Definir período do último mês
       final agora = DateTime.now();
       _dataInicio = DateTime(agora.year, agora.month, 1);
       _dataFim = DateTime(agora.year, agora.month + 1, 0);
@@ -103,7 +94,6 @@ class CustoViewModel extends ChangeNotifier {
     }
   }
 
-  // 🧮 CALCULAR CUSTOS DO ÚLTIMO ANO
   Future<void> calcularCustosUltimoAno(int lavouraId) async {
     try {
       _isLoadingCustos = true;
@@ -133,7 +123,6 @@ class CustoViewModel extends ChangeNotifier {
     }
   }
 
-  // 📈 OBTER RESUMO DE CUSTOS
   Future<void> obterResumoCustos({
     required int lavouraId,
     required DateTime dataInicio,
@@ -163,7 +152,6 @@ class CustoViewModel extends ChangeNotifier {
     }
   }
 
-  // 📊 OBTER RESUMO DO ÚLTIMO MÊS
   Future<void> obterResumoUltimoMes(int lavouraId) async {
     try {
       _isLoadingResumo = true;
@@ -193,7 +181,6 @@ class CustoViewModel extends ChangeNotifier {
     }
   }
 
-  // 📊 OBTER RESUMO DO ÚLTIMO ANO
   Future<void> obterResumoUltimoAno(int lavouraId) async {
     try {
       _isLoadingResumo = true;
@@ -223,7 +210,6 @@ class CustoViewModel extends ChangeNotifier {
     }
   }
 
-  // 📊 OBTER HISTÓRICO DE CUSTOS
   Future<void> obterHistoricoCustos({
     required int lavouraId,
     DateTime? dataInicio,
@@ -253,7 +239,6 @@ class CustoViewModel extends ChangeNotifier {
     }
   }
 
-  // 🔄 ATUALIZAR CUSTOS DA LAVOURA
   Future<void> atualizarCustosLavoura(int lavouraId) async {
     try {
       _isUpdating = true;
@@ -262,7 +247,6 @@ class CustoViewModel extends ChangeNotifier {
 
       await _custoService.atualizarCustosLavoura(lavouraId);
 
-      // Recarregar custos após atualização
       if (_dataInicio != null && _dataFim != null) {
         await calcularCustosLavoura(
           lavouraId: lavouraId,
@@ -283,7 +267,6 @@ class CustoViewModel extends ChangeNotifier {
     }
   }
 
-  // 🧹 LIMPAR ESTADOS DE ERRO
   void limparErros() {
     _errorCustos = null;
     _errorResumo = null;
@@ -292,7 +275,6 @@ class CustoViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // 🧹 LIMPAR TODOS OS DADOS
   void limparDados() {
     _custoAtual = null;
     _resumoAtual = null;
@@ -302,7 +284,6 @@ class CustoViewModel extends ChangeNotifier {
     limparErros();
   }
 
-  // 🔍 VALIDAR DATAS
   bool validarDatas(DateTime? dataInicio, DateTime? dataFim) {
     if (dataInicio != null && dataFim != null) {
       return dataInicio.isBefore(dataFim);
@@ -310,32 +291,27 @@ class CustoViewModel extends ChangeNotifier {
     return true; // Se não especificadas, são válidas
   }
 
-  // 🧪 TESTAR CONEXÃO
   Future<bool> testarConexao() async {
     try {
       return await _custoService.testarConexao();
     } catch (e) {
-      // Log de erro para debug
+
       return false;
     }
   }
 
-  // 💰 FORMATAR VALOR MONETÁRIO
   String formatarMoeda(double valor) {
     return 'R\$ ${valor.toStringAsFixed(2).replaceAll('.', ',')}';
   }
 
-  // 📅 FORMATAR DATA
   String formatarData(DateTime data) {
     return '${data.day.toString().padLeft(2, '0')}/${data.month.toString().padLeft(2, '0')}/${data.year}';
   }
 
-  // 📅 FORMATAR DATA E HORA
   String formatarDataHora(DateTime data) {
     return '${formatarData(data)} ${data.hour.toString().padLeft(2, '0')}:${data.minute.toString().padLeft(2, '0')}';
   }
 
-  // 📊 OBTER CUSTO TOTAL FORMATADO
   String get custoTotalFormatado {
     if (_custoAtual != null) {
       return formatarMoeda(_custoAtual!.custoTotal);
@@ -343,7 +319,6 @@ class CustoViewModel extends ChangeNotifier {
     return 'R\$ 0,00';
   }
 
-  // 📊 OBTER PERCENTUAL DE CADA CATEGORIA
   double getPercentualCategoria(double valorCategoria) {
     if (_custoAtual != null && _custoAtual!.custoTotal > 0) {
       return (valorCategoria / _custoAtual!.custoTotal) * 100;
@@ -351,7 +326,6 @@ class CustoViewModel extends ChangeNotifier {
     return 0.0;
   }
 
-  // 📊 OBTER COR PARA CATEGORIA
   Color getCorCategoria(String categoria) {
     switch (categoria.toLowerCase()) {
       case 'aplicação de agrotóxico':
@@ -369,7 +343,6 @@ class CustoViewModel extends ChangeNotifier {
     }
   }
 
-  // 📊 OBTER ICONE PARA CATEGORIA
   IconData getIconeCategoria(String categoria) {
     switch (categoria.toLowerCase()) {
       case 'aplicação de agrotóxico':
@@ -387,3 +360,4 @@ class CustoViewModel extends ChangeNotifier {
     }
   }
 }
+

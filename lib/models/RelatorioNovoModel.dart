@@ -1,39 +1,6 @@
-// Modelos para a nova API de relatórios
-// Baseado na documentação fornecida
 
-// Estrutura base de resposta da API
-class RelatorioResponse<T> {
-  final bool success;
-  final List<T> data;
-  final int totalRegistros;
-  final String? error;
 
-  RelatorioResponse({
-    required this.success,
-    required this.data,
-    required this.totalRegistros,
-    this.error,
-  });
-
-  factory RelatorioResponse.fromJson(
-    Map<String, dynamic> json,
-    T Function(Map<String, dynamic>) fromJsonT,
-  ) {
-    return RelatorioResponse<T>(
-      success: json['success'] ?? false,
-      data:
-          (json['data'] as List?)
-              ?.map((e) => fromJsonT(e as Map<String, dynamic>))
-              .toList() ??
-          [],
-      totalRegistros: json['totalRegistros'] ?? 0,
-      error: json['error'],
-    );
-  }
-}
-
-// Modelo para Relatório de Fornecedores
-class RelatorioFornecedor {
+class RelatorioFornecedoresDto {
   final int id;
   final String nome;
   final String cnpj;
@@ -41,7 +8,7 @@ class RelatorioFornecedor {
   final int totalProdutos;
   final double valorTotalProdutos;
 
-  RelatorioFornecedor({
+  RelatorioFornecedoresDto({
     required this.id,
     required this.nome,
     required this.cnpj,
@@ -50,8 +17,8 @@ class RelatorioFornecedor {
     required this.valorTotalProdutos,
   });
 
-  factory RelatorioFornecedor.fromJson(Map<String, dynamic> json) {
-    return RelatorioFornecedor(
+  factory RelatorioFornecedoresDto.fromJson(Map<String, dynamic> json) {
+    return RelatorioFornecedoresDto(
       id: json['id'] ?? 0,
       nome: json['nome'] ?? '',
       cnpj: json['cnpj'] ?? '',
@@ -62,8 +29,7 @@ class RelatorioFornecedor {
   }
 }
 
-// Modelo para Relatório de Aplicações (Agrotóxicos)
-class RelatorioAplicacao {
+class RelatorioAplicacaoDto {
   final int id;
   final String produto;
   final String lavoura;
@@ -72,7 +38,7 @@ class RelatorioAplicacao {
   final String unidadeMedida;
   final String? observacoes;
 
-  RelatorioAplicacao({
+  RelatorioAplicacaoDto({
     required this.id,
     required this.produto,
     required this.lavoura,
@@ -82,8 +48,8 @@ class RelatorioAplicacao {
     this.observacoes,
   });
 
-  factory RelatorioAplicacao.fromJson(Map<String, dynamic> json) {
-    return RelatorioAplicacao(
+  factory RelatorioAplicacaoDto.fromJson(Map<String, dynamic> json) {
+    return RelatorioAplicacaoDto(
       id: json['id'] ?? 0,
       produto: json['produto'] ?? '',
       lavoura: json['lavoura'] ?? '',
@@ -96,8 +62,7 @@ class RelatorioAplicacao {
   }
 }
 
-// Modelo para Relatório de Aplicações de Insumos
-class RelatorioAplicacaoInsumo {
+class RelatorioAplicacaoInsumoDto {
   final int id;
   final String insumo;
   final String lavoura;
@@ -105,7 +70,7 @@ class RelatorioAplicacaoInsumo {
   final double quantidade;
   final String? descricao;
 
-  RelatorioAplicacaoInsumo({
+  RelatorioAplicacaoInsumoDto({
     required this.id,
     required this.insumo,
     required this.lavoura,
@@ -114,8 +79,8 @@ class RelatorioAplicacaoInsumo {
     this.descricao,
   });
 
-  factory RelatorioAplicacaoInsumo.fromJson(Map<String, dynamic> json) {
-    return RelatorioAplicacaoInsumo(
+  factory RelatorioAplicacaoInsumoDto.fromJson(Map<String, dynamic> json) {
+    return RelatorioAplicacaoInsumoDto(
       id: json['id'] ?? 0,
       insumo: json['insumo'] ?? '',
       lavoura: json['lavoura'] ?? '',
@@ -127,48 +92,7 @@ class RelatorioAplicacaoInsumo {
   }
 }
 
-// Modelo para Relatório de Sementes
-class RelatorioSemente {
-  final int id;
-  final String nome;
-  final String tipo;
-  final String marca;
-  final String fornecedor;
-  final double quantidade;
-  final double preco;
-  final DateTime dataCadastro;
-  final double valorTotal;
-
-  RelatorioSemente({
-    required this.id,
-    required this.nome,
-    required this.tipo,
-    required this.marca,
-    required this.fornecedor,
-    required this.quantidade,
-    required this.preco,
-    required this.dataCadastro,
-    required this.valorTotal,
-  });
-
-  factory RelatorioSemente.fromJson(Map<String, dynamic> json) {
-    return RelatorioSemente(
-      id: json['id'] ?? 0,
-      nome: json['nome'] ?? '',
-      tipo: json['tipo'] ?? '',
-      marca: json['marca'] ?? '',
-      fornecedor: json['fornecedor'] ?? '',
-      quantidade: (json['quantidade'] ?? 0.0).toDouble(),
-      preco: (json['preco'] ?? 0.0).toDouble(),
-      dataCadastro:
-          DateTime.tryParse(json['dataCadastro'] ?? '') ?? DateTime.now(),
-      valorTotal: (json['valorTotal'] ?? 0.0).toDouble(),
-    );
-  }
-}
-
-// Modelo para Relatório de Insumos
-class RelatorioInsumo {
+class RelatorioInsumoDto {
   final int id;
   final String nome;
   final String categoria;
@@ -179,7 +103,7 @@ class RelatorioInsumo {
   final DateTime dataCadastro;
   final double valorTotal;
 
-  RelatorioInsumo({
+  RelatorioInsumoDto({
     required this.id,
     required this.nome,
     required this.categoria,
@@ -191,13 +115,13 @@ class RelatorioInsumo {
     required this.valorTotal,
   });
 
-  factory RelatorioInsumo.fromJson(Map<String, dynamic> json) {
-    return RelatorioInsumo(
+  factory RelatorioInsumoDto.fromJson(Map<String, dynamic> json) {
+    return RelatorioInsumoDto(
       id: json['id'] ?? 0,
       nome: json['nome'] ?? '',
       categoria: json['categoria'] ?? '',
       fornecedor: json['fornecedor'] ?? '',
-      quantidade: (json['quantidade'] ?? 0.0).toDouble(),
+      quantidade: (json['qtde'] ?? 0.0).toDouble(),
       preco: (json['preco'] ?? 0.0).toDouble(),
       unidadeMedida: json['unidadeMedida'] ?? '',
       dataCadastro:
@@ -207,8 +131,7 @@ class RelatorioInsumo {
   }
 }
 
-// Modelo para Relatório de Agrotóxicos
-class RelatorioAgrotoxico {
+class RelatorioAgrotoxicoDto {
   final int id;
   final String nome;
   final String tipo;
@@ -219,7 +142,7 @@ class RelatorioAgrotoxico {
   final DateTime dataCadastro;
   final double valorTotal;
 
-  RelatorioAgrotoxico({
+  RelatorioAgrotoxicoDto({
     required this.id,
     required this.nome,
     required this.tipo,
@@ -231,8 +154,8 @@ class RelatorioAgrotoxico {
     required this.valorTotal,
   });
 
-  factory RelatorioAgrotoxico.fromJson(Map<String, dynamic> json) {
-    return RelatorioAgrotoxico(
+  factory RelatorioAgrotoxicoDto.fromJson(Map<String, dynamic> json) {
+    return RelatorioAgrotoxicoDto(
       id: json['id'] ?? 0,
       nome: json['nome'] ?? '',
       tipo: json['tipo'] ?? '',
@@ -247,8 +170,7 @@ class RelatorioAgrotoxico {
   }
 }
 
-// Modelo para Relatório de Colheitas
-class RelatorioColheita {
+class RelatorioColheitaDto {
   final int id;
   final String cultura;
   final String lavoura;
@@ -257,7 +179,7 @@ class RelatorioColheita {
   final double produtividade;
   final String? observacoes;
 
-  RelatorioColheita({
+  RelatorioColheitaDto({
     required this.id,
     required this.cultura,
     required this.lavoura,
@@ -267,8 +189,8 @@ class RelatorioColheita {
     this.observacoes,
   });
 
-  factory RelatorioColheita.fromJson(Map<String, dynamic> json) {
-    return RelatorioColheita(
+  factory RelatorioColheitaDto.fromJson(Map<String, dynamic> json) {
+    return RelatorioColheitaDto(
       id: json['id'] ?? 0,
       cultura: json['cultura'] ?? '',
       lavoura: json['lavoura'] ?? '',
@@ -281,8 +203,7 @@ class RelatorioColheita {
   }
 }
 
-// Modelo para Relatório de Movimentação de Estoque
-class RelatorioMovimentacaoEstoque {
+class RelatorioMovimentacaoEstoqueDto {
   final int id;
   final String tipoMovimentacao;
   final String produto;
@@ -291,7 +212,7 @@ class RelatorioMovimentacaoEstoque {
   final DateTime data;
   final String? observacoes;
 
-  RelatorioMovimentacaoEstoque({
+  RelatorioMovimentacaoEstoqueDto({
     required this.id,
     required this.tipoMovimentacao,
     required this.produto,
@@ -301,8 +222,8 @@ class RelatorioMovimentacaoEstoque {
     this.observacoes,
   });
 
-  factory RelatorioMovimentacaoEstoque.fromJson(Map<String, dynamic> json) {
-    return RelatorioMovimentacaoEstoque(
+  factory RelatorioMovimentacaoEstoqueDto.fromJson(Map<String, dynamic> json) {
+    return RelatorioMovimentacaoEstoqueDto(
       id: json['id'] ?? 0,
       tipoMovimentacao: json['tipoMovimentacao'] ?? '',
       produto: json['produto'] ?? '',
@@ -314,8 +235,7 @@ class RelatorioMovimentacaoEstoque {
   }
 }
 
-// Modelo para Relatório de Plantios
-class RelatorioPlantio {
+class RelatorioPlantioDto {
   final int id;
   final String cultura;
   final String lavoura;
@@ -324,7 +244,7 @@ class RelatorioPlantio {
   final String status;
   final String? observacoes;
 
-  RelatorioPlantio({
+  RelatorioPlantioDto({
     required this.id,
     required this.cultura,
     required this.lavoura,
@@ -334,8 +254,8 @@ class RelatorioPlantio {
     this.observacoes,
   });
 
-  factory RelatorioPlantio.fromJson(Map<String, dynamic> json) {
-    return RelatorioPlantio(
+  factory RelatorioPlantioDto.fromJson(Map<String, dynamic> json) {
+    return RelatorioPlantioDto(
       id: json['id'] ?? 0,
       cultura: json['cultura'] ?? '',
       lavoura: json['lavoura'] ?? '',
@@ -348,91 +268,223 @@ class RelatorioPlantio {
   }
 }
 
-// Tipos de relatórios disponíveis
-enum TipoRelatorio {
-  fornecedores,
-  aplicacao,
-  aplicacaoInsumo,
-  semente,
-  insumo,
-  agrotoxico,
-  colheita,
-  movimentacaoEstoque,
-  plantio,
-}
+class RelatorioFornecedoresResponseDto {
+  final bool success;
+  final List<RelatorioFornecedoresDto> data;
+  final int totalRegistros;
+  final String? error;
 
-// Extensão para facilitar o uso dos tipos
-extension TipoRelatorioExtension on TipoRelatorio {
-  String get nome {
-    switch (this) {
-      case TipoRelatorio.fornecedores:
-        return 'Fornecedores';
-      case TipoRelatorio.aplicacao:
-        return 'Aplicações de Agrotóxicos';
-      case TipoRelatorio.aplicacaoInsumo:
-        return 'Aplicações de Insumos';
-      case TipoRelatorio.semente:
-        return 'Sementes';
-      case TipoRelatorio.insumo:
-        return 'Insumos';
-      case TipoRelatorio.agrotoxico:
-        return 'Agrotóxicos';
-      case TipoRelatorio.colheita:
-        return 'Colheitas';
-      case TipoRelatorio.movimentacaoEstoque:
-        return 'Movimentação de Estoque';
-      case TipoRelatorio.plantio:
-        return 'Plantios';
-    }
-  }
+  RelatorioFornecedoresResponseDto({
+    required this.success,
+    required this.data,
+    required this.totalRegistros,
+    this.error,
+  });
 
-  String get descricao {
-    switch (this) {
-      case TipoRelatorio.fornecedores:
-        return 'Lista de fornecedores e produtos';
-      case TipoRelatorio.aplicacao:
-        return 'Histórico de aplicações de agrotóxicos';
-      case TipoRelatorio.aplicacaoInsumo:
-        return 'Histórico de aplicações de insumos';
-      case TipoRelatorio.semente:
-        return 'Controle de sementes';
-      case TipoRelatorio.insumo:
-        return 'Controle de estoque de insumos';
-      case TipoRelatorio.agrotoxico:
-        return 'Controle de estoque de agrotóxicos';
-      case TipoRelatorio.colheita:
-        return 'Resultados das colheitas';
-      case TipoRelatorio.movimentacaoEstoque:
-        return 'Movimentações de estoque';
-      case TipoRelatorio.plantio:
-        return 'Histórico de plantios';
-    }
-  }
-
-  String get endpoint {
-    switch (this) {
-      case TipoRelatorio.fornecedores:
-        return 'fornecedores';
-      case TipoRelatorio.aplicacao:
-        return 'aplicacao';
-      case TipoRelatorio.aplicacaoInsumo:
-        return 'aplicacao-insumo';
-      case TipoRelatorio.semente:
-        return 'semente';
-      case TipoRelatorio.insumo:
-        return 'insumo';
-      case TipoRelatorio.agrotoxico:
-        return 'agrotoxico';
-      case TipoRelatorio.colheita:
-        return 'colheita';
-      case TipoRelatorio.movimentacaoEstoque:
-        return 'movimentacao-estoque';
-      case TipoRelatorio.plantio:
-        return 'plantio';
-    }
+  factory RelatorioFornecedoresResponseDto.fromJson(Map<String, dynamic> json) {
+    return RelatorioFornecedoresResponseDto(
+      success: json['success'] ?? false,
+      data:
+          (json['data'] as List?)
+              ?.map((item) => RelatorioFornecedoresDto.fromJson(item))
+              .toList() ??
+          [],
+      totalRegistros: json['totalRegistros'] ?? 0,
+      error: json['error'],
+    );
   }
 }
 
+class RelatorioAplicacaoResponseDto {
+  final bool success;
+  final List<RelatorioAplicacaoDto> data;
+  final int totalRegistros;
+  final String? error;
 
+  RelatorioAplicacaoResponseDto({
+    required this.success,
+    required this.data,
+    required this.totalRegistros,
+    this.error,
+  });
 
+  factory RelatorioAplicacaoResponseDto.fromJson(Map<String, dynamic> json) {
+    return RelatorioAplicacaoResponseDto(
+      success: json['success'] ?? false,
+      data:
+          (json['data'] as List?)
+              ?.map((item) => RelatorioAplicacaoDto.fromJson(item))
+              .toList() ??
+          [],
+      totalRegistros: json['totalRegistros'] ?? 0,
+      error: json['error'],
+    );
+  }
+}
+
+class RelatorioAplicacaoInsumoResponseDto {
+  final bool success;
+  final List<RelatorioAplicacaoInsumoDto> data;
+  final int totalRegistros;
+  final String? error;
+
+  RelatorioAplicacaoInsumoResponseDto({
+    required this.success,
+    required this.data,
+    required this.totalRegistros,
+    this.error,
+  });
+
+  factory RelatorioAplicacaoInsumoResponseDto.fromJson(
+    Map<String, dynamic> json,
+  ) {
+    return RelatorioAplicacaoInsumoResponseDto(
+      success: json['success'] ?? false,
+      data:
+          (json['data'] as List?)
+              ?.map((item) => RelatorioAplicacaoInsumoDto.fromJson(item))
+              .toList() ??
+          [],
+      totalRegistros: json['totalRegistros'] ?? 0,
+      error: json['error'],
+    );
+  }
+}
+
+class RelatorioInsumoResponseDto {
+  final bool success;
+  final List<RelatorioInsumoDto> data;
+  final int totalRegistros;
+  final String? error;
+
+  RelatorioInsumoResponseDto({
+    required this.success,
+    required this.data,
+    required this.totalRegistros,
+    this.error,
+  });
+
+  factory RelatorioInsumoResponseDto.fromJson(Map<String, dynamic> json) {
+    return RelatorioInsumoResponseDto(
+      success: json['success'] ?? false,
+      data:
+          (json['data'] as List?)
+              ?.map((item) => RelatorioInsumoDto.fromJson(item))
+              .toList() ??
+          [],
+      totalRegistros: json['totalRegistros'] ?? 0,
+      error: json['error'],
+    );
+  }
+}
+
+class RelatorioAgrotoxicoResponseDto {
+  final bool success;
+  final List<RelatorioAgrotoxicoDto> data;
+  final int totalRegistros;
+  final String? error;
+
+  RelatorioAgrotoxicoResponseDto({
+    required this.success,
+    required this.data,
+    required this.totalRegistros,
+    this.error,
+  });
+
+  factory RelatorioAgrotoxicoResponseDto.fromJson(Map<String, dynamic> json) {
+    return RelatorioAgrotoxicoResponseDto(
+      success: json['success'] ?? false,
+      data:
+          (json['data'] as List?)
+              ?.map((item) => RelatorioAgrotoxicoDto.fromJson(item))
+              .toList() ??
+          [],
+      totalRegistros: json['totalRegistros'] ?? 0,
+      error: json['error'],
+    );
+  }
+}
+
+class RelatorioColheitaResponseDto {
+  final bool success;
+  final List<RelatorioColheitaDto> data;
+  final int totalRegistros;
+  final String? error;
+
+  RelatorioColheitaResponseDto({
+    required this.success,
+    required this.data,
+    required this.totalRegistros,
+    this.error,
+  });
+
+  factory RelatorioColheitaResponseDto.fromJson(Map<String, dynamic> json) {
+    return RelatorioColheitaResponseDto(
+      success: json['success'] ?? false,
+      data:
+          (json['data'] as List?)
+              ?.map((item) => RelatorioColheitaDto.fromJson(item))
+              .toList() ??
+          [],
+      totalRegistros: json['totalRegistros'] ?? 0,
+      error: json['error'],
+    );
+  }
+}
+
+class RelatorioMovimentacaoEstoqueResponseDto {
+  final bool success;
+  final List<RelatorioMovimentacaoEstoqueDto> data;
+  final int totalRegistros;
+  final String? error;
+
+  RelatorioMovimentacaoEstoqueResponseDto({
+    required this.success,
+    required this.data,
+    required this.totalRegistros,
+    this.error,
+  });
+
+  factory RelatorioMovimentacaoEstoqueResponseDto.fromJson(
+    Map<String, dynamic> json,
+  ) {
+    return RelatorioMovimentacaoEstoqueResponseDto(
+      success: json['success'] ?? false,
+      data:
+          (json['data'] as List?)
+              ?.map((item) => RelatorioMovimentacaoEstoqueDto.fromJson(item))
+              .toList() ??
+          [],
+      totalRegistros: json['totalRegistros'] ?? 0,
+      error: json['error'],
+    );
+  }
+}
+
+class RelatorioPlantioResponseDto {
+  final bool success;
+  final List<RelatorioPlantioDto> data;
+  final int totalRegistros;
+  final String? error;
+
+  RelatorioPlantioResponseDto({
+    required this.success,
+    required this.data,
+    required this.totalRegistros,
+    this.error,
+  });
+
+  factory RelatorioPlantioResponseDto.fromJson(Map<String, dynamic> json) {
+    return RelatorioPlantioResponseDto(
+      success: json['success'] ?? false,
+      data:
+          (json['data'] as List?)
+              ?.map((item) => RelatorioPlantioDto.fromJson(item))
+              .toList() ??
+          [],
+      totalRegistros: json['totalRegistros'] ?? 0,
+      error: json['error'],
+    );
+  }
+}
 

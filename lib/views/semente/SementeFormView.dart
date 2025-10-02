@@ -51,7 +51,7 @@ class _SementeFormViewState extends State<SementeFormView> {
 
       if (semente.preco != null) {
         _precoController.text = toCurrencyString(
-          semente.preco!.toStringAsFixed(2),
+          semente.preco.toStringAsFixed(2),
           leadingSymbol: 'R\$ ',
           useSymbolPadding: true,
         );
@@ -334,3 +334,4 @@ class _SementeFormViewState extends State<SementeFormView> {
     );
   }
 }
+

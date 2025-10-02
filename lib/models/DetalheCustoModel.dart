@@ -102,3 +102,4 @@ class DetalheCustoModel {
         unidadeMedida.hashCode;
   }
 }
+

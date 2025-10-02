@@ -115,7 +115,7 @@ class _AplicacaoFormViewState extends State<AplicacaoInsumoFormView> {
     }
   }
 
-  void _salvar() {
+  Future<void> _salvar() async {
     if (!_formKey.currentState!.validate()) return;
 
     final model = AplicacaoInsumoModel(
@@ -131,20 +131,30 @@ class _AplicacaoFormViewState extends State<AplicacaoInsumoFormView> {
       context,
       listen: false,
     );
-    if (widget.aplicacao == null) {
-      viewModel.add(model);
-    } else {
-      viewModel.update(model);
+    try {
+      if (widget.aplicacao == null) {
+        await viewModel.add(model);
+      } else {
+        await viewModel.update(model);
+      }
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Aplicação salva com sucesso!'),
+          backgroundColor: primaryColor,
+        ),
+      );
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(viewModel.errorMessage ?? e.toString()),
+          backgroundColor: errorColor,
+        ),
+      );
     }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Aplicação salva com sucesso!'),
-        backgroundColor: primaryColor,
-      ),
-    );
-
-    Navigator.pop(context);
   }
 
   @override

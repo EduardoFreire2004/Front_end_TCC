@@ -85,7 +85,6 @@ class CustoViewModel extends RefreshableViewModel {
     notifyListeners();
   }
 
-  // Método para recarregar dados após login
   Future<void> refreshAfterLogin() async {
     await fetch();
   }
@@ -106,3 +105,4 @@ class CustoViewModel extends RefreshableViewModel {
     }
   }
 }
+

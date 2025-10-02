@@ -88,7 +88,7 @@ class TipoAgrotoxicoListView extends StatelessWidget {
                                         CrossAxisAlignment.start,
                                     children: <Widget>[
                                       Text(
-                                        tipo.descricao ?? 'Nome não disponível',
+                                        tipo.descricao,
                                         style: theme.textTheme.titleMedium
                                             ?.copyWith(
                                               fontWeight: FontWeight.bold,
@@ -145,3 +145,4 @@ class TipoAgrotoxicoListView extends StatelessWidget {
     );
   }
 }
+

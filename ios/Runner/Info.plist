@@ -45,5 +45,15 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	
+	<!-- Permissões de localização para iOS -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Este aplicativo precisa acessar sua localização para mostrar a posição da lavoura no mapa.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Este aplicativo precisa acessar sua localização para mostrar a posição da lavoura no mapa.</string>
+	
+	<!-- Google Maps API Key para iOS -->
+	<key>GMSApiKey</key>
+	<string>AIzaSyDcsY2_h9F1RiULYumcj4o6zpxwmGjtQCU</string>
 </dict>
 </plist>

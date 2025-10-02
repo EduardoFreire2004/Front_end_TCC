@@ -27,11 +27,10 @@ import 'package:flutter_fgl_1/config/app_theme.dart';
 import 'package:flutter_fgl_1/config/list_config.dart';
 import 'package:provider/provider.dart';
 
-// Configuração global para listas
 class CustomScrollBehavior extends ScrollBehavior {
   @override
   ScrollPhysics getScrollPhysics(BuildContext context) {
-    // Define a física de scroll padrão para todas as listas
+
     return ListConfig.defaultScrollPhysics;
   }
 
@@ -41,7 +40,7 @@ class CustomScrollBehavior extends ScrollBehavior {
     Widget child,
     ScrollableDetails details,
   ) {
-    // Configuração padrão da scrollbar
+
     return ListConfig.defaultScrollbar(child: child);
   }
 
@@ -149,8 +148,7 @@ class FGLApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(
           create: (_) {
-            // CustoViewModel requer um CustoService que precisa de token
-            // Será criado dinamicamente quando necessário
+
             return CustoViewModel(CustoService(token: ''));
           },
         ),
@@ -224,7 +222,13 @@ class MainScreenScaffold extends StatelessWidget {
         ],
       ),
       drawer: const NavBar(),
-      body: const LavouraListView(),
+      body: Column(
+        children: [
+
+          const Expanded(child: LavouraListView()),
+        ],
+      ),
     );
   }
 }
+

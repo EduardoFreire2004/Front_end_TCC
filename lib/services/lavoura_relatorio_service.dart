@@ -1,20 +1,19 @@
-import 'package:flutter_fgl_1/services/aplicacao_service.dart';
+import 'package:flutter_fgl_1/repositories/AplicacaoInsumoRepo.dart';
+import 'package:flutter_fgl_1/repositories/AplicacaoRepo.dart';
 import 'package:flutter_fgl_1/repositories/PlantioRepo.dart';
 import 'package:flutter_fgl_1/models/RelatorioDto.dart';
 
 class LavouraRelatorioService {
-  static final AplicacaoService _aplicacaoService = AplicacaoService();
+  static final AplicacaoRepo _aplicacaoRepo = AplicacaoRepo();
+  static final AplicacaoInsumoRepo _aplicacaoInsumoRepo = AplicacaoInsumoRepo();
   static final PlantioRepo _plantioRepo = PlantioRepo();
 
-  // Buscar aplicações de agrotóxicos por lavoura
   static Future<List<AplicacaoDto>> getAplicacoesAgrotoxicosByLavoura(
     int lavouraId,
   ) async {
     try {
-      final aplicacoes = await _aplicacaoService
-          .buscarAplicacoesAgrotoxicoPorLavoura(lavouraId);
+      final aplicacoes = await _aplicacaoRepo.fetchByLavoura(lavouraId);
 
-      // Converter AplicacaoModel para AplicacaoDto
       return aplicacoes
           .map(
             (aplicacao) => AplicacaoDto(
@@ -34,15 +33,12 @@ class LavouraRelatorioService {
     }
   }
 
-  // Buscar aplicações de insumos por lavoura
   static Future<List<AplicacaoDto>> getAplicacoesInsumosByLavoura(
     int lavouraId,
   ) async {
     try {
-      final aplicacoes = await _aplicacaoService
-          .buscarAplicacoesInsumoPorLavoura(lavouraId);
+      final aplicacoes = await _aplicacaoInsumoRepo.fetchByLavoura(lavouraId);
 
-      // Converter AplicacaoInsumoModel para AplicacaoDto
       return aplicacoes
           .map(
             (aplicacao) => AplicacaoDto(
@@ -62,12 +58,10 @@ class LavouraRelatorioService {
     }
   }
 
-  // Buscar plantios por lavoura
   static Future<List<PlantioDto>> getPlantiosByLavoura(int lavouraId) async {
     try {
       final plantios = await _plantioRepo.fetchByLavoura(lavouraId);
 
-      // Converter PlantioModel para PlantioDto
       return plantios
           .map(
             (plantio) => PlantioDto(
@@ -75,7 +69,6 @@ class LavouraRelatorioService {
               dataPlantio:
                   plantio.dataHora.toString().split(' ')[0], // Apenas a data
               areaPlantada: plantio.areaPlantada,
-              status: 'Ativo', // Status padrão já que não existe no modelo
             ),
           )
           .toList();
@@ -85,7 +78,6 @@ class LavouraRelatorioService {
     }
   }
 
-  // Buscar dados completos da lavoura
   static Future<Map<String, dynamic>> getDadosCompletosLavoura(
     int lavouraId,
   ) async {
@@ -117,3 +109,4 @@ class LavouraRelatorioService {
     }
   }
 }
+

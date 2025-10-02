@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_fgl_1/models/LavouraModel.dart';
 import 'package:flutter_fgl_1/viewmodels/LavouraViewModel.dart';
+import 'package:flutter_fgl_1/views/Lavoura/LocalizacaoMapaView.dart';
 import 'package:provider/provider.dart';
 
 class LavouraFormView extends StatefulWidget {
@@ -17,6 +18,8 @@ class _LavouraFormViewState extends State<LavouraFormView> {
   final _formKey = GlobalKey<FormState>();
   final _nomeController = TextEditingController();
   final _areaController = TextEditingController();
+  double? _latitude;
+  double? _longitude;
 
   final Color primaryColor = Colors.green[700]!;
   final Color primaryColorDark = Colors.green[800]!;
@@ -32,6 +35,8 @@ class _LavouraFormViewState extends State<LavouraFormView> {
     if (widget.lavoura != null) {
       _nomeController.text = widget.lavoura!.nome;
       _areaController.text = widget.lavoura!.area.toString();
+      _latitude = widget.lavoura!.latitude;
+      _longitude = widget.lavoura!.longitude;
     }
   }
 
@@ -45,10 +50,22 @@ class _LavouraFormViewState extends State<LavouraFormView> {
   void _salvar() async {
     if (!_formKey.currentState!.validate()) return;
 
+    if (_latitude == null || _longitude == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('É obrigatório selecionar a localização da lavoura'),
+          backgroundColor: errorColor,
+        ),
+      );
+      return;
+    }
+
     final lavoura = LavouraModel(
       id: widget.lavoura?.id,
       nome: _nomeController.text.trim(),
       area: double.parse(_areaController.text.replaceAll(',', '.')),
+      latitude: _latitude!,
+      longitude: _longitude!,
     );
 
     final viewModel = Provider.of<LavouraViewModel>(context, listen: false);
@@ -75,6 +92,26 @@ class _LavouraFormViewState extends State<LavouraFormView> {
           backgroundColor: errorColor,
         ),
       );
+    }
+  }
+
+  Future<void> _selecionarLocalizacao() async {
+    final result = await Navigator.push<Map<String, double>>(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) => LocalizacaoMapaView(
+              initialLatitude: _latitude,
+              initialLongitude: _longitude,
+            ),
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        _latitude = result['latitude'];
+        _longitude = result['longitude'];
+      });
     }
   }
 
@@ -168,6 +205,8 @@ class _LavouraFormViewState extends State<LavouraFormView> {
                     return null;
                   },
                 ),
+                const SizedBox(height: 16),
+                _buildLocationField(),
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: _salvar,
@@ -212,4 +251,78 @@ class _LavouraFormViewState extends State<LavouraFormView> {
       keyboardType: keyboardType,
     );
   }
+
+  Widget _buildLocationField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Localização *',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: primaryColorDark,
+          ),
+        ),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: _selecionarLocalizacao,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              border: Border.all(color: lightGreyColor),
+              borderRadius: BorderRadius.circular(8),
+              color: Colors.white,
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.location_on,
+                  color:
+                      _latitude != null && _longitude != null
+                          ? primaryColor
+                          : mediumGreyColor,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _latitude != null && _longitude != null
+                            ? 'Localização selecionada'
+                            : 'Toque para selecionar no mapa *',
+                        style: TextStyle(
+                          color:
+                              _latitude != null && _longitude != null
+                                  ? primaryColorDark
+                                  : mediumGreyColor,
+                          fontWeight:
+                              _latitude != null && _longitude != null
+                                  ? FontWeight.w500
+                                  : FontWeight.normal,
+                        ),
+                      ),
+                      if (_latitude != null && _longitude != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          'Lat: ${_latitude!.toStringAsFixed(6)}, Lng: ${_longitude!.toStringAsFixed(6)}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: mediumGreyColor,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                Icon(Icons.arrow_forward_ios, size: 16, color: mediumGreyColor),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
+

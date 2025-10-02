@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_fgl_1/models/AplicacaoModel.dart';
+import 'package:flutter_fgl_1/viewmodels/AplicacacaoViewModel.dart';
 import 'package:flutter_fgl_1/viewmodels/AgrotoxicoViewModel.dart';
-import 'package:flutter_fgl_1/services/aplicacao_service.dart';
 import 'package:flutter_fgl_1/views/Agrotoxico/AgrotoxicoFormView.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -26,7 +26,6 @@ class _AplicacaoFormViewState extends State<AplicacaoFormView> {
   int? _agrotoxicoID;
   DateTime? _dataHora;
   double? _qtde;
-  bool _isLoading = false;
 
   final Color primaryColor = Colors.green[700]!;
   final Color primaryColorDark = Colors.green[800]!;
@@ -35,9 +34,6 @@ class _AplicacaoFormViewState extends State<AplicacaoFormView> {
   final Color mediumGreyColor = Colors.grey[600]!;
   final Color whiteColor = Colors.white;
   final Color formBackgroundColor = Colors.grey[50]!;
-
-  // Serviço para gerenciar aplicações
-  final AplicacaoService _aplicacaoService = AplicacaoService();
 
   @override
   void initState() {
@@ -118,63 +114,39 @@ class _AplicacaoFormViewState extends State<AplicacaoFormView> {
   Future<void> _salvar() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isLoading = true;
-    });
+    final model = AplicacaoModel(
+      id: widget.aplicacao?.id,
+      descricao: _descricaoController.text.trim(),
+      dataHora: _dataHora!,
+      agrotoxicoID: _agrotoxicoID!,
+      lavouraID: widget.lavouraId,
+      qtde: _qtde ?? double.parse(_qtdeController.text),
+    );
 
+    final viewModel = Provider.of<AplicacaoViewModel>(context, listen: false);
     try {
-      final model = AplicacaoModel(
-        id: widget.aplicacao?.id,
-        descricao: _descricaoController.text.trim(),
-        dataHora: _dataHora!,
-        agrotoxicoID: _agrotoxicoID!,
-        lavouraID: widget.lavouraId,
-        qtde: _qtde ?? double.parse(_qtdeController.text),
-      );
-
       if (widget.aplicacao == null) {
-        // Criar nova aplicação
-        await _aplicacaoService.criarAplicacaoAgrotoxico(
-          lavouraId: model.lavouraID,
-          agrotoxicoId: model.agrotoxicoID,
-          quantidade: model.qtde,
-          dataHora: model.dataHora,
-          descricao: model.descricao,
-        );
+        await viewModel.add(model);
       } else {
-        // Atualizar aplicação existente
-        await _aplicacaoService.atualizarAplicacaoAgrotoxico(model);
+        await viewModel.update(model);
       }
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              widget.aplicacao == null
-                  ? 'Aplicação criada com sucesso!'
-                  : 'Aplicação atualizada com sucesso!',
-            ),
-            backgroundColor: primaryColor,
-          ),
-        );
-
-        Navigator.pop(context, true); // Retorna true para indicar sucesso
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Aplicação salva com sucesso!'),
+          backgroundColor: primaryColor,
+        ),
+      );
+      Navigator.pop(context);
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro: ${e.toString()}'),
-            backgroundColor: errorColor,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(viewModel.errorMessage ?? e.toString()),
+          backgroundColor: errorColor,
+        ),
+      );
     }
   }
 
@@ -300,7 +272,7 @@ class _AplicacaoFormViewState extends State<AplicacaoFormView> {
                       ),
                       const SizedBox(height: 24),
                       ElevatedButton(
-                        onPressed: _isLoading ? null : _salvar,
+                        onPressed: _salvar,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: primaryColor,
                           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -308,27 +280,10 @@ class _AplicacaoFormViewState extends State<AplicacaoFormView> {
                             borderRadius: BorderRadius.circular(8.0),
                           ),
                         ),
-                        child:
-                            _isLoading
-                                ? SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      whiteColor,
-                                    ),
-                                  ),
-                                )
-                                : Text(
-                                  widget.aplicacao == null
-                                      ? 'ADICIONAR'
-                                      : 'ATUALIZAR',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: whiteColor,
-                                  ),
-                                ),
+                        child: Text(
+                          widget.aplicacao == null ? 'ADICIONAR' : 'ATUALIZAR',
+                          style: TextStyle(fontSize: 16, color: whiteColor),
+                        ),
                       ),
                     ],
                   ),

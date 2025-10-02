@@ -4,7 +4,7 @@ import '../models/MovimentacaoEstoqueModel.dart';
 import '../services/api_service.dart';
 
 class MovimentacaoEstoqueRepo {
-  // GET /api/MovimentacaoEstoques
+
   Future<List<MovimentacaoEstoqueModel>> getAll() async {
     try {
       print('DEBUG: Fazendo GET para /MovimentacaoEstoques');
@@ -25,12 +25,11 @@ class MovimentacaoEstoqueRepo {
     }
   }
 
-  // POST /api/MovimentacaoEstoques
   Future<MovimentacaoEstoqueModel> create(
     MovimentacaoEstoqueModel model,
   ) async {
     try {
-      // Validação do modelo antes de enviar
+
       if (!model.isValid()) {
         throw Exception(
           'Dados inválidos: verifique se apenas um tipo de item foi selecionado e se a quantidade é positiva.',
@@ -48,11 +47,11 @@ class MovimentacaoEstoqueRepo {
       print('DEBUG: Status code: ${response.statusCode}');
 
       if (response.statusCode == 201) {
-        // Retorna a movimentação criada
+
         final data = jsonDecode(response.body);
         return MovimentacaoEstoqueModel.fromJson(data);
       } else if (response.statusCode == 400) {
-        // Erro de validação da API
+
         final errorData = jsonDecode(response.body);
         throw Exception(errorData['message'] ?? 'Dados inválidos');
       } else {
@@ -66,14 +65,12 @@ class MovimentacaoEstoqueRepo {
     }
   }
 
-  // PUT /api/MovimentacaoEstoques/{id}
   Future<void> update(MovimentacaoEstoqueModel model) async {
     try {
       if (model.id == null) {
         throw Exception('ID da movimentação é obrigatório para atualização.');
       }
 
-      // Validação do modelo antes de enviar
       if (!model.isValid()) {
         throw Exception(
           'Dados inválidos: verifique se apenas um tipo de item foi selecionado e se a quantidade é positiva.',
@@ -105,7 +102,6 @@ class MovimentacaoEstoqueRepo {
     }
   }
 
-  // DELETE /api/MovimentacaoEstoques/{id}
   Future<void> delete(int id) async {
     try {
       print('DEBUG: Fazendo DELETE para /MovimentacaoEstoques/$id');
@@ -125,7 +121,6 @@ class MovimentacaoEstoqueRepo {
     }
   }
 
-  // GET /api/MovimentacaoEstoques/{id}
   Future<MovimentacaoEstoqueModel?> getById(int id) async {
     try {
       print('DEBUG: Fazendo GET para /MovimentacaoEstoques/$id');
@@ -148,12 +143,10 @@ class MovimentacaoEstoqueRepo {
     }
   }
 
-  // Método para filtrar movimentações por lavoura (filtro local)
   Future<List<MovimentacaoEstoqueModel>> getByLavoura(int lavouraId) async {
     try {
       print('DEBUG: Filtrando movimentações por lavoura $lavouraId');
 
-      // Busca todas as movimentações e filtra por lavoura
       final allMovimentacoes = await getAll();
       final filtered =
           allMovimentacoes.where((mov) => mov.lavouraID == lavouraId).toList();
@@ -169,7 +162,6 @@ class MovimentacaoEstoqueRepo {
     }
   }
 
-  // Método para filtrar movimentações por período (filtro local)
   Future<List<MovimentacaoEstoqueModel>> getByPeriod(
     int lavouraId,
     DateTime dataInicio,
@@ -180,7 +172,6 @@ class MovimentacaoEstoqueRepo {
         'DEBUG: Filtrando movimentações por período para lavoura $lavouraId',
       );
 
-      // Busca movimentações da lavoura e filtra por período
       final movimentacoesLavoura = await getByLavoura(lavouraId);
       final filtered =
           movimentacoesLavoura
@@ -202,7 +193,6 @@ class MovimentacaoEstoqueRepo {
     }
   }
 
-  // Método para filtrar movimentações por tipo de item (filtro local)
   Future<List<MovimentacaoEstoqueModel>> getByItemType(
     int lavouraId,
     String itemType,
@@ -213,7 +203,6 @@ class MovimentacaoEstoqueRepo {
         'DEBUG: Filtrando movimentações por tipo $itemType, ID $itemId para lavoura $lavouraId',
       );
 
-      // Busca movimentações da lavoura e filtra por tipo de item
       final movimentacoesLavoura = await getByLavoura(lavouraId);
 
       List<MovimentacaoEstoqueModel> filtered;
@@ -252,3 +241,4 @@ class MovimentacaoEstoqueRepo {
     }
   }
 }
+

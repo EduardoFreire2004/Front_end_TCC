@@ -7,7 +7,6 @@ class AplicacaoInsumoModel {
   DateTime dataHora;
   double qtde;
 
-  // Campos adicionais da resposta da API
   String? lavouraNome;
   String? insumoNome;
   String? insumoUnidadeMedida;
@@ -53,7 +52,6 @@ class AplicacaoInsumoModel {
     };
   }
 
-  // Método para criar cópia com alterações
   AplicacaoInsumoModel copyWith({
     int? id,
     int? usuarioId,
@@ -109,3 +107,4 @@ class AplicacaoInsumoModel {
         qtde.hashCode;
   }
 }
+

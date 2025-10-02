@@ -4,7 +4,6 @@ import 'package:flutter_fgl_1/views/Agrotoxico/AgrotoxicoListView.dart';
 import 'package:flutter_fgl_1/views/Aplicacao/AplicacaoListView.dart';
 import 'package:flutter_fgl_1/views/AplicacaoInsumo/AplicacaoInsumoListView.dart';
 import 'package:flutter_fgl_1/views/Colheita/ColheitaListView.dart';
-import 'package:flutter_fgl_1/views/Fornecedores/FornecedoresListView.dart';
 import 'package:flutter_fgl_1/views/Insumo/InsumoListView.dart';
 import 'package:flutter_fgl_1/views/Plantio/PlantioListView.dart';
 import 'package:flutter_fgl_1/views/Semente/SementeListView.dart';
@@ -12,7 +11,11 @@ import 'package:flutter_fgl_1/views/MovimentacaoEstoque/MovimentacaoEstoqueListV
 import 'package:flutter_fgl_1/views/Relatorios/RelatoriosMainScreen.dart';
 import 'package:flutter_fgl_1/views/Relatorios/RelatorioCompletoLavouraScreen.dart';
 import 'package:flutter_fgl_1/views/Custos/CustosView.dart';
+import 'package:flutter_fgl_1/views/Fornecedores/FornecedoresListView.dart';
+import 'package:flutter_fgl_1/views/Lavoura/LavouraFormView.dart';
+import 'package:flutter_fgl_1/viewmodels/LavouraViewModel.dart';
 import 'package:flutter_fgl_1/config/app_colors.dart';
+import 'package:provider/provider.dart';
 
 class LavouraDetalhesView extends StatefulWidget {
   final LavouraModel lavoura;
@@ -31,6 +34,81 @@ class _LavouraDetalhesViewState extends State<LavouraDetalhesView> {
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  void _editarLavoura() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LavouraFormView(lavoura: widget.lavoura),
+      ),
+    );
+
+    if (result == true) {
+
+      setState(() {});
+    }
+  }
+
+  void _excluirLavoura() async {
+    final confirmacao = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Confirmar Exclusão'),
+            content: Text(
+              'Tem certeza que deseja excluir a lavoura "${widget.lavoura.nome}"?\n\n'
+              'Esta ação não pode ser desfeita e todos os dados relacionados '
+              '(plantios, aplicações, colheitas, etc.) serão perdidos.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancelar'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('Excluir'),
+              ),
+            ],
+          ),
+    );
+
+    if (confirmacao == true) {
+      try {
+        final viewModel = Provider.of<LavouraViewModel>(context, listen: false);
+        final sucesso = await viewModel.delete(widget.lavoura.id!);
+
+        if (sucesso) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Lavoura "${widget.lavoura.nome}" excluída com sucesso',
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.pop(context); // Volta para a lista
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Erro ao excluir lavoura: ${viewModel.errorMessage}',
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao excluir lavoura: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildLavouraSection() {
@@ -75,7 +153,7 @@ class _LavouraDetalhesViewState extends State<LavouraDetalhesView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header da lavoura
+
           Text(
             widget.lavoura.nome,
             style: TextStyle(
@@ -89,9 +167,48 @@ class _LavouraDetalhesViewState extends State<LavouraDetalhesView> {
             'Área: ${widget.lavoura.area} ha',
             style: TextStyle(fontSize: 16, color: subtitleColor),
           ),
+          const SizedBox(height: 8),
+
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.blue[50],
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.blue[200]!),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.location_on, color: Colors.blue[600], size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Localização',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue[800],
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Latitude: ${widget.lavoura.latitude.toStringAsFixed(6)}',
+                        style: TextStyle(fontSize: 12, color: Colors.blue[700]),
+                      ),
+                      Text(
+                        'Longitude: ${widget.lavoura.longitude.toStringAsFixed(6)}',
+                        style: TextStyle(fontSize: 12, color: Colors.blue[700]),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
           const Divider(height: 24, thickness: 1),
 
-          // Seção: Operações da Lavoura
           Text(
             'Operações da Lavoura',
             style: TextStyle(
@@ -174,7 +291,11 @@ class _LavouraDetalhesViewState extends State<LavouraDetalhesView> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const RelatoriosMainScreen(),
+                      builder:
+                          (_) => RelatoriosMainScreen(
+                            lavouraId: widget.lavoura.id!,
+                            nomeLavoura: widget.lavoura.nome,
+                          ),
                     ),
                   );
                 },
@@ -316,7 +437,6 @@ class _LavouraDetalhesViewState extends State<LavouraDetalhesView> {
             ],
           ),
 
-          // Referência visual para próxima seção
           const SizedBox(height: 32),
           _buildNextSectionHint(),
         ],
@@ -366,7 +486,7 @@ class _LavouraDetalhesViewState extends State<LavouraDetalhesView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header da lavoura
+
           Text(
             widget.lavoura.nome,
             style: TextStyle(
@@ -380,9 +500,48 @@ class _LavouraDetalhesViewState extends State<LavouraDetalhesView> {
             'Área: ${widget.lavoura.area} ha',
             style: TextStyle(fontSize: 16, color: subtitleColor),
           ),
+          const SizedBox(height: 8),
+
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.blue[50],
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.blue[200]!),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.location_on, color: Colors.blue[600], size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Localização',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue[800],
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Latitude: ${widget.lavoura.latitude.toStringAsFixed(6)}',
+                        style: TextStyle(fontSize: 12, color: Colors.blue[700]),
+                      ),
+                      Text(
+                        'Longitude: ${widget.lavoura.longitude.toStringAsFixed(6)}',
+                        style: TextStyle(fontSize: 12, color: Colors.blue[700]),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
           const Divider(height: 24, thickness: 1),
 
-          // Seção: Gestão de Estoque
           Text(
             'Gestão de Estoque',
             style: TextStyle(
@@ -405,7 +564,7 @@ class _LavouraDetalhesViewState extends State<LavouraDetalhesView> {
                 Icons.science,
                 () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const AgrotoxicoListView()),
+                  MaterialPageRoute(builder: (_) => AgrotoxicoListView()),
                 ),
               ),
               buildCard(
@@ -429,9 +588,7 @@ class _LavouraDetalhesViewState extends State<LavouraDetalhesView> {
                 Icons.inventory_2,
                 () => Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => const FornecedoresListView(),
-                  ),
+                  MaterialPageRoute(builder: (_) => FornecedoresListView()),
                 ),
               ),
               buildCard(
@@ -450,7 +607,6 @@ class _LavouraDetalhesViewState extends State<LavouraDetalhesView> {
             ],
           ),
 
-          // Referência visual para seção anterior
           const SizedBox(height: 32),
           _buildPreviousSectionHint(),
         ],
@@ -565,6 +721,19 @@ class _LavouraDetalhesViewState extends State<LavouraDetalhesView> {
               ? 'Lavoura: ${widget.lavoura.nome}'
               : 'Estoque: ${widget.lavoura.nome}',
         ),
+        actions: [
+          IconButton(
+            onPressed: _editarLavoura,
+            icon: const Icon(Icons.edit),
+            tooltip: 'Editar Lavoura',
+          ),
+          IconButton(
+            onPressed: _excluirLavoura,
+            icon: const Icon(Icons.delete),
+            tooltip: 'Excluir Lavoura',
+            color: Colors.red,
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(40),
           child: Padding(
@@ -585,3 +754,4 @@ class _LavouraDetalhesViewState extends State<LavouraDetalhesView> {
     );
   }
 }
+

@@ -9,7 +9,6 @@ class MovimentacaoEstoqueViewModel extends RefreshableViewModel {
   String? _errorMessage;
   MovimentacaoEstoqueModel? _currentMovimentacao;
 
-  // Getters
   List<MovimentacaoEstoqueModel> get lista => _lista;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
@@ -17,7 +16,6 @@ class MovimentacaoEstoqueViewModel extends RefreshableViewModel {
   bool get hasError => _errorMessage != null;
   bool get hasData => _lista.isNotEmpty;
 
-  // Setters
   set isLoading(bool value) {
     _isLoading = value;
     notifyListeners();
@@ -28,13 +26,11 @@ class MovimentacaoEstoqueViewModel extends RefreshableViewModel {
     notifyListeners();
   }
 
-  // Limpar erro
   void clearError() {
     _errorMessage = null;
     notifyListeners();
   }
 
-  // GET /api/MovimentacaoEstoques
   Future<bool> fetch() async {
     try {
       _isLoading = true;
@@ -62,29 +58,24 @@ class MovimentacaoEstoqueViewModel extends RefreshableViewModel {
     notifyListeners();
   }
 
-  // Método para recarregar dados após login
   Future<void> refreshAfterLogin() async {
     await fetch();
   }
 
-  // POST /api/MovimentacaoEstoques
   Future<bool> add(MovimentacaoEstoqueModel model) async {
     try {
       _isLoading = true;
       _errorMessage = null;
       notifyListeners();
 
-      // Validação do modelo
       if (!model.isValid()) {
         _errorMessage =
             'Dados inválidos: verifique se apenas um tipo de item foi selecionado e se a quantidade é positiva.';
         return false;
       }
 
-      // Criar movimentação
       final createdMovimentacao = await _repo.create(model);
 
-      // Adicionar à lista local
       _lista.add(createdMovimentacao);
 
       return true;
@@ -97,24 +88,20 @@ class MovimentacaoEstoqueViewModel extends RefreshableViewModel {
     }
   }
 
-  // PUT /api/MovimentacaoEstoques/{id}
   Future<bool> update(MovimentacaoEstoqueModel model) async {
     try {
       _isLoading = true;
       _errorMessage = null;
       notifyListeners();
 
-      // Validação do modelo
       if (!model.isValid()) {
         _errorMessage =
             'Dados inválidos: verifique se apenas um tipo de item foi selecionado e se a quantidade é positiva.';
         return false;
       }
 
-      // Atualizar movimentação
       await _repo.update(model);
 
-      // Atualizar na lista local
       final index = _lista.indexWhere((m) => m.id == model.id);
       if (index != -1) {
         _lista[index] = model;
@@ -130,7 +117,6 @@ class MovimentacaoEstoqueViewModel extends RefreshableViewModel {
     }
   }
 
-  // DELETE /api/MovimentacaoEstoques/{id}
   Future<bool> delete(int id) async {
     try {
       _isLoading = true;
@@ -139,7 +125,6 @@ class MovimentacaoEstoqueViewModel extends RefreshableViewModel {
 
       await _repo.delete(id);
 
-      // Remover da lista local
       _lista.removeWhere((m) => m.id == id);
 
       return true;
@@ -152,7 +137,6 @@ class MovimentacaoEstoqueViewModel extends RefreshableViewModel {
     }
   }
 
-  // GET /api/MovimentacaoEstoques/{id}
   Future<MovimentacaoEstoqueModel?> getById(int id) async {
     try {
       _isLoading = true;
@@ -171,7 +155,6 @@ class MovimentacaoEstoqueViewModel extends RefreshableViewModel {
     }
   }
 
-  // GET /api/MovimentacaoEstoques/lavoura/{lavouraId}
   Future<bool> fetchByLavoura(int lavouraId) async {
     try {
       _isLoading = true;
@@ -190,7 +173,6 @@ class MovimentacaoEstoqueViewModel extends RefreshableViewModel {
     }
   }
 
-  // GET /api/MovimentacaoEstoques/lavoura/{lavouraId}/periodo
   Future<bool> fetchByPeriod(
     int lavouraId,
     DateTime dataInicio,
@@ -213,7 +195,6 @@ class MovimentacaoEstoqueViewModel extends RefreshableViewModel {
     }
   }
 
-  // GET /api/MovimentacaoEstoques/lavoura/{lavouraId}/tipo/{itemId}
   Future<bool> fetchByItemType(
     int lavouraId,
     String itemType,
@@ -236,7 +217,6 @@ class MovimentacaoEstoqueViewModel extends RefreshableViewModel {
     }
   }
 
-  // Métodos auxiliares
   List<MovimentacaoEstoqueModel> getEntradas() {
     return _lista.where((m) => m.movimentacao == 1).toList();
   }
@@ -274,13 +254,11 @@ class MovimentacaoEstoqueViewModel extends RefreshableViewModel {
     return saldo;
   }
 
-  // Verificar se há estoque suficiente para saída
   bool hasEstoqueSuficiente(int itemId, double quantidade) {
     final saldo = getSaldoAtual(itemId);
     return saldo >= quantidade;
   }
 
-  // Limpar dados
   void clear() {
     _lista.clear();
     _currentMovimentacao = null;
@@ -288,3 +266,4 @@ class MovimentacaoEstoqueViewModel extends RefreshableViewModel {
     notifyListeners();
   }
 }
+

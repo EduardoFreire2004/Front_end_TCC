@@ -11,20 +11,17 @@ class AuthService {
   static UsuarioModel? _usuario;
   static DateTime? _tokenExpiresAt;
 
-  // Getters
   static String? get token => _token;
   static String? get refreshToken => _refreshToken;
   static UsuarioModel? get usuario => _usuario;
   static bool get isAuthenticated => _token != null && !_isTokenExpired();
   static DateTime? get tokenExpiresAt => _tokenExpiresAt;
 
-  // Verificar se o token está expirado
   static bool _isTokenExpired() {
     if (_tokenExpiresAt == null) return true;
     return DateTime.now().isAfter(_tokenExpiresAt!);
   }
 
-  // Verificar se o token precisa ser renovado
   static bool get _shouldRefreshToken {
     if (_tokenExpiresAt == null) return false;
     final threshold = _tokenExpiresAt!.subtract(
@@ -33,7 +30,6 @@ class AuthService {
     return DateTime.now().isAfter(threshold);
   }
 
-  // Função auxiliar para retry
   static Future<T> _retryRequest<T>(
     Future<T> Function() request,
     int maxRetries,
@@ -47,14 +43,13 @@ class AuthService {
         if (attempts >= maxRetries) {
           rethrow;
         }
-        // Aguardar antes de tentar novamente
+
         await Future.delayed(ApiConfig.retryDelay);
       }
     }
     throw Exception('Número máximo de tentativas excedido');
   }
 
-  // Login
   static Future<AuthResponseModel> login(String email, String senha) async {
     return await _retryRequest(() async {
       try {
@@ -92,14 +87,14 @@ class AuthService {
 
           return authResponse;
         } else {
-          // Tentar extrair mensagem de erro da resposta
+
           String errorMessage = 'Erro no servidor';
           try {
             final errorData = json.decode(response.body);
             errorMessage =
                 errorData['message'] ?? errorData['error'] ?? errorMessage;
           } catch (e) {
-            // Se não conseguir decodificar, usar status code
+
             switch (response.statusCode) {
               case 400:
                 errorMessage = 'Dados inválidos';
@@ -143,7 +138,6 @@ class AuthService {
     }, ApiConfig.maxRetries);
   }
 
-  // Cadastro
   static Future<AuthResponseModel> cadastrar(
     String nome,
     String email,
@@ -152,7 +146,7 @@ class AuthService {
   ) async {
     return await _retryRequest(() async {
       try {
-        // Criar um usuário temporário para usar o método de serialização
+
         final usuario = UsuarioModel(
           nome: nome,
           email: email,
@@ -184,14 +178,14 @@ class AuthService {
 
           return authResponse;
         } else {
-          // Tentar extrair mensagem de erro da resposta
+
           String errorMessage = 'Erro no servidor';
           try {
             final errorData = json.decode(response.body);
             errorMessage =
                 errorData['message'] ?? errorData['error'] ?? errorMessage;
           } catch (e) {
-            // Se não conseguir decodificar, usar status code
+
             switch (response.statusCode) {
               case 400:
                 errorMessage = 'Dados inválidos para cadastro';
@@ -232,7 +226,6 @@ class AuthService {
     }, ApiConfig.maxRetries);
   }
 
-  // Logout
   static Future<void> logout() async {
     if (_token != null) {
       try {
@@ -246,14 +239,13 @@ class AuthService {
             )
             .timeout(ApiConfig.requestTimeout);
       } catch (e) {
-        // Ignora erros no logout
+
       }
     }
 
     _clearAuthData();
   }
 
-  // Refresh token
   static Future<bool> refreshTokenMethod() async {
     if (_refreshToken == null) return false;
 
@@ -279,17 +271,15 @@ class AuthService {
         }
       }
     } catch (e) {
-      // Ignora erros
+
     }
 
     return false;
   }
 
-  // Verificar token
   static Future<bool> verificarToken() async {
     if (_token == null || _isTokenExpired()) return false;
 
-    // Se o token está próximo de expirar, tentar renovar
     if (_shouldRefreshToken) {
       final refreshed = await refreshTokenMethod();
       if (refreshed) return true;
@@ -309,18 +299,17 @@ class AuthService {
       if (response.statusCode == 200) {
         return true;
       } else if (response.statusCode == 401) {
-        // Token inválido, tentar renovar
+
         return await refreshTokenMethod();
       }
     } catch (e) {
-      // Se houver erro de conexão, tentar renovar o token
+
       return await refreshTokenMethod();
     }
 
     return false;
   }
 
-  // Obter perfil do usuário
   static Future<UsuarioModel?> obterPerfil() async {
     if (_token == null || _isTokenExpired()) return null;
 
@@ -340,13 +329,12 @@ class AuthService {
         return UsuarioModel.fromJson(userData);
       }
     } catch (e) {
-      // Ignora erros
+
     }
 
     return null;
   }
 
-  // Limpar dados de autenticação
   static void _clearAuthData() {
     _token = null;
     _refreshToken = null;
@@ -354,7 +342,6 @@ class AuthService {
     _tokenExpiresAt = null;
   }
 
-  // Obter headers com token
   static Map<String, String> getAuthHeaders() {
     return {
       ...ApiConfig.defaultHeaders,
@@ -362,7 +349,6 @@ class AuthService {
     };
   }
 
-  // Verificar se precisa renovar o token
   static Future<bool> checkAndRefreshTokenIfNeeded() async {
     if (_shouldRefreshToken) {
       return await refreshTokenMethod();
@@ -370,3 +356,4 @@ class AuthService {
     return true;
   }
 }
+

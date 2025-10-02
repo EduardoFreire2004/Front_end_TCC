@@ -15,14 +15,13 @@ class UsuarioModel {
   });
 
   factory UsuarioModel.fromJson(Map<String, dynamic> map) {
-    // Tentar diferentes formatos de campos
+
     int? id;
     String nome = '';
     String email = '';
     String? telefone;
     String? senha;
 
-    // Verificar ID
     if (map['id'] != null) {
       final idValue = map['id'];
       if (idValue is int) {
@@ -30,7 +29,7 @@ class UsuarioModel {
       } else if (idValue is String) {
         id = int.tryParse(idValue);
       }
-      // Ignorar ID 0 (valor padrão da API)
+
       if (id == 0) id = null;
     } else if (map['Id'] != null) {
       final idValue = map['Id'];
@@ -50,32 +49,28 @@ class UsuarioModel {
       if (id == 0) id = null;
     }
 
-    // Verificar nome
     final nomeValue =
         map['nome'] ?? map['Nome'] ?? map['name'] ?? map['Name'] ?? '';
     nome = nomeValue.toString().trim();
-    // Ignorar nomes vazios
+
     if (nome.isEmpty) nome = '';
 
-    // Verificar email
     final emailValue = map['email'] ?? map['Email'] ?? map['userEmail'] ?? '';
     email = emailValue.toString().trim();
-    // Ignorar emails vazios
+
     if (email.isEmpty) email = '';
 
-    // Verificar telefone
     final telefoneValue =
         map['telefone'] ?? map['Telefone'] ?? map['phone'] ?? map['Phone'];
     telefone = telefoneValue?.toString().trim();
-    // Ignorar telefones vazios
-    if (telefone != null && telefone!.isEmpty) telefone = null;
 
-    // Verificar senha
+    if (telefone != null && telefone.isEmpty) telefone = null;
+
     final senhaValue =
         map['senha'] ?? map['Senha'] ?? map['password'] ?? map['Password'];
     senha = senhaValue?.toString().trim();
-    // Ignorar senhas vazias
-    if (senha != null && senha!.isEmpty) senha = null;
+
+    if (senha != null && senha.isEmpty) senha = null;
 
     return UsuarioModel(
       id: id,
@@ -89,7 +84,6 @@ class UsuarioModel {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = {'nome': nome, 'email': email};
 
-    // Só incluir campos que não são null
     if (id != null) data['id'] = id;
     if (telefone != null && telefone!.isNotEmpty) data['telefone'] = telefone;
     if (senha != null && senha!.isNotEmpty) data['senha'] = senha;
@@ -97,7 +91,6 @@ class UsuarioModel {
     return data;
   }
 
-  // Método para criar um usuário para cadastro
   Map<String, dynamic> toJsonForRegistration() {
     return {
       'nome': nome,
@@ -107,7 +100,6 @@ class UsuarioModel {
     };
   }
 
-  // Método para criar um usuário para atualização
   Map<String, dynamic> toJsonForUpdate() {
     final Map<String, dynamic> data = {'nome': nome, 'email': email};
 
@@ -116,7 +108,6 @@ class UsuarioModel {
     return data;
   }
 
-  // Validações
   bool get isValid {
     return nome.isNotEmpty && email.isNotEmpty && email.contains('@');
   }
@@ -133,7 +124,6 @@ class UsuarioModel {
     return 'UsuarioModel{id: $id, nome: $nome, email: $email, telefone: $telefone}';
   }
 
-  // Copiar com modificações
   UsuarioModel copyWith({
     int? id,
     String? nome,
@@ -150,3 +140,4 @@ class UsuarioModel {
     );
   }
 }
+

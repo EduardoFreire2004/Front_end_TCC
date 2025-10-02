@@ -88,8 +88,7 @@ class CategoriaInsumoListView extends StatelessWidget {
                                         CrossAxisAlignment.start,
                                     children: <Widget>[
                                       Text(
-                                        categoria.descricao ??
-                                            'Nome não disponível',
+                                        categoria.descricao,
                                         style: theme.textTheme.titleMedium
                                             ?.copyWith(
                                               fontWeight: FontWeight.bold,
@@ -146,3 +145,4 @@ class CategoriaInsumoListView extends StatelessWidget {
     );
   }
 }
+

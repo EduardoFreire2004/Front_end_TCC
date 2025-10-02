@@ -36,7 +36,18 @@ class PlantioRepo {
         jsonEncode(plantio.toJson()),
       );
 
-      if (response.statusCode != 200 && response.statusCode != 201) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return;
+      } else if (response.statusCode == 400) {
+        try {
+          final data = jsonDecode(response.body);
+          final message =
+              data['message'] ?? 'Dados inválidos ao criar plantio.';
+          throw Exception(message);
+        } catch (_) {
+          throw Exception('Dados inválidos ao criar plantio.');
+        }
+      } else {
         throw Exception('Erro ao criar plantio (${response.statusCode}).');
       }
     } on SocketException {

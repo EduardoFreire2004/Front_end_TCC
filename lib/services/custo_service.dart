@@ -10,14 +10,11 @@ class CustoService {
 
   CustoService({required this.token});
 
-  /// Headers padrão para todas as requisições
   Map<String, String> get _headers => {
     'Authorization': 'Bearer $token',
     'Content-Type': 'application/json',
   };
 
-  /// 🧮 CALCULAR CUSTOS COMPLETOS DA LAVOURA
-  /// POST /api/custo/calcular/{lavouraId}
   Future<CustoCalculadoModel> calcularCustosLavoura({
     required int lavouraId,
     DateTime? dataInicio,
@@ -68,7 +65,6 @@ class CustoService {
     }
   }
 
-  /// 🧮 CALCULAR CUSTOS DO ÚLTIMO MÊS
   Future<CustoCalculadoModel> calcularCustosUltimoMes(int lavouraId) async {
     try {
       final agora = DateTime.now();
@@ -90,8 +86,6 @@ class CustoService {
     }
   }
 
-  /// 💰 CALCULAR CUSTO DE APLICAÇÃO ESPECÍFICA
-  /// GET /api/custo/aplicacao/{aplicacaoId}
   Future<Map<String, dynamic>> calcularCustoAplicacao(int aplicacaoId) async {
     try {
       final response = await http
@@ -116,8 +110,6 @@ class CustoService {
     }
   }
 
-  /// 🌱 CALCULAR CUSTO DE APLICAÇÃO DE INSUMO
-  /// GET /api/custo/aplicacao-insumo/{aplicacaoInsumoId}
   Future<Map<String, dynamic>> calcularCustoAplicacaoInsumo(
     int aplicacaoInsumoId,
   ) async {
@@ -146,8 +138,6 @@ class CustoService {
     }
   }
 
-  /// 📦 CALCULAR CUSTO DE MOVIMENTAÇÃO
-  /// GET /api/custo/movimentacao/{movimentacaoId}
   Future<Map<String, dynamic>> calcularCustoMovimentacao(
     int movimentacaoId,
   ) async {
@@ -176,8 +166,6 @@ class CustoService {
     }
   }
 
-  /// 📈 OBTER RESUMO DE CUSTOS
-  /// POST /api/custo/resumo/{lavouraId}
   Future<ResumoCustosModel> obterResumoCustos({
     required int lavouraId,
     required DateTime dataInicio,
@@ -213,8 +201,6 @@ class CustoService {
     }
   }
 
-  /// 📊 OBTER HISTÓRICO DE CUSTOS
-  /// POST /api/custo/historico/{lavouraId}
   Future<List<HistoricoCustoModel>> obterHistoricoCustos({
     required int lavouraId,
     DateTime? dataInicio,
@@ -254,8 +240,6 @@ class CustoService {
     }
   }
 
-  /// 🔄 ATUALIZAR CUSTOS DA LAVOURA
-  /// POST /api/custo/atualizar/{lavouraId}
   Future<bool> atualizarCustosLavoura(int lavouraId) async {
     try {
       final response = await http
@@ -272,7 +256,6 @@ class CustoService {
     }
   }
 
-  /// 🧪 TESTAR CONEXÃO COM A API
   Future<bool> testarConexao() async {
     try {
       final response = await http
@@ -286,3 +269,4 @@ class CustoService {
     }
   }
 }
+

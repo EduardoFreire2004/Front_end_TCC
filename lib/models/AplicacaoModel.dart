@@ -7,7 +7,6 @@ class AplicacaoModel {
   DateTime dataHora;
   double qtde;
 
-  // Campos adicionais da resposta da API
   String? lavouraNome;
   String? agrotoxicoNome;
   String? agrotoxicoUnidadeMedida;
@@ -53,7 +52,6 @@ class AplicacaoModel {
     };
   }
 
-  // Método para criar cópia com alterações
   AplicacaoModel copyWith({
     int? id,
     int? usuarioId,
@@ -110,3 +108,4 @@ class AplicacaoModel {
         qtde.hashCode;
   }
 }
+

@@ -34,7 +34,7 @@ class PlantioViewModel extends RefreshableViewModel {
 
     try {
       await _repository.create(model);
-      await fetchByLavoura(model.lavouraID!);
+      await fetchByLavoura(model.lavouraID);
     } catch (e) {
       errorMessage = 'Erro ao adicionar: $e';
       debugPrint(errorMessage);
@@ -50,7 +50,7 @@ class PlantioViewModel extends RefreshableViewModel {
 
     try {
       await _repository.update(model);
-      await fetchByLavoura(model.lavouraID!);
+      await fetchByLavoura(model.lavouraID);
     } catch (e) {
       errorMessage = 'Erro ao atualizar: $e';
       debugPrint(errorMessage);
@@ -85,7 +85,6 @@ class PlantioViewModel extends RefreshableViewModel {
     notifyListeners();
   }
 
-  // Método para recarregar dados após login
   Future<void> refreshAfterLogin() async {
     await fetch();
   }
@@ -104,3 +103,4 @@ class PlantioViewModel extends RefreshableViewModel {
     }
   }
 }
+

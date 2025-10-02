@@ -22,7 +22,6 @@ enum TipoMovimentacao {
           .toList();
 }
 
-// Mantendo a classe antiga para compatibilidade
 class TipoMovimentacaoModel {
   int? id;
   String descricao;
@@ -37,3 +36,4 @@ class TipoMovimentacaoModel {
     return {'id': id ?? 0, 'descricao': descricao};
   }
 }
+

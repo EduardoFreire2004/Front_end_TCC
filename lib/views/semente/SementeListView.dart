@@ -27,7 +27,6 @@ class _SementeListViewState extends State<SementeListView> {
     final primaryColor = Colors.green[700]!;
     final errorColor = Colors.redAccent;
     final titleColor = Colors.green[800]!;
-    final subtitleColor = Colors.grey[700]!;
     final scaffoldBgColor = Colors.grey[50]!;
 
     void showDetailsDialog(SementeModel semente) async {
@@ -79,6 +78,8 @@ class _SementeListViewState extends State<SementeListView> {
             backgroundColor: errorColor,
           ),
         );
+        // Clear after showing to avoid repeated SnackBars on rebuilds
+        sementeVM.clearError();
       });
     }
 

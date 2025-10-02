@@ -9,7 +9,7 @@ class PlantioModel {
   PlantioModel({
     this.id,
     required this.sementeID,
-    required this. lavouraID,
+    required this.lavouraID,
     required this.descricao,
     required this.dataHora,
     required this.areaPlantada,
@@ -32,7 +32,7 @@ class PlantioModel {
       'sementeID': sementeID,
       'lavouraID': lavouraID,
       'descricao': descricao,
-      'dataHora': dataHora.toIso8601String(), 
+      'dataHora': dataHora.toIso8601String(),
       'areaPlantada': areaPlantada,
     };
   }

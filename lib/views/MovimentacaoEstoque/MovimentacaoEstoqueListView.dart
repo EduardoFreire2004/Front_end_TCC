@@ -32,10 +32,8 @@ class _MovimentacaoEstoqueListViewState
       listen: false,
     );
 
-    // Carregar movimentações da lavoura
     await movimentacaoVM.fetchByLavoura(widget.lavouraId);
 
-    // Carregar nomes para exibir
     await Future.wait([
       Provider.of<AgrotoxicoViewModel>(context, listen: false).fetch(),
       Provider.of<SementeViewModel>(context, listen: false).fetch(),
@@ -365,49 +363,52 @@ class _MovimentacaoEstoqueListViewState
                   ),
               ],
             ),
-            trailing: PopupMenuButton<String>(
-              onSelected: (value) async {
-                if (value == 'edit') {
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder:
-                          (_) => MovimentacaoEstoqueFormView(
-                            lavouraId: widget.lavouraId,
-                            movimentacao: mov,
-                          ),
-                    ),
-                  );
-                  if (result == true && mounted) {
-                    _loadData();
-                  }
-                } else if (value == 'delete') {
-                  await _deleteMovimentacao(mov.id!);
-                }
-              },
-              itemBuilder:
-                  (context) => [
-                    const PopupMenuItem(
-                      value: 'edit',
-                      child: Row(
-                        children: [
-                          Icon(Icons.edit, color: Colors.blue),
-                          SizedBox(width: 8),
-                          Text('Editar'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(Icons.delete, color: Colors.red),
-                          Text('Excluir'),
-                        ],
-                      ),
-                    ),
-                  ],
-            ),
+            trailing:
+                mov.movimentacao == 1
+                    ? PopupMenuButton<String>(
+                      onSelected: (value) async {
+                        if (value == 'edit') {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (_) => MovimentacaoEstoqueFormView(
+                                    lavouraId: widget.lavouraId,
+                                    movimentacao: mov,
+                                  ),
+                            ),
+                          );
+                          if (result == true && mounted) {
+                            _loadData();
+                          }
+                        } else if (value == 'delete') {
+                          await _deleteMovimentacao(mov.id!);
+                        }
+                      },
+                      itemBuilder:
+                          (context) => [
+                            const PopupMenuItem(
+                              value: 'edit',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.edit, color: Colors.blue),
+                                  SizedBox(width: 8),
+                                  Text('Editar'),
+                                ],
+                              ),
+                            ),
+                            const PopupMenuItem(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete, color: Colors.red),
+                                  Text('Excluir'),
+                                ],
+                              ),
+                            ),
+                          ],
+                    )
+                    : null,
           ),
         );
       },

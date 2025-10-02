@@ -1,33 +1,19 @@
 import 'dart:convert';
+import 'package:flutter_fgl_1/services/pdf_service.dart';
+
 import '../models/RelatorioDto.dart';
+import '../models/RelatorioNovoModel.dart';
 import 'api_service.dart';
 
 class RelatorioService {
   RelatorioService();
 
-  // Método para testar conectividade com a API
-  Future<bool> testarConectividade() async {
-    try {
-      print('Testando conectividade com a API...');
-      // Testar com um endpoint que sabemos que existe
-      final response = await ApiService.get('/relatorios/plantio/1');
-      print('Status code do teste: ${response.statusCode}');
-      // Aceitar tanto 200 quanto 401 (401 significa que o endpoint existe mas precisa de auth)
-      return response.statusCode == 200 || response.statusCode == 401;
-    } catch (e) {
-      print('Erro no teste de conectividade: $e');
-      return false;
-    }
-  }
-
   Future<RelatorioGeralDto> gerarRelatorioGeral({
-    required int usuarioId,
     required DateTime dataInicio,
     required DateTime dataFim,
   }) async {
     try {
-      // Como não existe endpoint "geral", vamos combinar dados de plantios e aplicações
-      // ou você pode implementar um endpoint geral no backend
+
       throw Exception(
         'Endpoint de relatório geral não implementado no backend. Use os relatórios específicos disponíveis.',
       );
@@ -37,14 +23,14 @@ class RelatorioService {
     }
   }
 
-  Future<RelatorioPlantiosDto> gerarRelatorioPlantios({
-    required int usuarioId,
+  Future<void> gerarRelatorioPlantios({
+    required int lavouraId,
     required DateTime dataInicio,
     required DateTime dataFim,
   }) async {
     try {
       final endpoint =
-          '/relatorios/plantio/$usuarioId?dataInicio=${dataInicio.toIso8601String().split('T')[0]}&dataFim=${dataFim.toIso8601String().split('T')[0]}';
+          '/relatorios/plantio/$lavouraId?dataInicio=${dataInicio.toIso8601String().split('T')[0]}&dataFim=${dataFim.toIso8601String().split('T')[0]}';
 
       print('Tentando acessar endpoint: $endpoint');
       final response = await ApiService.get(endpoint);
@@ -54,7 +40,15 @@ class RelatorioService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        return RelatorioPlantiosDto.fromJson(data);
+        final relatorioResponse = RelatorioPlantioResponseDto.fromJson(data);
+
+        if (!relatorioResponse.success) {
+          throw Exception(
+            'API retornou erro: ${relatorioResponse.error ?? "Erro desconhecido"}',
+          );
+        }
+
+        await PdfService.gerarRelatorioPlantios(relatorioResponse.data);
       } else if (response.statusCode == 404) {
         throw Exception(
           'Endpoint não encontrado (404). Verifique se o backend está configurado corretamente.',
@@ -70,14 +64,14 @@ class RelatorioService {
     }
   }
 
-  Future<RelatorioAplicacoesResponseDto> gerarRelatorioAgrotoxicos({
-    required int usuarioId,
+  Future<void> gerarRelatorioAgrotoxicos({
+    required int lavouraId,
     required DateTime dataInicio,
     required DateTime dataFim,
   }) async {
     try {
       final endpoint =
-          '/relatorios/aplicacao/$usuarioId?dataInicio=${dataInicio.toIso8601String().split('T')[0]}&dataFim=${dataFim.toIso8601String().split('T')[0]}';
+          '/relatorios/aplicacao/$lavouraId?dataInicio=${dataInicio.toIso8601String().split('T')[0]}&dataFim=${dataFim.toIso8601String().split('T')[0]}';
 
       print('Tentando acessar endpoint: $endpoint');
       final response = await ApiService.get(endpoint);
@@ -87,7 +81,17 @@ class RelatorioService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        return RelatorioAplicacoesResponseDto.fromJson(data);
+        final relatorioResponse = RelatorioAplicacaoResponseDto.fromJson(data);
+
+        if (!relatorioResponse.success) {
+          throw Exception(
+            'API retornou erro: ${relatorioResponse.error ?? "Erro desconhecido"}',
+          );
+        }
+
+        await PdfService.gerarRelatorioAplicacaoAgrotoxicos(
+          relatorioResponse.data,
+        );
       } else if (response.statusCode == 404) {
         throw Exception(
           'Endpoint não encontrado (404). Verifique se o backend está configurado corretamente.',
@@ -103,14 +107,14 @@ class RelatorioService {
     }
   }
 
-  Future<RelatorioAplicacoesDto> gerarRelatorioInsumosEstoque({
-    required int usuarioId,
+  Future<void> gerarRelatorioInsumosEstoque({
+    required int lavouraId,
     required DateTime dataInicio,
     required DateTime dataFim,
   }) async {
     try {
       final endpoint =
-          '/relatorios/aplicacao-insumo/$usuarioId?dataInicio=${dataInicio.toIso8601String().split('T')[0]}&dataFim=${dataFim.toIso8601String().split('T')[0]}';
+          '/relatorios/aplicacao-insumo/$lavouraId?dataInicio=${dataInicio.toIso8601String().split('T')[0]}&dataFim=${dataFim.toIso8601String().split('T')[0]}';
 
       print('Tentando acessar endpoint: $endpoint');
       final response = await ApiService.get(endpoint);
@@ -120,7 +124,17 @@ class RelatorioService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        return RelatorioAplicacoesDto.fromJson(data);
+        final relatorioResponse = RelatorioAplicacaoInsumoResponseDto.fromJson(
+          data,
+        );
+
+        if (!relatorioResponse.success) {
+          throw Exception(
+            'API retornou erro: ${relatorioResponse.error ?? "Erro desconhecido"}',
+          );
+        }
+
+        await PdfService.gerarRelatorioAplicacaoInsumos(relatorioResponse.data);
       } else if (response.statusCode == 404) {
         throw Exception(
           'Endpoint não encontrado (404). Verifique se o backend está configurado corretamente.',
@@ -136,14 +150,14 @@ class RelatorioService {
     }
   }
 
-  Future<RelatorioColheitasDto> gerarRelatorioColheitas({
-    required int usuarioId,
+  Future<void> gerarRelatorioColheitas({
+    required int lavouraId,
     required DateTime dataInicio,
     required DateTime dataFim,
   }) async {
     try {
       final endpoint =
-          '/relatorios/colheita/$usuarioId?dataInicio=${dataInicio.toIso8601String().split('T')[0]}&dataFim=${dataFim.toIso8601String().split('T')[0]}';
+          '/relatorios/colheita/$lavouraId?dataInicio=${dataInicio.toIso8601String().split('T')[0]}&dataFim=${dataFim.toIso8601String().split('T')[0]}';
 
       print('Tentando acessar endpoint: $endpoint');
       final response = await ApiService.get(endpoint);
@@ -152,8 +166,28 @@ class RelatorioService {
       print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
+
+        if (response.body.isEmpty) {
+          throw Exception(
+            'Resposta vazia do servidor. Nenhum dado de colheita encontrado.',
+          );
+        }
+
         final data = json.decode(response.body);
-        return RelatorioColheitasDto.fromJson(data);
+
+        if (data == null) {
+          throw Exception('Dados nulos recebidos do servidor.');
+        }
+
+        final responseDto = RelatorioColheitaResponseDto.fromJson(data);
+
+        if (!responseDto.success) {
+          throw Exception(
+            'API retornou erro: ${responseDto.error ?? 'Erro desconhecido'}',
+          );
+        }
+
+        await PdfService.gerarRelatorioColheitas(responseDto.data);
       } else if (response.statusCode == 404) {
         throw Exception(
           'Endpoint não encontrado (404). Verifique se o backend está configurado corretamente.',
@@ -169,30 +203,14 @@ class RelatorioService {
     }
   }
 
-  Future<RelatorioCustosDto> gerarRelatorioCustos({
-    required int usuarioId,
-    required DateTime dataInicio,
-    required DateTime dataFim,
-  }) async {
-    try {
-      // Endpoint de custos não implementado no backend
-      throw Exception(
-        'Endpoint de relatório de custos não implementado no backend.',
-      );
-    } catch (e) {
-      print('Erro detalhado: $e');
-      throw Exception('Erro ao gerar relatório de custos: $e');
-    }
-  }
-
-  Future<RelatorioEstoqueDto> gerarRelatorioEstoque({
-    required int usuarioId,
+  Future<void> gerarRelatorioEstoque({
+    required int lavouraId,
     required DateTime dataInicio,
     required DateTime dataFim,
   }) async {
     try {
       final endpoint =
-          '/relatorios/movimentacao-estoque/$usuarioId?dataInicio=${dataInicio.toIso8601String().split('T')[0]}&dataFim=${dataFim.toIso8601String().split('T')[0]}';
+          '/relatorios/movimentacao-estoque/$lavouraId?dataInicio=${dataInicio.toIso8601String().split('T')[0]}&dataFim=${dataFim.toIso8601String().split('T')[0]}';
 
       print('Tentando acessar endpoint: $endpoint');
       final response = await ApiService.get(endpoint);
@@ -202,7 +220,18 @@ class RelatorioService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        return RelatorioEstoqueDto.fromJson(data);
+        final relatorioResponse =
+            RelatorioMovimentacaoEstoqueResponseDto.fromJson(data);
+
+        if (!relatorioResponse.success) {
+          throw Exception(
+            'API retornou erro: ${relatorioResponse.error ?? "Erro desconhecido"}',
+          );
+        }
+
+        await PdfService.gerarRelatorioMovimentacaoEstoque(
+          relatorioResponse.data,
+        );
       } else if (response.statusCode == 404) {
         throw Exception(
           'Endpoint não encontrado (404). Verifique se o backend está configurado corretamente.',
@@ -218,14 +247,14 @@ class RelatorioService {
     }
   }
 
-  Future<RelatorioEstoqueDto> gerarRelatorioSementes({
-    required int usuarioId,
+  Future<void> gerarRelatorioAgrotoxicosEstoque({
+    required int lavouraId,
     required DateTime dataInicio,
     required DateTime dataFim,
   }) async {
     try {
       final endpoint =
-          '/relatorios/semente/$usuarioId?dataInicio=${dataInicio.toIso8601String().split('T')[0]}&dataFim=${dataFim.toIso8601String().split('T')[0]}';
+          '/relatorios/agrotoxico/$lavouraId?dataInicio=${dataInicio.toIso8601String().split('T')[0]}&dataFim=${dataFim.toIso8601String().split('T')[0]}';
 
       print('Tentando acessar endpoint: $endpoint');
       final response = await ApiService.get(endpoint);
@@ -235,40 +264,17 @@ class RelatorioService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        return RelatorioEstoqueDto.fromJson(data);
-      } else if (response.statusCode == 404) {
-        throw Exception(
-          'Endpoint não encontrado (404). Verifique se o backend está configurado corretamente.',
+        final relatorioResponse = RelatorioAgrotoxicoResponseDto.fromJson(data);
+
+        if (!relatorioResponse.success) {
+          throw Exception(
+            'API retornou erro: ${relatorioResponse.error ?? "Erro desconhecido"}',
+          );
+        }
+
+        await PdfService.gerarRelatorioAgrotoxicosEstoque(
+          relatorioResponse.data,
         );
-      } else {
-        throw Exception(
-          'Erro ao gerar relatório de sementes: ${response.statusCode} - ${response.body}',
-        );
-      }
-    } catch (e) {
-      print('Erro detalhado: $e');
-      throw Exception('Erro ao gerar relatório de sementes: $e');
-    }
-  }
-
-  Future<RelatorioEstoqueDto> gerarRelatorioAgrotoxicosEstoque({
-    required int usuarioId,
-    required DateTime dataInicio,
-    required DateTime dataFim,
-  }) async {
-    try {
-      final endpoint =
-          '/relatorios/agrotoxico/$usuarioId?dataInicio=${dataInicio.toIso8601String().split('T')[0]}&dataFim=${dataFim.toIso8601String().split('T')[0]}';
-
-      print('Tentando acessar endpoint: $endpoint');
-      final response = await ApiService.get(endpoint);
-
-      print('Status code: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        return RelatorioEstoqueDto.fromJson(data);
       } else if (response.statusCode == 404) {
         throw Exception(
           'Endpoint não encontrado (404). Verifique se o backend está configurado corretamente.',
@@ -283,4 +289,163 @@ class RelatorioService {
       throw Exception('Erro ao gerar relatório de agrotóxicos em estoque: $e');
     }
   }
+
+  Future<RelatorioAplicacaoResponseDto> verificarDadosAgrotoxicos({
+    required int lavouraId,
+    required DateTime dataInicio,
+    required DateTime dataFim,
+  }) async {
+    try {
+      final endpoint =
+          '/relatorios/aplicacao/$lavouraId?dataInicio=${dataInicio.toIso8601String().split('T')[0]}&dataFim=${dataFim.toIso8601String().split('T')[0]}';
+
+      print('Verificando dados em: $endpoint');
+      final response = await ApiService.get(endpoint);
+
+      print('Status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return RelatorioAplicacaoResponseDto.fromJson(data);
+      } else if (response.statusCode == 404) {
+        throw Exception(
+          'Endpoint não encontrado (404). Verifique se o backend está configurado corretamente.',
+        );
+      } else {
+        throw Exception(
+          'Erro ao verificar dados de agrotóxicos: ${response.statusCode} - ${response.body}',
+        );
+      }
+    } catch (e) {
+      print('Erro detalhado: $e');
+      throw Exception('Erro ao verificar dados de agrotóxicos: $e');
+    }
+  }
+
+  Future<RelatorioAplicacaoInsumoResponseDto> verificarDadosInsumos({
+    required int lavouraId,
+    required DateTime dataInicio,
+    required DateTime dataFim,
+  }) async {
+    try {
+      final endpoint =
+          '/relatorios/aplicacao-insumo/$lavouraId?dataInicio=${dataInicio.toIso8601String().split('T')[0]}&dataFim=${dataFim.toIso8601String().split('T')[0]}';
+
+      print('Verificando dados em: $endpoint');
+      final response = await ApiService.get(endpoint);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return RelatorioAplicacaoInsumoResponseDto.fromJson(data);
+      } else {
+        throw Exception(
+          'Erro ao verificar dados de insumos: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      throw Exception('Erro ao verificar dados de insumos: $e');
+    }
+  }
+
+  Future<RelatorioColheitaResponseDto> verificarDadosColheitas({
+    required int lavouraId,
+    required DateTime dataInicio,
+    required DateTime dataFim,
+  }) async {
+    try {
+      final endpoint =
+          '/relatorios/colheita/$lavouraId?dataInicio=${dataInicio.toIso8601String().split('T')[0]}&dataFim=${dataFim.toIso8601String().split('T')[0]}';
+
+      print('Verificando dados em: $endpoint');
+      final response = await ApiService.get(endpoint);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return RelatorioColheitaResponseDto.fromJson(data);
+      } else {
+        throw Exception(
+          'Erro ao verificar dados de colheitas: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      throw Exception('Erro ao verificar dados de colheitas: $e');
+    }
+  }
+
+  Future<RelatorioPlantioResponseDto> verificarDadosPlantios({
+    required int lavouraId,
+    required DateTime dataInicio,
+    required DateTime dataFim,
+  }) async {
+    try {
+      final endpoint =
+          '/relatorios/plantio/$lavouraId?dataInicio=${dataInicio.toIso8601String().split('T')[0]}&dataFim=${dataFim.toIso8601String().split('T')[0]}';
+
+      print('Verificando dados em: $endpoint');
+      final response = await ApiService.get(endpoint);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return RelatorioPlantioResponseDto.fromJson(data);
+      } else {
+        throw Exception(
+          'Erro ao verificar dados de plantios: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      throw Exception('Erro ao verificar dados de plantios: $e');
+    }
+  }
+
+  Future<RelatorioMovimentacaoEstoqueResponseDto> verificarDadosEstoque({
+    required int lavouraId,
+    required DateTime dataInicio,
+    required DateTime dataFim,
+  }) async {
+    try {
+      final endpoint =
+          '/relatorios/movimentacao-estoque/$lavouraId?dataInicio=${dataInicio.toIso8601String().split('T')[0]}&dataFim=${dataFim.toIso8601String().split('T')[0]}';
+
+      print('Verificando dados em: $endpoint');
+      final response = await ApiService.get(endpoint);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return RelatorioMovimentacaoEstoqueResponseDto.fromJson(data);
+      } else {
+        throw Exception(
+          'Erro ao verificar dados de estoque: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      throw Exception('Erro ao verificar dados de estoque: $e');
+    }
+  }
+
+  Future<RelatorioAgrotoxicoResponseDto> verificarDadosAgrotoxicosEstoque({
+    required int lavouraId,
+    required DateTime dataInicio,
+    required DateTime dataFim,
+  }) async {
+    try {
+      final endpoint =
+          '/relatorios/agrotoxico/$lavouraId?dataInicio=${dataInicio.toIso8601String().split('T')[0]}&dataFim=${dataFim.toIso8601String().split('T')[0]}';
+
+      print('Verificando dados em: $endpoint');
+      final response = await ApiService.get(endpoint);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return RelatorioAgrotoxicoResponseDto.fromJson(data);
+      } else {
+        throw Exception(
+          'Erro ao verificar dados de agrotóxicos estoque: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      throw Exception('Erro ao verificar dados de agrotóxicos estoque: $e');
+    }
+  }
 }
+

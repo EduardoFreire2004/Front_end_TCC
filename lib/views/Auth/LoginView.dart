@@ -52,7 +52,7 @@ class _LoginViewState extends State<LoginView> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Logo e título
+
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -86,7 +86,6 @@ class _LoginViewState extends State<LoginView> {
                         ),
                         const SizedBox(height: 32),
 
-                        // Campo de nome (apenas para cadastro)
                         if (!_isLogin) ...[
                           TextFormField(
                             controller: _nomeController,
@@ -114,7 +113,6 @@ class _LoginViewState extends State<LoginView> {
                           ),
                           const SizedBox(height: 16),
 
-                          // Campo de telefone (apenas para cadastro)
                           TextFormField(
                             controller: _telefoneController,
                             keyboardType: TextInputType.phone,
@@ -145,7 +143,6 @@ class _LoginViewState extends State<LoginView> {
                           const SizedBox(height: 16),
                         ],
 
-                        // Campo de email
                         TextFormField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
@@ -175,7 +172,6 @@ class _LoginViewState extends State<LoginView> {
                         ),
                         const SizedBox(height: 16),
 
-                        // Campo de senha
                         TextFormField(
                           controller: _senhaController,
                           obscureText: _obscurePassword,
@@ -217,7 +213,6 @@ class _LoginViewState extends State<LoginView> {
                         ),
                         const SizedBox(height: 16),
 
-                        // Campo de confirmar senha (apenas para cadastro)
                         if (!_isLogin) ...[
                           TextFormField(
                             controller: _confirmarSenhaController,
@@ -266,7 +261,6 @@ class _LoginViewState extends State<LoginView> {
 
                         const SizedBox(height: 24),
 
-                        // Botão de ação
                         Consumer<AuthViewModel>(
                           builder: (context, authViewModel, child) {
                             return SizedBox(
@@ -311,7 +305,6 @@ class _LoginViewState extends State<LoginView> {
                         ),
                         const SizedBox(height: 16),
 
-                        // Mensagem de erro
                         Consumer<AuthViewModel>(
                           builder: (context, authViewModel, child) {
                             if (authViewModel.errorMessage != null) {
@@ -337,12 +330,11 @@ class _LoginViewState extends State<LoginView> {
                         ),
                         const SizedBox(height: 16),
 
-                        // Alternar entre login e cadastro
                         TextButton(
                           onPressed: () {
                             setState(() {
                               _isLogin = !_isLogin;
-                              // Limpar campos ao alternar
+
                               if (_isLogin) {
                                 _nomeController.clear();
                                 _confirmarSenhaController.clear();
@@ -389,15 +381,15 @@ class _LoginViewState extends State<LoginView> {
               );
 
       if (success && mounted) {
-        // Limpar os campos após sucesso
+
         _nomeController.clear();
         _emailController.clear();
         _senhaController.clear();
         _confirmarSenhaController.clear();
         _telefoneController.clear();
-        // O AuthWrapper irá redirecionar automaticamente para a tela principal
-        // Não é necessário navegar manualmente
+
       }
     }
   }
 }
+
