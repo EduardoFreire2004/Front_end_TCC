@@ -33,7 +33,7 @@ class PlantioRepo {
     try {
       final response = await ApiService.post(
         '/Plantios',
-        jsonEncode(plantio.toJson()),
+        plantio.toJson(),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -63,7 +63,7 @@ class PlantioRepo {
     try {
       final response = await ApiService.put(
         '/Plantios/${plantio.id}',
-        jsonEncode(plantio.toJson()),
+        plantio.toJson(),
       );
 
       if (response.statusCode != 200 && response.statusCode != 204) {

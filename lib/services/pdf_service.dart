@@ -1,1957 +1,431 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_fgl_1/models/RelatorioDto.dart';
+import 'dart:typed_data';
+import 'dart:io' show File, Process; // Apenas usado fora do Web
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
-import 'package:flutter_fgl_1/models/RelatorioNovoModel.dart';
-import 'package:flutter_fgl_1/services/auth_service.dart';
-import 'package:intl/intl.dart';
+
+// Compatibilidade com Web (usa download direto)
+import 'package:universal_html/html.dart' as html;
+
+// Compatibilidade com Android/iOS/Desktop (usa diretório do app)
+import 'package:path_provider/path_provider.dart';
 
 class PdfService {
-  static Future<void> generateAndDownloadPDF({
-    required String title,
-    required Widget content,
-    required BuildContext context,
+  /// Gera um relatório PDF compatível com Web e plataformas nativas.
+  Future<void> gerarRelatorio<T>(
+    String titulo,
+    List<T> dados, {
+    DateTime? dataInicio,
+    DateTime? dataFim,
   }) async {
-    try {
-      final pdf = pw.Document();
+    final pdf = pw.Document();
 
-      pdf.addPage(
-        pw.MultiPage(
-          pageFormat: PdfPageFormat.a4,
-          margin: const pw.EdgeInsets.all(32),
-          build: (pw.Context context) {
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(24),
+
+        // Cabeçalho
+        header: (context) => pw.Container(
+          alignment: pw.Alignment.center,
+          margin: const pw.EdgeInsets.only(bottom: 10),
+          child: pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.center,
+            children: [
+              pw.Text(
+                "FGL - Freire Gerenciamento de Lavouras",
+                style: pw.TextStyle(
+                  fontSize: 14,
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.green800,
+                ),
+              ),
+              pw.SizedBox(height: 4),
+              pw.Text(
+                titulo,
+                style: pw.TextStyle(
+                  fontSize: 12,
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.green700,
+                ),
+              ),
+              if (dataInicio != null && dataFim != null) ...[
+                pw.SizedBox(height: 4),
+                pw.Text(
+                  "Período: ${_formatDate(dataInicio)} a ${_formatDate(dataFim)}",
+                  style: const pw.TextStyle(
+                    fontSize: 10,
+                    color: PdfColors.grey700,
+                  ),
+                ),
+              ],
+              pw.Divider(color: PdfColors.green, thickness: 1),
+            ],
+          ),
+        ),
+
+        // Rodapé
+        footer: (context) => pw.Container(
+          alignment: pw.Alignment.centerRight,
+          margin: const pw.EdgeInsets.only(top: 10),
+          child: pw.Text(
+            "Página ${context.pageNumber} de ${context.pagesCount}",
+            style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
+          ),
+        ),
+
+        // Conteúdo
+        build: (pw.Context context) {
+          if (dados.isEmpty) {
             return [
-              pw.Header(
-                level: 0,
-                child: pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                  children: [
-                    pw.Text(
-                      title,
-                      style: pw.TextStyle(
-                        fontSize: 24,
-                        fontWeight: pw.FontWeight.bold,
-                        color: PdfColors.green,
-                      ),
-                    ),
-                    pw.Text(
-                      'Gerado em: ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
-                      style: const pw.TextStyle(fontSize: 12),
-                    ),
-                  ],
+              pw.Center(
+                child: pw.Text(
+                  "Nenhum dado disponível para o período selecionado.",
+                  style: pw.TextStyle(
+                    fontSize: 12,
+                    color: PdfColors.red600,
+                  ),
                 ),
               ),
-              pw.SizedBox(height: 20),
-
-              _buildPdfContent(content),
             ];
-          },
-        ),
-      );
+          }
 
-      await Printing.layoutPdf(
-        onLayout: (PdfPageFormat format) async => pdf.save(),
-        name:
-            '${title.replaceAll(' ', '_')}_${DateTime.now().millisecondsSinceEpoch}.pdf',
-      );
+          // Extrai colunas
+          Map<String, dynamic> primeiro = {};
+          try {
+            final dynamic conv = (dados.first as dynamic).toJson();
+            primeiro = Map<String, dynamic>.from(conv);
+          } catch (_) {
+            primeiro = {"erro": "toJson() ausente ou inválido"};
+          }
 
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('PDF gerado com sucesso!'),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
+          final colunas = primeiro.keys.toList();
+
+          // Gera linhas
+          final linhas = dados.map((item) {
+            Map<String, dynamic> map = {};
+            try {
+              final dynamic conv = (item as dynamic).toJson();
+              map = Map<String, dynamic>.from(conv);
+            } catch (_) {
+              map = {"erro": "Objeto inválido"};
+            }
+            return colunas.map((c) => _formatValue(map[c])).toList();
+          }).toList();
+
+          final columnWidths = {
+            for (int i = 0; i < colunas.length; i++) i: const pw.FlexColumnWidth()
+          };
+
+          return [
+            pw.SizedBox(height: 10),
+            pw.Table(
+              border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
+              columnWidths: columnWidths,
+              children: [
+                // Cabeçalho da tabela
+                pw.TableRow(
+                  decoration: const pw.BoxDecoration(color: PdfColors.green50),
+                  children: [
+                    for (final c in colunas)
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(6),
+                        child: pw.Text(
+                          _capitalize(c),
+                          style: pw.TextStyle(
+                            fontSize: 10,
+                            fontWeight: pw.FontWeight.bold,
+                            color: PdfColors.green900,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+
+                // Linhas alternadas (efeito zebra)
+                for (int i = 0; i < linhas.length; i++)
+                  pw.TableRow(
+                    decoration: pw.BoxDecoration(
+                      color: i.isEven ? PdfColors.white : PdfColors.grey100,
+                    ),
+                    children: [
+                      for (final valor in linhas[i])
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.all(6),
+                          child: pw.Text(
+                            valor,
+                            style: const pw.TextStyle(fontSize: 9),
+                          ),
+                        ),
+                    ],
+                  ),
+              ],
+            ),
+            pw.SizedBox(height: 15),
+            pw.Align(
+              alignment: pw.Alignment.centerRight,
+              child: pw.Text(
+                "Total de registros: ${dados.length}",
+                style: pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
+              ),
+            ),
+          ];
+        },
+      ),
+    );
+
+    // Gera bytes
+    final bytes = await pdf.save();
+
+    if (kIsWeb) {
+      // --- FLUTTER WEB ---
+      final blob = html.Blob([bytes], 'application/pdf');
+      final url = html.Url.createObjectUrlFromBlob(blob);
+      final anchor = html.AnchorElement(href: url)
+        ..setAttribute("download", "relatorio_${titulo.replaceAll(' ', '_')}.pdf")
+        ..click();
+      html.Url.revokeObjectUrl(url);
+    } else {
+      // --- ANDROID / IOS / DESKTOP ---
+      final dir = await getApplicationDocumentsDirectory();
+      final safeTitle = titulo.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_');
+      final file = File("${dir.path}/relatorio_$safeTitle.pdf");
+      await file.writeAsBytes(bytes);
+      await _abrirArquivo(file);
+    }
+  }
+
+  /// Abre o PDF no app nativo (somente plataformas móveis)
+  Future<void> _abrirArquivo(File file) async {
+    try {
+      // Tenta abrir com o app padrão
+      final open = await Process.run('xdg-open', [file.path]);
+      print(open);
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro ao gerar PDF: $e'),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
+      print('Erro ao abrir arquivo: $e');
+    }
+  }
+
+  // ------------------ AUXILIARES ------------------
+
+  String _formatValue(dynamic value) {
+    if (value == null) return "-";
+    if (value is DateTime) return _formatDate(value);
+    if (value is num) return value.toStringAsFixed(2);
+    if (value is bool) return value ? "Sim" : "Não";
+    return value.toString();
+  }
+
+  String _formatDate(DateTime data) {
+    return "${data.day.toString().padLeft(2, '0')}/"
+        "${data.month.toString().padLeft(2, '0')}/"
+        "${data.year}";
+  }
+
+  String _capitalize(String text) {
+    if (text.isEmpty) return text;
+    return text[0].toUpperCase() + text.substring(1);
+  }
+}
+
+class PdfServiceLista {
+  /// Gera um relatório PDF compatível com Web e plataformas nativas,
+  /// agora **sem precisar passar dataInicio e dataFim**.
+  Future<void> gerarRelatorio<T>(
+    String titulo,
+    List<T> dados,
+  ) async {
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(24),
+
+        // Cabeçalho
+        header: (context) => pw.Container(
+          alignment: pw.Alignment.center,
+          margin: const pw.EdgeInsets.only(bottom: 10),
+          child: pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.center,
+            children: [
+              pw.Text(
+                "FGL - Freire Gerenciamento de Lavouras",
+                style: pw.TextStyle(
+                  fontSize: 14,
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.green800,
+                ),
+              ),
+              pw.SizedBox(height: 4),
+              pw.Text(
+                titulo,
+                style: pw.TextStyle(
+                  fontSize: 12,
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.green700,
+                ),
+              ),
+              pw.Divider(color: PdfColors.green, thickness: 1),
+            ],
           ),
-        );
-      }
-    }
-  }
+        ),
 
-  static pw.Widget _buildPdfContent(Widget content) {
-    return pw.Text('Conteúdo do relatório será implementado aqui');
-  }
+        // Rodapé
+        footer: (context) => pw.Container(
+          alignment: pw.Alignment.centerRight,
+          margin: const pw.EdgeInsets.only(top: 10),
+          child: pw.Text(
+            "Página ${context.pageNumber} de ${context.pagesCount}",
+            style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
+          ),
+        ),
 
-  static Future<void> generateAgrotoxicosPDF({
-    required RelatorioAplicacoesResponseDto relatorio,
-    required String periodo,
-    required BuildContext context,
-  }) async {
-    final pdf = pw.Document();
-
-    pdf.addPage(
-      pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
+        // Conteúdo
         build: (pw.Context context) {
+          if (dados.isEmpty) {
+            return [
+              pw.Center(
+                child: pw.Text(
+                  "Nenhum dado disponível.",
+                  style: pw.TextStyle(
+                    fontSize: 12,
+                    color: PdfColors.red600,
+                  ),
+                ),
+              ),
+            ];
+          }
+
+          // Extrai colunas dinamicamente
+          Map<String, dynamic> primeiro = {};
+          try {
+            final dynamic conv = (dados.first as dynamic).toJson();
+            primeiro = Map<String, dynamic>.from(conv);
+          } catch (_) {
+            primeiro = {"erro": "toJson() ausente ou inválido"};
+          }
+
+          final colunas = primeiro.keys.toList();
+
+          // Gera linhas dinamicamente
+          final linhas = dados.map((item) {
+            Map<String, dynamic> map = {};
+            try {
+              final dynamic conv = (item as dynamic).toJson();
+              map = Map<String, dynamic>.from(conv);
+            } catch (_) {
+              map = {"erro": "Objeto inválido"};
+            }
+            return colunas.map((c) => _formatValue(map[c])).toList();
+          }).toList();
+
+          final columnWidths = {
+            for (int i = 0; i < colunas.length; i++) i: const pw.FlexColumnWidth()
+          };
+
           return [
-            pw.Header(
-              level: 0,
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text(
-                    'Relatório de Agrotóxicos',
-                    style: pw.TextStyle(
-                      fontSize: 24,
-                      fontWeight: pw.FontWeight.bold,
-                      color: PdfColors.green,
-                    ),
-                  ),
-                  pw.SizedBox(height: 8),
-                  pw.Text(
-                    'Período: $periodo',
-                    style: const pw.TextStyle(fontSize: 14),
-                  ),
-                  pw.Text(
-                    'Usuário: ${AuthService.usuario?.nome ?? 'N/A'}',
-                    style: const pw.TextStyle(fontSize: 14),
-                  ),
-                  pw.Text(
-                    'Gerado em: ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
-                    style: const pw.TextStyle(fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-            pw.SizedBox(height: 20),
-
-            pw.Container(
-              padding: const pw.EdgeInsets.all(16),
-              decoration: pw.BoxDecoration(
-                border: pw.Border.all(color: PdfColors.grey300),
-                borderRadius: pw.BorderRadius.circular(8),
-              ),
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text(
-                    'Resumo',
-                    style: pw.TextStyle(
-                      fontSize: 16,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
-                  ),
-                  pw.SizedBox(height: 8),
-                  pw.Text('Total de Registros: ${relatorio.totalRegistros}'),
-                ],
-              ),
-            ),
-            pw.SizedBox(height: 20),
-
-            pw.Text(
-              'Aplicações de Agrotóxicos',
-              style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
-            ),
             pw.SizedBox(height: 10),
-
             pw.Table(
-              border: pw.TableBorder.all(color: PdfColors.grey300),
-              columnWidths: {
-                0: const pw.FlexColumnWidth(1),
-                1: const pw.FlexColumnWidth(2),
-                2: const pw.FlexColumnWidth(1.5),
-                3: const pw.FlexColumnWidth(1),
-                4: const pw.FlexColumnWidth(1),
-              },
+              border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
+              columnWidths: columnWidths,
               children: [
+                // Cabeçalho da tabela
                 pw.TableRow(
-                  decoration: const pw.BoxDecoration(color: PdfColors.grey200),
+                  decoration: const pw.BoxDecoration(color: PdfColors.green50),
                   children: [
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(8),
-                      child: pw.Text(
-                        'ID',
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                    for (final c in colunas)
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(6),
+                        child: pw.Text(
+                          _capitalize(c),
+                          style: pw.TextStyle(
+                            fontSize: 10,
+                            fontWeight: pw.FontWeight.bold,
+                            color: PdfColors.green900,
+                          ),
+                        ),
                       ),
-                    ),
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(8),
-                      child: pw.Text(
-                        'Produto',
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                      ),
-                    ),
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(8),
-                      child: pw.Text(
-                        'Lavoura',
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                      ),
-                    ),
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(8),
-                      child: pw.Text(
-                        'Data',
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                      ),
-                    ),
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(8),
-                      child: pw.Text(
-                        'Quantidade',
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                      ),
-                    ),
                   ],
                 ),
 
-                ...relatorio.data
-                    .map(
-                      (aplicacao) => pw.TableRow(
-                        children: [
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.all(8),
-                            child: pw.Text(aplicacao.id.toString()),
+                // Linhas alternadas (efeito zebra)
+                for (int i = 0; i < linhas.length; i++)
+                  pw.TableRow(
+                    decoration: pw.BoxDecoration(
+                      color: i.isEven ? PdfColors.white : PdfColors.grey100,
+                    ),
+                    children: [
+                      for (final valor in linhas[i])
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.all(6),
+                          child: pw.Text(
+                            valor,
+                            style: const pw.TextStyle(fontSize: 9),
                           ),
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.all(8),
-                            child: pw.Text(aplicacao.produto),
-                          ),
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.all(8),
-                            child: pw.Text(aplicacao.lavoura),
-                          ),
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.all(8),
-                            child: pw.Text(
-                              aplicacao.dataAplicacao.split('T')[0],
-                            ),
-                          ),
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.all(8),
-                            child: pw.Text(
-                              '${aplicacao.quantidade.toStringAsFixed(2)} ${aplicacao.unidadeMedida}',
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                    .toList(),
+                        ),
+                    ],
+                  ),
               ],
             ),
+            pw.SizedBox(height: 15),
+            pw.Align(
+              alignment: pw.Alignment.centerRight,
+              child: pw.Text(
+                "Total de registros: ${dados.length}",
+                style: pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
+              ),
+            ),
           ];
         },
       ),
     );
 
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
-      name:
-          'Relatorio_Agrotoxicos_${DateTime.now().millisecondsSinceEpoch}.pdf',
-    );
+    final bytes = await pdf.save();
 
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('PDF de Agrotóxicos gerado com sucesso!'),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+    if (kIsWeb) {
+      // --- FLUTTER WEB ---
+      final blob = html.Blob([bytes], 'application/pdf');
+      final url = html.Url.createObjectUrlFromBlob(blob);
+      final anchor = html.AnchorElement(href: url)
+        ..setAttribute("download", "relatorio_${titulo.replaceAll(' ', '_')}.pdf")
+        ..click();
+      html.Url.revokeObjectUrl(url);
+    } else {
+      // --- ANDROID / IOS / DESKTOP ---
+      final dir = await getApplicationDocumentsDirectory();
+      final safeTitle = titulo.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_');
+      final file = File("${dir.path}/relatorio_$safeTitle.pdf");
+      await file.writeAsBytes(bytes);
+      await _abrirArquivo(file);
     }
   }
 
-  static Future<void> generatePlantiosPDF({
-    required RelatorioPlantiosDto relatorio,
-    required String periodo,
-    required BuildContext context,
-  }) async {
-    final pdf = pw.Document();
-
-    pdf.addPage(
-      pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
-        build: (pw.Context context) {
-          return [
-            pw.Header(
-              level: 0,
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text(
-                    'Relatório de Plantios',
-                    style: pw.TextStyle(
-                      fontSize: 24,
-                      fontWeight: pw.FontWeight.bold,
-                      color: PdfColors.green,
-                    ),
-                  ),
-                  pw.SizedBox(height: 8),
-                  pw.Text(
-                    'Período: $periodo',
-                    style: const pw.TextStyle(fontSize: 14),
-                  ),
-                  pw.Text(
-                    'Usuário: ${AuthService.usuario?.nome ?? 'N/A'}',
-                    style: const pw.TextStyle(fontSize: 14),
-                  ),
-                  pw.Text(
-                    'Gerado em: ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
-                    style: const pw.TextStyle(fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-            pw.SizedBox(height: 20),
-
-            pw.Container(
-              padding: const pw.EdgeInsets.all(16),
-              decoration: pw.BoxDecoration(
-                border: pw.Border.all(color: PdfColors.grey300),
-                borderRadius: pw.BorderRadius.circular(8),
-              ),
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text(
-                    'Resumo',
-                    style: pw.TextStyle(
-                      fontSize: 16,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
-                  ),
-                  pw.SizedBox(height: 8),
-                  pw.Text('Lavoura: ${relatorio.lavoura.nome}'),
-                  pw.Text(
-                    'Período: ${relatorio.estatisticas.periodoAnalisado}',
-                  ),
-                  pw.Text(
-                    'Total de Plantios: ${relatorio.estatisticas.totalPlantios}',
-                  ),
-                  pw.Text(
-                    'Área Total Plantada: ${relatorio.estatisticas.areaTotalPlantada.toStringAsFixed(2)} ha',
-                  ),
-                ],
-              ),
-            ),
-            pw.SizedBox(height: 20),
-
-            pw.Text(
-              'Plantios',
-              style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
-            ),
-            pw.SizedBox(height: 10),
-
-            pw.Table(
-              border: pw.TableBorder.all(color: PdfColors.grey300),
-              columnWidths: {
-                0: const pw.FlexColumnWidth(1),
-                1: const pw.FlexColumnWidth(2),
-                2: const pw.FlexColumnWidth(1.5),
-                3: const pw.FlexColumnWidth(1),
-              },
-              children: [
-                pw.TableRow(
-                  decoration: const pw.BoxDecoration(color: PdfColors.grey200),
-                  children: [
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(8),
-                      child: pw.Text(
-                        'ID',
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                      ),
-                    ),
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(8),
-                      child: pw.Text(
-                        'Cultura',
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                      ),
-                    ),
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(8),
-                      child: pw.Text(
-                        'Data Plantio',
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                      ),
-                    ),
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(8),
-                      child: pw.Text(
-                        'Área (ha)',
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                ),
-
-                ...relatorio.plantios
-                    .map(
-                      (plantio) => pw.TableRow(
-                        children: [
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.all(8),
-                            child: pw.Text(plantio.cultura),
-                          ),
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.all(8),
-                            child: pw.Text(plantio.cultura),
-                          ),
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.all(8),
-                            child: pw.Text(plantio.dataPlantio),
-                          ),
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.all(8),
-                            child: pw.Text(
-                              plantio.areaPlantada.toStringAsFixed(2),
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                    .toList(),
-              ],
-            ),
-          ];
-        },
-      ),
-    );
-
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
-      name: 'Relatorio_Plantios_${DateTime.now().millisecondsSinceEpoch}.pdf',
-    );
-
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('PDF de Plantios gerado com sucesso!'),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+  Future<void> _abrirArquivo(File file) async {
+    try {
+      final open = await Process.run('xdg-open', [file.path]);
+      print(open);
+    } catch (e) {
+      print('Erro ao abrir arquivo: $e');
     }
   }
 
-  static Future<void> generateColheitasPDF({
-    required RelatorioColheitasDto relatorio,
-    required String periodo,
-    required BuildContext context,
-  }) async {
-    final pdf = pw.Document();
-
-    pdf.addPage(
-      pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
-        build: (pw.Context context) {
-          return [
-            pw.Header(
-              level: 0,
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text(
-                    'Relatório de Colheitas',
-                    style: pw.TextStyle(
-                      fontSize: 24,
-                      fontWeight: pw.FontWeight.bold,
-                      color: PdfColors.orange,
-                    ),
-                  ),
-                  pw.SizedBox(height: 8),
-                  pw.Text(
-                    'Período: $periodo',
-                    style: const pw.TextStyle(fontSize: 14),
-                  ),
-                  pw.Text(
-                    'Lavoura: ${relatorio.lavoura.nome}',
-                    style: const pw.TextStyle(fontSize: 14),
-                  ),
-                  pw.Text(
-                    'Usuário: ${AuthService.usuario?.nome ?? 'N/A'}',
-                    style: const pw.TextStyle(fontSize: 14),
-                  ),
-                  pw.Text(
-                    'Gerado em: ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
-                    style: const pw.TextStyle(fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-            pw.SizedBox(height: 20),
-
-            pw.Container(
-              padding: const pw.EdgeInsets.all(16),
-              decoration: pw.BoxDecoration(
-                border: pw.Border.all(color: PdfColors.grey300),
-                borderRadius: pw.BorderRadius.circular(8),
-              ),
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text(
-                    'Resumo',
-                    style: pw.TextStyle(
-                      fontSize: 16,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
-                  ),
-                  pw.SizedBox(height: 8),
-                  pw.Text(
-                    'Total de Colheitas: ${relatorio.estatisticas.totalColheitas}',
-                  ),
-                  pw.Text(
-                    'Área Total Colhida: ${relatorio.estatisticas.areaTotalColhida.toStringAsFixed(2)} ha',
-                  ),
-                  pw.Text(
-                    'Quantidade Total: ${relatorio.estatisticas.quantidadeTotal.toStringAsFixed(2)} kg',
-                  ),
-                  pw.Text(
-                    'Produtividade Média: ${relatorio.estatisticas.produtividadeMedia.toStringAsFixed(2)} kg/ha',
-                  ),
-                ],
-              ),
-            ),
-            pw.SizedBox(height: 20),
-
-            pw.Text(
-              'Colheitas',
-              style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
-            ),
-            pw.SizedBox(height: 10),
-
-            if (relatorio.colheitas.isEmpty)
-              pw.Text('Nenhuma colheita encontrada.')
-            else
-              pw.Table(
-                border: pw.TableBorder.all(color: PdfColors.grey300),
-                columnWidths: {
-                  0: const pw.FlexColumnWidth(2),
-                  1: const pw.FlexColumnWidth(1.5),
-                  2: const pw.FlexColumnWidth(1),
-                  3: const pw.FlexColumnWidth(1.5),
-                  4: const pw.FlexColumnWidth(1),
-                },
-                children: [
-                  pw.TableRow(
-                    decoration: const pw.BoxDecoration(
-                      color: PdfColors.grey200,
-                    ),
-                    children: [
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Cultura',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Data',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Área (ha)',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Quantidade (kg)',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Produtividade',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  ...relatorio.colheitas
-                      .map(
-                        (colheita) => pw.TableRow(
-                          children: [
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(colheita.cultura),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(
-                                DateFormat(
-                                  'dd/MM/yyyy',
-                                ).format(colheita.dataColheita),
-                              ),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(
-                                colheita.areaColhida.toStringAsFixed(2),
-                              ),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(
-                                '${colheita.quantidadeColhida.toStringAsFixed(2)} ${colheita.unidadeMedida}',
-                              ),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(
-                                '${colheita.produtividade.toStringAsFixed(2)} kg/ha',
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                      .toList(),
-                ],
-              ),
-          ];
-        },
-      ),
-    );
-
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
-      name: 'Relatorio_Colheitas_${DateTime.now().millisecondsSinceEpoch}.pdf',
-    );
-
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('PDF de Colheitas gerado com sucesso!'),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
+  String _formatValue(dynamic value) {
+    if (value == null) return "-";
+    if (value is DateTime) return _formatDate(value);
+    if (value is num) return value.toStringAsFixed(2);
+    if (value is bool) return value ? "Sim" : "Não";
+    return value.toString();
   }
 
-  static Future<void> generateRelatorioCompletoPDF({
-    required String nomeLavoura,
-    required List<PlantioDto> plantios,
-    required List<AplicacaoDto> aplicacoesAgrotoxicos,
-    required List<AplicacaoDto> aplicacoesInsumos,
-    required BuildContext context,
-  }) async {
-    final pdf = pw.Document();
-
-    pdf.addPage(
-      pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
-        build: (pw.Context context) {
-          return [
-            pw.Header(
-              level: 0,
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text(
-                    'Relatório Completo da Lavoura',
-                    style: pw.TextStyle(
-                      fontSize: 24,
-                      fontWeight: pw.FontWeight.bold,
-                      color: PdfColors.green,
-                    ),
-                  ),
-                  pw.SizedBox(height: 8),
-                  pw.Text(
-                    'Lavoura: $nomeLavoura',
-                    style: const pw.TextStyle(fontSize: 16),
-                  ),
-                  pw.Text(
-                    'Usuário: ${AuthService.usuario?.nome ?? 'N/A'}',
-                    style: const pw.TextStyle(fontSize: 14),
-                  ),
-                  pw.Text(
-                    'Gerado em: ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
-                    style: const pw.TextStyle(fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-            pw.SizedBox(height: 20),
-
-            pw.Container(
-              padding: const pw.EdgeInsets.all(16),
-              decoration: pw.BoxDecoration(
-                border: pw.Border.all(color: PdfColors.grey300),
-                borderRadius: pw.BorderRadius.circular(8),
-              ),
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text(
-                    'Resumo Geral',
-                    style: pw.TextStyle(
-                      fontSize: 16,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
-                  ),
-                  pw.SizedBox(height: 8),
-                  pw.Text('Total de Plantios: ${plantios.length}'),
-                  pw.Text(
-                    'Aplicações de Agrotóxicos: ${aplicacoesAgrotoxicos.length}',
-                  ),
-                  pw.Text('Aplicações de Insumos: ${aplicacoesInsumos.length}'),
-                ],
-              ),
-            ),
-            pw.SizedBox(height: 20),
-
-            pw.Text(
-              'Plantios',
-              style: pw.TextStyle(
-                fontSize: 18,
-                fontWeight: pw.FontWeight.bold,
-                color: PdfColors.green,
-              ),
-            ),
-            pw.SizedBox(height: 10),
-
-            if (plantios.isEmpty)
-              pw.Text('Nenhum plantio encontrado.')
-            else
-              pw.Table(
-                border: pw.TableBorder.all(color: PdfColors.grey300),
-                columnWidths: {
-                  0: const pw.FlexColumnWidth(2),
-                  1: const pw.FlexColumnWidth(1.5),
-                  2: const pw.FlexColumnWidth(1),
-                },
-                children: [
-                  pw.TableRow(
-                    decoration: const pw.BoxDecoration(
-                      color: PdfColors.grey200,
-                    ),
-                    children: [
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Cultura',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Data',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Área (ha)',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  ...plantios
-                      .map(
-                        (plantio) => pw.TableRow(
-                          children: [
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(plantio.cultura),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(plantio.dataPlantio),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(
-                                plantio.areaPlantada.toStringAsFixed(2),
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                      .toList(),
-                ],
-              ),
-
-            pw.SizedBox(height: 20),
-
-            pw.Text(
-              'Aplicações de Agrotóxicos',
-              style: pw.TextStyle(
-                fontSize: 18,
-                fontWeight: pw.FontWeight.bold,
-                color: PdfColors.red,
-              ),
-            ),
-            pw.SizedBox(height: 10),
-
-            if (aplicacoesAgrotoxicos.isEmpty)
-              pw.Text('Nenhuma aplicação de agrotóxico encontrada.')
-            else
-              pw.Table(
-                border: pw.TableBorder.all(color: PdfColors.grey300),
-                columnWidths: {
-                  0: const pw.FlexColumnWidth(2),
-                  1: const pw.FlexColumnWidth(1.5),
-                  2: const pw.FlexColumnWidth(1),
-                },
-                children: [
-                  pw.TableRow(
-                    decoration: const pw.BoxDecoration(
-                      color: PdfColors.grey200,
-                    ),
-                    children: [
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Produto',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Data',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Quantidade',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  ...aplicacoesAgrotoxicos
-                      .map(
-                        (aplicacao) => pw.TableRow(
-                          children: [
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(aplicacao.produto),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(
-                                aplicacao.dataAplicacao.split('T')[0],
-                              ),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(
-                                '${aplicacao.quantidade.toStringAsFixed(2)} ${aplicacao.unidadeMedida}',
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                      .toList(),
-                ],
-              ),
-
-            pw.SizedBox(height: 20),
-
-            pw.Text(
-              'Aplicações de Insumos',
-              style: pw.TextStyle(
-                fontSize: 18,
-                fontWeight: pw.FontWeight.bold,
-                color: PdfColors.blue,
-              ),
-            ),
-            pw.SizedBox(height: 10),
-
-            if (aplicacoesInsumos.isEmpty)
-              pw.Text('Nenhuma aplicação de insumo encontrada.')
-            else
-              pw.Table(
-                border: pw.TableBorder.all(color: PdfColors.grey300),
-                columnWidths: {
-                  0: const pw.FlexColumnWidth(2),
-                  1: const pw.FlexColumnWidth(1.5),
-                  2: const pw.FlexColumnWidth(1),
-                },
-                children: [
-                  pw.TableRow(
-                    decoration: const pw.BoxDecoration(
-                      color: PdfColors.grey200,
-                    ),
-                    children: [
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Produto',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Data',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Quantidade',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  ...aplicacoesInsumos
-                      .map(
-                        (aplicacao) => pw.TableRow(
-                          children: [
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(aplicacao.produto),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(
-                                aplicacao.dataAplicacao.split('T')[0],
-                              ),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(
-                                '${aplicacao.quantidade.toStringAsFixed(2)} ${aplicacao.unidadeMedida}',
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                      .toList(),
-                ],
-              ),
-          ];
-        },
-      ),
-    );
-
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
-      name:
-          'Relatorio_Completo_${nomeLavoura.replaceAll(' ', '_')}_${DateTime.now().millisecondsSinceEpoch}.pdf',
-    );
-
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('PDF do relatório completo gerado com sucesso!'),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
+  String _formatDate(DateTime data) {
+    return "${data.day.toString().padLeft(2, '0')}/"
+        "${data.month.toString().padLeft(2, '0')}/"
+        "${data.year}";
   }
 
-  static Future<void> gerarRelatorioAplicacaoAgrotoxicos(
-    List<RelatorioAplicacaoDto> aplicacoes,
-  ) async {
-    final pdf = pw.Document();
-
-    pdf.addPage(
-      pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
-        build: (pw.Context context) {
-          return [
-            pw.Header(
-              level: 0,
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text(
-                    'Relatório de Aplicações de Agrotóxicos',
-                    style: pw.TextStyle(
-                      fontSize: 24,
-                      fontWeight: pw.FontWeight.bold,
-                      color: PdfColors.red,
-                    ),
-                  ),
-                  pw.SizedBox(height: 8),
-                  pw.Text(
-                    'Usuário: ${AuthService.usuario?.nome ?? 'N/A'}',
-                    style: const pw.TextStyle(fontSize: 14),
-                  ),
-                  pw.Text(
-                    'Gerado em: ${DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now())}',
-                    style: const pw.TextStyle(fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-            pw.SizedBox(height: 20),
-
-            pw.Container(
-              padding: const pw.EdgeInsets.all(16),
-              decoration: pw.BoxDecoration(
-                border: pw.Border.all(color: PdfColors.grey300),
-                borderRadius: pw.BorderRadius.circular(8),
-              ),
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text(
-                    'Resumo',
-                    style: pw.TextStyle(
-                      fontSize: 16,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
-                  ),
-                  pw.SizedBox(height: 8),
-                  pw.Text('Total de Aplicações: ${aplicacoes.length}'),
-                ],
-              ),
-            ),
-            pw.SizedBox(height: 20),
-
-            if (aplicacoes.isEmpty)
-              pw.Text('Nenhuma aplicação de agrotóxico encontrada.')
-            else
-              pw.Table(
-                border: pw.TableBorder.all(color: PdfColors.grey300),
-                columnWidths: {
-                  0: const pw.FlexColumnWidth(2),
-                  1: const pw.FlexColumnWidth(2),
-                  2: const pw.FlexColumnWidth(1.5),
-                  3: const pw.FlexColumnWidth(1.5),
-                },
-                children: [
-                  pw.TableRow(
-                    decoration: const pw.BoxDecoration(
-                      color: PdfColors.grey200,
-                    ),
-                    children: [
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Produto',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Lavoura',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Data',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Quantidade',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  ...aplicacoes
-                      .map(
-                        (aplicacao) => pw.TableRow(
-                          children: [
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(aplicacao.produto),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(aplicacao.lavoura),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(
-                                DateFormat(
-                                  'dd/MM/yyyy',
-                                ).format(aplicacao.dataAplicacao),
-                              ),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(
-                                '${aplicacao.quantidade.toStringAsFixed(2)} ${aplicacao.unidadeMedida}',
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                      .toList(),
-                ],
-              ),
-          ];
-        },
-      ),
-    );
-
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
-      name:
-          'Relatorio_Aplicacao_Agrotoxicos_${DateTime.now().millisecondsSinceEpoch}.pdf',
-    );
-  }
-
-  static Future<void> gerarRelatorioAplicacaoInsumos(
-    List<RelatorioAplicacaoInsumoDto> aplicacoes,
-  ) async {
-    final pdf = pw.Document();
-
-    pdf.addPage(
-      pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
-        build: (pw.Context context) {
-          return [
-            pw.Header(
-              level: 0,
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text(
-                    'Relatório de Aplicações de Insumos',
-                    style: pw.TextStyle(
-                      fontSize: 24,
-                      fontWeight: pw.FontWeight.bold,
-                      color: PdfColors.blue,
-                    ),
-                  ),
-                  pw.SizedBox(height: 8),
-                  pw.Text(
-                    'Usuário: ${AuthService.usuario?.nome ?? 'N/A'}',
-                    style: const pw.TextStyle(fontSize: 14),
-                  ),
-                  pw.Text(
-                    'Gerado em: ${DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now())}',
-                    style: const pw.TextStyle(fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-            pw.SizedBox(height: 20),
-
-            pw.Container(
-              padding: const pw.EdgeInsets.all(16),
-              decoration: pw.BoxDecoration(
-                border: pw.Border.all(color: PdfColors.grey300),
-                borderRadius: pw.BorderRadius.circular(8),
-              ),
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text(
-                    'Resumo',
-                    style: pw.TextStyle(
-                      fontSize: 16,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
-                  ),
-                  pw.SizedBox(height: 8),
-                  pw.Text('Total de Aplicações: ${aplicacoes.length}'),
-                ],
-              ),
-            ),
-            pw.SizedBox(height: 20),
-
-            if (aplicacoes.isEmpty)
-              pw.Text('Nenhuma aplicação de insumo encontrada.')
-            else
-              pw.Table(
-                border: pw.TableBorder.all(color: PdfColors.grey300),
-                columnWidths: {
-                  0: const pw.FlexColumnWidth(2),
-                  1: const pw.FlexColumnWidth(2),
-                  2: const pw.FlexColumnWidth(1.5),
-                  3: const pw.FlexColumnWidth(1.5),
-                },
-                children: [
-                  pw.TableRow(
-                    decoration: const pw.BoxDecoration(
-                      color: PdfColors.grey200,
-                    ),
-                    children: [
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Insumo',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Lavoura',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Data',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Quantidade',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  ...aplicacoes
-                      .map(
-                        (aplicacao) => pw.TableRow(
-                          children: [
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(aplicacao.insumo),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(aplicacao.lavoura),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(
-                                DateFormat(
-                                  'dd/MM/yyyy',
-                                ).format(aplicacao.dataAplicacao),
-                              ),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(
-                                aplicacao.quantidade.toStringAsFixed(2),
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                      .toList(),
-                ],
-              ),
-          ];
-        },
-      ),
-    );
-
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
-      name:
-          'Relatorio_Aplicacao_Insumos_${DateTime.now().millisecondsSinceEpoch}.pdf',
-    );
-  }
-
-  static Future<void> gerarRelatorioColheitas(
-    List<RelatorioColheitaDto> colheitas,
-  ) async {
-    final pdf = pw.Document();
-
-    pdf.addPage(
-      pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
-        build: (pw.Context context) {
-          return [
-            pw.Header(
-              level: 0,
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text(
-                    'Relatório de Colheitas',
-                    style: pw.TextStyle(
-                      fontSize: 24,
-                      fontWeight: pw.FontWeight.bold,
-                      color: PdfColors.orange,
-                    ),
-                  ),
-                  pw.SizedBox(height: 8),
-                  pw.Text(
-                    'Usuário: ${AuthService.usuario?.nome ?? 'N/A'}',
-                    style: const pw.TextStyle(fontSize: 14),
-                  ),
-                  pw.Text(
-                    'Gerado em: ${DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now())}',
-                    style: const pw.TextStyle(fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-            pw.SizedBox(height: 20),
-
-            pw.Container(
-              padding: const pw.EdgeInsets.all(16),
-              decoration: pw.BoxDecoration(
-                border: pw.Border.all(color: PdfColors.grey300),
-                borderRadius: pw.BorderRadius.circular(8),
-              ),
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text(
-                    'Resumo',
-                    style: pw.TextStyle(
-                      fontSize: 16,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
-                  ),
-                  pw.SizedBox(height: 8),
-                  pw.Text('Total de Colheitas: ${colheitas.length}'),
-                  pw.Text(
-                    'Quantidade Total Colhida: ${colheitas.fold(0.0, (sum, c) => sum + c.quantidadeColhida).toStringAsFixed(2)} kg',
-                  ),
-                ],
-              ),
-            ),
-            pw.SizedBox(height: 20),
-
-            if (colheitas.isEmpty)
-              pw.Text('Nenhuma colheita encontrada.')
-            else
-              pw.Table(
-                border: pw.TableBorder.all(color: PdfColors.grey300),
-                columnWidths: {
-                  0: const pw.FlexColumnWidth(2),
-                  1: const pw.FlexColumnWidth(2),
-                  2: const pw.FlexColumnWidth(1.5),
-                  3: const pw.FlexColumnWidth(1.5),
-                  4: const pw.FlexColumnWidth(1.5),
-                },
-                children: [
-                  pw.TableRow(
-                    decoration: const pw.BoxDecoration(
-                      color: PdfColors.grey200,
-                    ),
-                    children: [
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Cultura',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Lavoura',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Data',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Quantidade (kg)',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Produtividade',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  ...colheitas
-                      .map(
-                        (colheita) => pw.TableRow(
-                          children: [
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(colheita.cultura),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(colheita.lavoura),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(
-                                DateFormat(
-                                  'dd/MM/yyyy',
-                                ).format(colheita.dataColheita),
-                              ),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(
-                                colheita.quantidadeColhida.toStringAsFixed(2),
-                              ),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(
-                                '${colheita.produtividade.toStringAsFixed(2)} kg/ha',
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                      .toList(),
-                ],
-              ),
-          ];
-        },
-      ),
-    );
-
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
-      name: 'Relatorio_Colheitas_${DateTime.now().millisecondsSinceEpoch}.pdf',
-    );
-  }
-
-  static Future<void> gerarRelatorioPlantios(
-    List<RelatorioPlantioDto> plantios,
-  ) async {
-    final pdf = pw.Document();
-
-    pdf.addPage(
-      pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
-        build: (pw.Context context) {
-          return [
-            pw.Header(
-              level: 0,
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text(
-                    'Relatório de Plantios',
-                    style: pw.TextStyle(
-                      fontSize: 24,
-                      fontWeight: pw.FontWeight.bold,
-                      color: PdfColors.green,
-                    ),
-                  ),
-                  pw.SizedBox(height: 8),
-                  pw.Text(
-                    'Usuário: ${AuthService.usuario?.nome ?? 'N/A'}',
-                    style: const pw.TextStyle(fontSize: 14),
-                  ),
-                  pw.Text(
-                    'Gerado em: ${DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now())}',
-                    style: const pw.TextStyle(fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-            pw.SizedBox(height: 20),
-
-            pw.Container(
-              padding: const pw.EdgeInsets.all(16),
-              decoration: pw.BoxDecoration(
-                border: pw.Border.all(color: PdfColors.grey300),
-                borderRadius: pw.BorderRadius.circular(8),
-              ),
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text(
-                    'Resumo',
-                    style: pw.TextStyle(
-                      fontSize: 16,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
-                  ),
-                  pw.SizedBox(height: 8),
-                  pw.Text('Total de Plantios: ${plantios.length}'),
-                  pw.Text(
-                    'Área Total Plantada: ${plantios.fold(0.0, (sum, p) => sum + p.areaPlantada).toStringAsFixed(2)} ha',
-                  ),
-                ],
-              ),
-            ),
-            pw.SizedBox(height: 20),
-
-            if (plantios.isEmpty)
-              pw.Text('Nenhum plantio encontrado.')
-            else
-              pw.Table(
-                border: pw.TableBorder.all(color: PdfColors.grey300),
-                columnWidths: {
-                  0: const pw.FlexColumnWidth(2),
-                  1: const pw.FlexColumnWidth(2),
-                  2: const pw.FlexColumnWidth(1.5),
-                  3: const pw.FlexColumnWidth(1.5),
-                  4: const pw.FlexColumnWidth(1.5),
-                },
-                children: [
-                  pw.TableRow(
-                    decoration: const pw.BoxDecoration(
-                      color: PdfColors.grey200,
-                    ),
-                    children: [
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Cultura',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Lavoura',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Data',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Área (ha)',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Status',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  ...plantios
-                      .map(
-                        (plantio) => pw.TableRow(
-                          children: [
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(plantio.cultura),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(plantio.lavoura),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(
-                                DateFormat(
-                                  'dd/MM/yyyy',
-                                ).format(plantio.dataPlantio),
-                              ),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(
-                                plantio.areaPlantada.toStringAsFixed(2),
-                              ),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(plantio.status),
-                            ),
-                          ],
-                        ),
-                      )
-                      .toList(),
-                ],
-              ),
-          ];
-        },
-      ),
-    );
-
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
-      name: 'Relatorio_Plantios_${DateTime.now().millisecondsSinceEpoch}.pdf',
-    );
-  }
-
-  static Future<void> gerarRelatorioMovimentacaoEstoque(
-    List<RelatorioMovimentacaoEstoqueDto> movimentacoes,
-  ) async {
-    final pdf = pw.Document();
-
-    pdf.addPage(
-      pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
-        build: (pw.Context context) {
-          return [
-            pw.Header(
-              level: 0,
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text(
-                    'Relatório de Movimentação de Estoque',
-                    style: pw.TextStyle(
-                      fontSize: 24,
-                      fontWeight: pw.FontWeight.bold,
-                      color: PdfColors.indigo,
-                    ),
-                  ),
-                  pw.SizedBox(height: 8),
-                  pw.Text(
-                    'Usuário: ${AuthService.usuario?.nome ?? 'N/A'}',
-                    style: const pw.TextStyle(fontSize: 14),
-                  ),
-                  pw.Text(
-                    'Gerado em: ${DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now())}',
-                    style: const pw.TextStyle(fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-            pw.SizedBox(height: 20),
-
-            pw.Container(
-              padding: const pw.EdgeInsets.all(16),
-              decoration: pw.BoxDecoration(
-                border: pw.Border.all(color: PdfColors.grey300),
-                borderRadius: pw.BorderRadius.circular(8),
-              ),
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text(
-                    'Resumo',
-                    style: pw.TextStyle(
-                      fontSize: 16,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
-                  ),
-                  pw.SizedBox(height: 8),
-                  pw.Text('Total de Movimentações: ${movimentacoes.length}'),
-                ],
-              ),
-            ),
-            pw.SizedBox(height: 20),
-
-            if (movimentacoes.isEmpty)
-              pw.Text('Nenhuma movimentação de estoque encontrada.')
-            else
-              pw.Table(
-                border: pw.TableBorder.all(color: PdfColors.grey300),
-                columnWidths: {
-                  0: const pw.FlexColumnWidth(2),
-                  1: const pw.FlexColumnWidth(1.5),
-                  2: const pw.FlexColumnWidth(1.5),
-                  3: const pw.FlexColumnWidth(1.5),
-                  4: const pw.FlexColumnWidth(1.5),
-                },
-                children: [
-                  pw.TableRow(
-                    decoration: const pw.BoxDecoration(
-                      color: PdfColors.grey200,
-                    ),
-                    children: [
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Produto',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Tipo',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Data',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Quantidade',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Unidade',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  ...movimentacoes
-                      .map(
-                        (movimentacao) => pw.TableRow(
-                          children: [
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(movimentacao.produto),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(movimentacao.tipoMovimentacao),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(
-                                DateFormat(
-                                  'dd/MM/yyyy',
-                                ).format(movimentacao.data),
-                              ),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(
-                                movimentacao.quantidade.toStringAsFixed(2),
-                              ),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(movimentacao.unidade),
-                            ),
-                          ],
-                        ),
-                      )
-                      .toList(),
-                ],
-              ),
-          ];
-        },
-      ),
-    );
-
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
-      name:
-          'Relatorio_Movimentacao_Estoque_${DateTime.now().millisecondsSinceEpoch}.pdf',
-    );
-  }
-
-  static Future<void> gerarRelatorioAgrotoxicosEstoque(
-    List<RelatorioAgrotoxicoDto> agrotoxicos,
-  ) async {
-    final pdf = pw.Document();
-
-    pdf.addPage(
-      pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
-        build: (pw.Context context) {
-          return [
-            pw.Header(
-              level: 0,
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text(
-                    'Relatório de Agrotóxicos em Estoque',
-                    style: pw.TextStyle(
-                      fontSize: 24,
-                      fontWeight: pw.FontWeight.bold,
-                      color: PdfColors.red,
-                    ),
-                  ),
-                  pw.SizedBox(height: 8),
-                  pw.Text(
-                    'Usuário: ${AuthService.usuario?.nome ?? 'N/A'}',
-                    style: const pw.TextStyle(fontSize: 14),
-                  ),
-                  pw.Text(
-                    'Gerado em: ${DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now())}',
-                    style: const pw.TextStyle(fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-            pw.SizedBox(height: 20),
-
-            pw.Container(
-              padding: const pw.EdgeInsets.all(16),
-              decoration: pw.BoxDecoration(
-                border: pw.Border.all(color: PdfColors.grey300),
-                borderRadius: pw.BorderRadius.circular(8),
-              ),
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text(
-                    'Resumo',
-                    style: pw.TextStyle(
-                      fontSize: 16,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
-                  ),
-                  pw.SizedBox(height: 8),
-                  pw.Text('Total de Agrotóxicos: ${agrotoxicos.length}'),
-                  pw.Text(
-                    'Valor Total: R\$ ${agrotoxicos.fold(0.0, (sum, a) => sum + a.valorTotal).toStringAsFixed(2)}',
-                  ),
-                ],
-              ),
-            ),
-            pw.SizedBox(height: 20),
-
-            if (agrotoxicos.isEmpty)
-              pw.Text('Nenhum agrotóxico encontrado.')
-            else
-              pw.Table(
-                border: pw.TableBorder.all(color: PdfColors.grey300),
-                columnWidths: {
-                  0: const pw.FlexColumnWidth(2),
-                  1: const pw.FlexColumnWidth(1.5),
-                  2: const pw.FlexColumnWidth(1.5),
-                  3: const pw.FlexColumnWidth(1),
-                  4: const pw.FlexColumnWidth(1),
-                  5: const pw.FlexColumnWidth(1),
-                },
-                children: [
-                  pw.TableRow(
-                    decoration: const pw.BoxDecoration(
-                      color: PdfColors.grey200,
-                    ),
-                    children: [
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Nome',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Tipo',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Fornecedor',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Quantidade',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Preço Unit.',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'Valor Total',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  ...agrotoxicos
-                      .map(
-                        (agrotoxico) => pw.TableRow(
-                          children: [
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(agrotoxico.nome),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(agrotoxico.tipo),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(agrotoxico.fornecedor),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(
-                                '${agrotoxico.quantidade.toStringAsFixed(2)} ${agrotoxico.unidadeMedida}',
-                              ),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(
-                                'R\$ ${agrotoxico.preco.toStringAsFixed(2)}',
-                              ),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(
-                                'R\$ ${agrotoxico.valorTotal.toStringAsFixed(2)}',
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                      .toList(),
-                ],
-              ),
-          ];
-        },
-      ),
-    );
-
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
-      name:
-          'Relatorio_Agrotoxicos_Estoque_${DateTime.now().millisecondsSinceEpoch}.pdf',
-    );
+  String _capitalize(String text) {
+    if (text.isEmpty) return text;
+    return text[0].toUpperCase() + text.substring(1);
   }
 }

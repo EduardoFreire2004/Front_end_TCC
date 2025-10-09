@@ -1,8 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_fgl_1/config/app_colors.dart';
 import 'package:flutter_fgl_1/services/RelatorioService.dart';
-import 'package:flutter_fgl_1/services/auth_service.dart';
+import 'package:flutter_fgl_1/services/pdf_service.dart';
 import 'package:intl/intl.dart';
+import 'package:open_filex/open_filex.dart';
 
 class RelatoriosMainScreen extends StatefulWidget {
   final int lavouraId;
@@ -25,11 +27,13 @@ class _RelatoriosMainScreenState extends State<RelatoriosMainScreen> {
   bool _isGenerating = false;
   String? _errorMessage;
   late RelatorioService _relatorioService;
+  late PdfService _pdfService;
 
   @override
   void initState() {
     super.initState();
     _relatorioService = RelatorioService();
+    _pdfService = PdfService();
   }
 
   @override
@@ -43,7 +47,7 @@ class _RelatoriosMainScreenState extends State<RelatoriosMainScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
+        title: const Text(
           'Relatórios em PDF',
           style: TextStyle(
             color: Colors.white,
@@ -58,60 +62,8 @@ class _RelatoriosMainScreenState extends State<RelatoriosMainScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Card de informações principais
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColors.primaryGreen,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.assessment,
-                          color: Colors.white,
-                          size: 24,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      const Expanded(
-                        child: Text(
-                          'Relatórios em PDF',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Lavoura: ${widget.nomeLavoura}',
-                    style: const TextStyle(color: Colors.white, fontSize: 16),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Gere relatórios detalhados em formato PDF',
-                    style: TextStyle(color: Colors.white, fontSize: 14),
-                  ),
-                ],
-              ),
-            ),
+            _buildHeaderCard(),
             const SizedBox(height: 24),
-
-            // Título da seção de tipos de relatório
             const Text(
               'Tipo de Relatório',
               style: TextStyle(
@@ -121,215 +73,233 @@ class _RelatoriosMainScreenState extends State<RelatoriosMainScreen> {
               ),
             ),
             const SizedBox(height: 16),
-
-            // Grid de cards de relatórios
-            GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: 1.1,
-              children: [
-                _buildRelatorioCard(
-                  context,
-                  icon: Icons.attach_money,
-                  title: 'Relatório de Custos',
-                  subtitle: 'Análise detalhada de custos da lavoura',
-                  color: Colors.green,
-                  onTap: () => _selecionarTipoRelatorio('custos'),
-                ),
-                _buildRelatorioCard(
-                  context,
-                  icon: Icons.inventory_2,
-                  title: 'Relatório de Insumos',
-                  subtitle: 'Controle de estoque e uso de insumos',
-                  color: Colors.blue,
-                  onTap: () => _selecionarTipoRelatorio('insumos'),
-                ),
-                _buildRelatorioCard(
-                  context,
-                  icon: Icons.swap_horiz,
-                  title: 'Relatório de Movimentações',
-                  subtitle: 'Controle de movimentações de estoque',
-                  color: Colors.orange,
-                  onTap: () => _selecionarTipoRelatorio('movimentacoes'),
-                ),
-                _buildRelatorioCard(
-                  context,
-                  icon: Icons.warning,
-                  title: 'Relatório de Agrotóxicos',
-                  subtitle: 'Controle de aplicações de agrotóxicos',
-                  color: Colors.red,
-                  onTap: () => _selecionarTipoRelatorio('agrotoxicos'),
-                ),
-                _buildRelatorioCard(
-                  context,
-                  icon: Icons.eco,
-                  title: 'Relatório de Plantios',
-                  subtitle: 'Histórico de plantios realizados',
-                  color: Colors.green,
-                  onTap: () => _selecionarTipoRelatorio('plantios'),
-                ),
-                _buildRelatorioCard(
-                  context,
-                  icon: Icons.grass,
-                  title: 'Relatório de Colheitas',
-                  subtitle: 'Resultados das colheitas realizadas',
-                  color: Colors.amber,
-                  onTap: () => _selecionarTipoRelatorio('colheitas'),
-                ),
-              ],
-            ),
+            _buildRelatorioGrid(),
             const SizedBox(height: 24),
+            if (_tipoRelatorioSelecionado != null) _buildPeriodoRelatorio(),
+            const SizedBox(height: 24),
+            _buildInstrucoes(),
+          ],
+        ),
+      ),
+    );
+  }
 
-            // Seção de período do relatório
-            if (_tipoRelatorioSelecionado != null) ...[
-              const Text(
-                'Período do Relatório',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+  Widget _buildHeaderCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.primaryGreen,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.assessment,
+                  color: Colors.white,
+                  size: 24,
                 ),
               ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildDateField(
-                      'Data Início',
-                      _dataInicio,
-                      (date) => setState(() => _dataInicio = date),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildDateField(
-                      'Data Fim',
-                      _dataFim,
-                      (date) => setState(() => _dataFim = date),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // Botão de gerar relatório
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton.icon(
-                  onPressed:
-                      _podeGerarRelatorio() && !_isGenerating
-                          ? _gerarRelatorio
-                          : null,
-                  icon:
-                      _isGenerating
-                          ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                          : const Icon(
-                            Icons.picture_as_pdf,
-                            color: Colors.white,
-                          ),
-                  label: Text(
-                    _isGenerating ? 'Gerando PDF...' : 'Gerar Relatório PDF',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryGreen,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'Relatórios em PDF',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
-
-              // Exibir mensagem de erro se houver
-              if (_errorMessage != null) ...[
-                const SizedBox(height: 16),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.red[50],
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red[200]!),
-                  ),
-                  child: Text(
-                    _errorMessage!,
-                    style: TextStyle(color: Colors.red[700], fontSize: 14),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ],
-              const SizedBox(height: 24),
             ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Lavoura: ${widget.nomeLavoura}',
+            style: const TextStyle(color: Colors.white, fontSize: 16),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Gere relatórios detalhados em formato PDF',
+            style: TextStyle(color: Colors.white, fontSize: 14),
+          ),
+        ],
+      ),
+    );
+  }
 
-            // Seção de instruções
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.blue[50],
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.blue[200]!),
+  Widget _buildRelatorioGrid() {
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      crossAxisSpacing: 16,
+      mainAxisSpacing: 16,
+      childAspectRatio: 1.1,
+      children: [
+        _buildRelatorioCard(
+          context,
+          icon: Icons.attach_money,
+          title: 'Relatório de Custos',
+          subtitle: 'Análise de custos',
+          color: Colors.green,
+          onTap: () => _selecionarTipoRelatorio('custos'),
+        ),
+        _buildRelatorioCard(
+          context,
+          icon: Icons.inventory_2,
+          title: 'Relatório de Insumos',
+          subtitle: 'Estoque e uso de insumos',
+          color: Colors.blue,
+          onTap: () => _selecionarTipoRelatorio('insumos'),
+        ),
+        _buildRelatorioCard(
+          context,
+          icon: Icons.swap_horiz,
+          title: 'Relatório de Movimentações',
+          subtitle: 'Controle de estoque',
+          color: Colors.orange,
+          onTap: () => _selecionarTipoRelatorio('movimentacoes'),
+        ),
+        _buildRelatorioCard(
+          context,
+          icon: Icons.warning,
+          title: 'Relatório de Agrotóxicos',
+          subtitle: 'Aplicações de agrotóxicos',
+          color: Colors.red,
+          onTap: () => _selecionarTipoRelatorio('agrotoxicos'),
+        ),
+        _buildRelatorioCard(
+          context,
+          icon: Icons.eco,
+          title: 'Relatório de Plantios',
+          subtitle: 'Histórico de plantios',
+          color: Colors.green,
+          onTap: () => _selecionarTipoRelatorio('plantios'),
+        ),
+        _buildRelatorioCard(
+          context,
+          icon: Icons.grass,
+          title: 'Relatório de Colheitas',
+          subtitle: 'Resultados das colheitas',
+          color: Colors.amber,
+          onTap: () => _selecionarTipoRelatorio('colheitas'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPeriodoRelatorio() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Período do Relatório',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _buildDateField(
+                'Data Início',
+                _dataInicio,
+                (d) => setState(() => _dataInicio = d),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: Colors.blue,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: const Icon(
-                          Icons.info,
-                          color: Colors.white,
-                          size: 16,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Text(
-                        'Como funciona',
-                        style: TextStyle(
-                          color: Colors.blue,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    '1. Selecione o tipo de relatório desejado\n'
-                    '2. Escolha o período (data início e fim)\n'
-                    '3. Clique em "Gerar Relatório PDF"\n'
-                    '4. O PDF será baixado e aberto automaticamente',
-                    style: TextStyle(
-                      color: Colors.blue,
-                      fontSize: 14,
-                      height: 1.5,
-                    ),
-                  ),
-                ],
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildDateField(
+                'Data Fim',
+                _dataFim,
+                (d) => setState(() => _dataFim = d),
               ),
             ),
           ],
         ),
+        const SizedBox(height: 24),
+        SizedBox(
+          width: double.infinity,
+          height: 50,
+          child: ElevatedButton.icon(
+            onPressed:
+                _podeGerarRelatorio() && !_isGenerating
+                    ? _gerarRelatorio
+                    : null,
+            icon:
+                _isGenerating
+                    ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                    : const Icon(Icons.picture_as_pdf, color: Colors.white),
+            label: Text(
+              _isGenerating ? 'Gerando PDF...' : 'Gerar Relatório PDF',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryGreen,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ),
+        if (_errorMessage != null) ...[
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.red[50],
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.red[200]!),
+            ),
+            child: Text(
+              _errorMessage!,
+              style: TextStyle(color: Colors.red[700], fontSize: 14),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildInstrucoes() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.blue[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.blue[200]!),
+      ),
+      child: const Text(
+        '1. Selecione o tipo de relatório\n'
+        '2. Escolha o período\n'
+        '3. Clique em "Gerar Relatório PDF"\n'
+        '4. O PDF será salvo nos documentos',
+        style: TextStyle(color: Colors.blue, fontSize: 14, height: 1.5),
       ),
     );
   }
@@ -418,12 +388,9 @@ class _RelatoriosMainScreenState extends State<RelatoriosMainScreen> {
               firstDate: DateTime(2020),
               lastDate: DateTime.now().add(const Duration(days: 365)),
             );
-            if (selectedDate != null) {
-              onChanged(selectedDate);
-            }
+            if (selectedDate != null) onChanged(selectedDate);
           },
           child: Container(
-            width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: Colors.white,
@@ -470,11 +437,10 @@ class _RelatoriosMainScreenState extends State<RelatoriosMainScreen> {
     return '';
   }
 
-  bool _podeGerarRelatorio() {
-    return _tipoRelatorioSelecionado != null &&
-        _dataInicio != null &&
-        _dataFim != null;
-  }
+  bool _podeGerarRelatorio() =>
+      _tipoRelatorioSelecionado != null &&
+      _dataInicio != null &&
+      _dataFim != null;
 
   Future<void> _gerarRelatorio() async {
     if (!_podeGerarRelatorio()) return;
@@ -485,87 +451,91 @@ class _RelatoriosMainScreenState extends State<RelatoriosMainScreen> {
     });
 
     try {
-      final usuario = AuthService.usuario;
-
-      if (usuario?.id == null) {
-        setState(() {
-          _errorMessage = 'Usuário não autenticado. Faça login novamente.';
-        });
-        return;
-      }
-
-      final usuarioId = usuario!.id!;
       final dataInicio = _dataInicio!;
       final dataFim = _dataFim!;
+      File? file;
 
       switch (_tipoRelatorioSelecionado) {
         case 'plantios':
-          await _relatorioService.gerarRelatorioPlantios(
-            lavouraId: widget.lavouraId,
-            dataInicio: dataInicio,
-            dataFim: dataFim,
+          final dados = await _relatorioService.getRelatorioPlantio(
+            widget.lavouraId,
+            dataInicio,
+            dataFim,
           );
+          await _pdfService.gerarRelatorio("Relatório de Plantios", dados);
           break;
+
         case 'agrotoxicos':
-          await _relatorioService.gerarRelatorioAgrotoxicos(
-            lavouraId: widget.lavouraId,
-            dataInicio: dataInicio,
-            dataFim: dataFim,
+          final dados = await _relatorioService.getRelatorioAplicacao(
+            widget.lavouraId,
+            dataInicio,
+            dataFim,
+          );
+          await _pdfService.gerarRelatorio(
+            "Relatório de Aplicações de Agrotóxicos",
+            dados,
           );
           break;
+
         case 'insumos':
-          await _relatorioService.gerarRelatorioInsumosEstoque(
-            lavouraId: widget.lavouraId,
-            dataInicio: dataInicio,
-            dataFim: dataFim,
+          final dados = await _relatorioService.getRelatorioAplicacaoInsumo(
+            widget.lavouraId,
+            dataInicio,
+            dataFim,
           );
+          await _pdfService.gerarRelatorio("Relatório de Insumos", dados);
+
           break;
+
         case 'colheitas':
-          await _relatorioService.gerarRelatorioColheitas(
-            lavouraId: widget.lavouraId,
-            dataInicio: dataInicio,
-            dataFim: dataFim,
+          final dados = await _relatorioService.getRelatorioColheita(
+            widget.lavouraId,
+            dataInicio,
+            dataFim,
           );
+          await _pdfService.gerarRelatorio("Relatório de Colheitas", dados);
           break;
+
         case 'movimentacoes':
-          await _relatorioService.gerarRelatorioEstoque(
-            lavouraId: widget.lavouraId,
-            dataInicio: dataInicio,
-            dataFim: dataFim,
+          final dados = await _relatorioService.getRelatorioMovimentacaoEstoque(
+            widget.lavouraId,
+            dataInicio,
+            dataFim,
           );
+          await _pdfService.gerarRelatorio("Relatório de Movimentações", dados);
           break;
+
         case 'custos':
-          setState(() {
-            _errorMessage = 'Funcionalidade em desenvolvimento';
-          });
+          setState(
+            () => _errorMessage = 'Relatório de custos ainda não implementado',
+          );
           return;
+
         default:
-          setState(() {
-            _errorMessage = 'Tipo de relatório não reconhecido';
-          });
+          setState(() => _errorMessage = 'Tipo de relatório não reconhecido');
           return;
       }
 
-      // Sucesso
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Relatório ${_getNomeRelatorio()} gerado com sucesso!',
+      if (file != null) {
+        // Abre o PDF no app nativo de visualização
+        await OpenFilex.open(file.path);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Relatório ${_getNomeRelatorio()} gerado com sucesso!',
+              ),
+              backgroundColor: Colors.green[600],
+              behavior: SnackBarBehavior.floating,
             ),
-            backgroundColor: Colors.green[600],
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+          );
+        }
       }
     } catch (e) {
-      setState(() {
-        _errorMessage = 'Erro ao gerar relatório: ${e.toString()}';
-      });
+      setState(() => _errorMessage = 'Erro ao gerar relatório: $e');
     } finally {
-      setState(() {
-        _isGenerating = false;
-      });
+      setState(() => _isGenerating = false);
     }
   }
 

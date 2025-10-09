@@ -1,7 +1,8 @@
 class ApiConfig {
   static const String baseUrl =
       'http://localhost:5209/api'; // Para web/desktop (funcionando)
-      //'https://unenticed-voncile-nondigestibly.ngrok-free.dev/api'; // Para web/desktop (funcionando)
+      //'https://unenticed-voncile-nondigestibly.ngrok-free.dev';
+  // Para web/desktop (funcionando)
   static const String authBase = '/auth';
   static const String loginEndpoint = '$authBase/login';
   static const String registerEndpoint = '$authBase/cadastrar';

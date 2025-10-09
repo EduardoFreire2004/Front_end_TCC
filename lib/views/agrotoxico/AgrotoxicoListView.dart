@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fgl_1/models/AgrotoxicoModel.dart';
+import 'package:flutter_fgl_1/repositories/AgrotoxicoRepo.dart';
+import 'package:flutter_fgl_1/services/pdf_service.dart';
 import 'package:flutter_fgl_1/viewmodels/AgrotoxicoViewModel.dart';
 import 'package:flutter_fgl_1/viewmodels/FornecedoresViewmodel.dart';
 import 'package:flutter_fgl_1/viewmodels/TipoAgrotoxicoViewModel.dart';
@@ -35,6 +37,8 @@ class _AgrotoxicoListViewState extends State<AgrotoxicoListView> {
     final Color iconColor = Colors.green[700]!;
     final Color errorColor = Colors.redAccent;
     final Color scaffoldBgColor = Colors.grey[50]!;
+    
+    final AgrotoxicoRepo _repository = AgrotoxicoRepo();
 
     void showDetailsDialog(
       BuildContext context,
@@ -399,16 +403,34 @@ class _AgrotoxicoListViewState extends State<AgrotoxicoListView> {
             mini: true,
             backgroundColor: Colors.blue[600],
             tooltip: 'Gerar Relatório PDF',
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    'Funcionalidade de relatório será implementada via API',
+            
+            onPressed: () async {
+              final pdfService = PdfServiceLista();
+              try {
+                final lista = await _repository.getAll(); // Busca lista atualizada
+                await pdfService.gerarRelatorio(
+                  "Relatório de Agrotóxicos",
+                  lista,
+                );
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Relatório PDF de Agrotóxicos gerado com sucesso!',
+                    ),
+                    backgroundColor: Colors.green,
                   ),
-                  backgroundColor: Colors.orange,
-                ),
-              );
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Erro ao gerar relatório: $e'),
+                    backgroundColor: Colors.redAccent,
+                  ),
+                );
+              }
             },
+
             child: const Icon(Icons.picture_as_pdf),
           ),
           const SizedBox(height: 12),

@@ -9,7 +9,6 @@ import 'package:flutter_fgl_1/views/Plantio/PlantioListView.dart';
 import 'package:flutter_fgl_1/views/Semente/SementeListView.dart';
 import 'package:flutter_fgl_1/views/MovimentacaoEstoque/MovimentacaoEstoqueListView.dart';
 import 'package:flutter_fgl_1/views/Relatorios/RelatoriosMainScreen.dart';
-import 'package:flutter_fgl_1/views/Relatorios/RelatorioCompletoLavouraScreen.dart';
 import 'package:flutter_fgl_1/views/Custos/CustosView.dart';
 import 'package:flutter_fgl_1/views/Fornecedores/FornecedoresListView.dart';
 import 'package:flutter_fgl_1/views/Lavoura/LavouraFormView.dart';
@@ -167,46 +166,7 @@ class _LavouraDetalhesViewState extends State<LavouraDetalhesView> {
             'Área: ${widget.lavoura.area} ha',
             style: TextStyle(fontSize: 16, color: subtitleColor),
           ),
-          const SizedBox(height: 8),
 
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.blue[50],
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.blue[200]!),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.location_on, color: Colors.blue[600], size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Localização',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue[800],
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Latitude: ${widget.lavoura.latitude.toStringAsFixed(6)}',
-                        style: TextStyle(fontSize: 12, color: Colors.blue[700]),
-                      ),
-                      Text(
-                        'Longitude: ${widget.lavoura.longitude.toStringAsFixed(6)}',
-                        style: TextStyle(fontSize: 12, color: Colors.blue[700]),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
           const Divider(height: 24, thickness: 1),
 
           Text(
@@ -300,11 +260,10 @@ class _LavouraDetalhesViewState extends State<LavouraDetalhesView> {
                   );
                 },
                 child: Card(
-                  color: Colors.green[100],
-                  elevation: 4,
+                  color: Colors.grey.shade50,
+                  elevation: 3,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
-                    side: BorderSide(color: Colors.green[600]!, width: 2),
                   ),
                   child: Center(
                     child: Column(
@@ -324,7 +283,7 @@ class _LavouraDetalhesViewState extends State<LavouraDetalhesView> {
                               child: Container(
                                 padding: const EdgeInsets.all(4),
                                 decoration: BoxDecoration(
-                                  color: Colors.green[600],
+                                  color: Colors.green[800],
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(
@@ -347,88 +306,6 @@ class _LavouraDetalhesViewState extends State<LavouraDetalhesView> {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          'Novo Sistema',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.green[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder:
-                          (_) => RelatorioCompletoLavouraScreen(
-                            lavouraId: widget.lavoura.id!,
-                            nomeLavoura: widget.lavoura.nome,
-                          ),
-                    ),
-                  );
-                },
-                child: Card(
-                  color: Colors.blue[100],
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: BorderSide(color: Colors.blue[600]!, width: 2),
-                  ),
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Icon(
-                              Icons.agriculture,
-                              size: 32,
-                              color: Colors.blue[700],
-                            ),
-                            Positioned(
-                              right: 0,
-                              top: 0,
-                              child: Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue[600],
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.check,
-                                  size: 12,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Relatório Completo',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue[800],
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Dados Consolidados',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.blue[600],
-                          ),
-                        ),
                       ],
                     ),
                   ),
@@ -499,46 +376,6 @@ class _LavouraDetalhesViewState extends State<LavouraDetalhesView> {
           Text(
             'Área: ${widget.lavoura.area} ha',
             style: TextStyle(fontSize: 16, color: subtitleColor),
-          ),
-          const SizedBox(height: 8),
-
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.blue[50],
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.blue[200]!),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.location_on, color: Colors.blue[600], size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Localização',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue[800],
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Latitude: ${widget.lavoura.latitude.toStringAsFixed(6)}',
-                        style: TextStyle(fontSize: 12, color: Colors.blue[700]),
-                      ),
-                      Text(
-                        'Longitude: ${widget.lavoura.longitude.toStringAsFixed(6)}',
-                        style: TextStyle(fontSize: 12, color: Colors.blue[700]),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
           ),
           const Divider(height: 24, thickness: 1),
 

@@ -51,7 +51,7 @@ class LavouraRepo {
     try {
       final response = await ApiService.put(
         '/Lavouras/${lavoura.id}',
-        jsonEncode(lavoura.toJson()),
+        lavoura.toJson(),
       );
 
       if (response.statusCode != 200 && response.statusCode != 204) {

@@ -22,9 +22,11 @@ class _PlantioFormViewState extends State<PlantioFormView> {
   final _descricaoController = TextEditingController();
   final _areaController = TextEditingController();
   final _dataHoraController = TextEditingController();
+  final _qtdeController = TextEditingController();
 
   int? _sementeID;
   DateTime? _dataHora;
+  double? _qtde;
 
   final Color primaryColor = Colors.green[700]!;
   final Color primaryColorDark = Colors.green[800]!;
@@ -43,6 +45,7 @@ class _PlantioFormViewState extends State<PlantioFormView> {
       );
       _sementeID = widget.plantio!.sementeID;
       _dataHora = widget.plantio!.dataHora;
+      _qtde = widget.plantio!.qtde;
       _dataHoraController.text = DateFormat(
         'dd/MM/yyyy HH:mm',
       ).format(_dataHora!);
@@ -54,6 +57,7 @@ class _PlantioFormViewState extends State<PlantioFormView> {
     _descricaoController.dispose();
     _areaController.dispose();
     _dataHoraController.dispose();
+    _qtdeController.dispose();
     super.dispose();
   }
 
@@ -117,6 +121,7 @@ class _PlantioFormViewState extends State<PlantioFormView> {
       id: widget.plantio?.id,
       descricao: _descricaoController.text.trim(),
       sementeID: _sementeID!,
+      qtde: _qtde ?? double.parse(_qtdeController.text),
       dataHora: _dataHora!,
       areaPlantada:
           double.tryParse(_areaController.text.replaceAll(',', '.')) ?? 0.0,
@@ -266,6 +271,35 @@ class _PlantioFormViewState extends State<PlantioFormView> {
                             },
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _qtdeController,
+                        decoration: const InputDecoration(
+                          labelText: 'Quantidade',
+                          prefixIcon: Icon(Icons.scale),
+                          hintText: 'Ex: 2.5',
+                        ),
+                        keyboardType: TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                            RegExp(r'^\d*\.?\d*'),
+                          ),
+                        ],
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Quantidade é obrigatória';
+                          }
+                          if (double.tryParse(value) == null) {
+                            return 'Digite uma quantidade válida';
+                          }
+                          if (double.parse(value) <= 0) {
+                            return 'Quantidade deve ser maior que zero';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 16),
                       TextFormField(

@@ -3,6 +3,7 @@ class PlantioModel {
   int sementeID;
   int lavouraID;
   String descricao;
+  double qtde;
   DateTime dataHora;
   double areaPlantada;
 
@@ -12,6 +13,7 @@ class PlantioModel {
     required this.lavouraID,
     required this.descricao,
     required this.dataHora,
+    required this.qtde,
     required this.areaPlantada,
   });
 
@@ -21,6 +23,7 @@ class PlantioModel {
       sementeID: map['sementeID'],
       lavouraID: map['lavouraID'],
       descricao: map['descricao'],
+      qtde: map['qtde'],
       dataHora: DateTime.parse(map['dataHora']),
       areaPlantada: map['areaPlantada'].toDouble(),
     );
@@ -32,6 +35,7 @@ class PlantioModel {
       'sementeID': sementeID,
       'lavouraID': lavouraID,
       'descricao': descricao,
+      'qtde': qtde,
       'dataHora': dataHora.toIso8601String(),
       'areaPlantada': areaPlantada,
     };

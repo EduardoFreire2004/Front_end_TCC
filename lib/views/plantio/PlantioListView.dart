@@ -82,6 +82,9 @@ class _PlantioListViewState extends State<PlantioListView> {
                   'Descrição',
                   plantio.descricao,
                 ),
+                buildDetailItem(Icons.scale, 
+                  'Quantidade', 
+                    '${plantio.qtde ?? 0}',),
                 buildDetailItem(
                   Icons.map,
                   'Área Plantada',
@@ -343,6 +346,7 @@ class _PlantioListViewState extends State<PlantioListView> {
           const SizedBox(height: 12),
           FloatingActionButton(
             heroTag: 'addFAB',
+            backgroundColor: Colors.green,
             onPressed:
                 () => Navigator.push(
                   context,

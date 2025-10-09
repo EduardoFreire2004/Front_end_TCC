@@ -34,10 +34,7 @@ class ColheitaRepo {
 
   Future<void> create(ColheitaModel colheita) async {
     try {
-      final response = await ApiService.post(
-        '/Colheitas',
-        jsonEncode(colheita.toJson()),
-      );
+      final response = await ApiService.post('/Colheitas', colheita.toJson());
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw Exception('Erro ao criar colheita (${response.statusCode}).');
@@ -55,7 +52,7 @@ class ColheitaRepo {
     try {
       final response = await ApiService.put(
         '/Colheitas/${colheita.id}',
-        jsonEncode(colheita.toJson()),
+        colheita.toJson(),
       );
 
       if (response.statusCode != 200 && response.statusCode != 204) {
@@ -132,4 +129,3 @@ class ColheitaRepo {
     }
   }
 }
-

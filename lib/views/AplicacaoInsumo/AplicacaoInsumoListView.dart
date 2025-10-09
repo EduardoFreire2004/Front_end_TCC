@@ -67,6 +67,7 @@ class _AplicacaoListViewState extends State<AplicacaoInsumoListView> {
 
       final insumo = await insumoVM.getID(aplicacao.insumoID);
       final nomeInsumo = insumo?.nome ?? 'Não encontrado';
+      final unidadeMedidaInsumo = insumo?.unidade_Medida ?? 'Não Encontrado';
 
       showDialog(
         context: context,
@@ -87,6 +88,11 @@ class _AplicacaoListViewState extends State<AplicacaoInsumoListView> {
                     Icons.description,
                     'Descrição',
                     aplicacao.descricao ?? '',
+                  ),
+                  buildDetailItem(
+                    Icons.scale,
+                    'Quantidade',
+                    '${aplicacao.qtde ?? 0} ${unidadeMedidaInsumo ?? ''}',
                   ),
                   buildDetailItem(
                     Icons.calendar_today,
@@ -350,4 +356,3 @@ class _AplicacaoListViewState extends State<AplicacaoInsumoListView> {
     );
   }
 }
-

@@ -31,7 +31,7 @@ class SementeRepo {
     try {
       final response = await ApiService.post(
         '/Sementes',
-        jsonEncode(semente.toJson()),
+        semente.toJson(),
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
@@ -50,7 +50,7 @@ class SementeRepo {
     try {
       final response = await ApiService.put(
         '/Sementes/${semente.id}',
-        jsonEncode(semente.toJson()),
+        semente.toJson(),
       );
 
       if (response.statusCode != 200 && response.statusCode != 204) {

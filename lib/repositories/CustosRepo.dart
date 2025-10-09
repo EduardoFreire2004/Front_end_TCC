@@ -35,7 +35,7 @@ class CustoRepo {
     try {
       final response = await ApiService.post(
         '/Custos',
-        jsonEncode(custo.toJson()),
+        custo.toJson(),
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
@@ -54,7 +54,7 @@ class CustoRepo {
     try {
       final response = await ApiService.put(
         '/Custos/${custo.id}',
-        jsonEncode(custo.toJson()),
+        custo.toJson(),
       );
 
       if (response.statusCode != 200 && response.statusCode != 204) {

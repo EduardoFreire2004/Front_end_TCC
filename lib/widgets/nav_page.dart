@@ -82,24 +82,6 @@ class NavBar extends StatelessWidget {
           _buildNavItem(context, Icons.science, 'Insumos', InsumoListView()),
           const Divider(),
           ListTile(
-            leading: Icon(
-              isDarkMode ? Icons.light_mode : Icons.dark_mode,
-              color: iconItemColor,
-            ),
-            title: Text(
-              isDarkMode ? 'Tema Claro' : 'Tema Escuro',
-              style: TextStyle(
-                color: textItemColor,
-                fontWeight: textItemWeight,
-              ),
-            ),
-            onTap: () {
-              themeProvider.toggleTheme();
-              Navigator.pop(context);
-            },
-          ),
-          const Divider(),
-          ListTile(
             leading: Icon(Icons.logout, color: Colors.red[600]),
             title: Text(
               'Sair',

@@ -31,7 +31,7 @@ class TipoMovimentacaoRepo {
     try {
       final response = await ApiService.post(
         '/TipoMovimentacoes',
-        jsonEncode(tipo.toJson()),
+        tipo.toJson(),
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
@@ -50,7 +50,7 @@ class TipoMovimentacaoRepo {
     try {
       final response = await ApiService.put(
         '/TipoMovimentacoes/${tipo.id}',
-        jsonEncode(tipo.toJson()),
+        tipo.toJson(),
       );
 
       if (response.statusCode != 200 && response.statusCode != 204) {
