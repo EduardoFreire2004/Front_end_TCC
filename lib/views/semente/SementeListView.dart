@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fgl_1/models/SementeModel.dart';
+import 'package:flutter_fgl_1/services/RelatorioService.dart';
+import 'package:flutter_fgl_1/services/pdf_service.dart';
 import 'package:flutter_fgl_1/viewmodels/FornecedoresViewmodel.dart';
 import 'package:flutter_fgl_1/viewmodels/SementeViewModel.dart';
 import 'package:flutter_fgl_1/views/Fornecedores/FornecedoresListView.dart';
@@ -229,16 +231,35 @@ class _SementeListViewState extends State<SementeListView> {
             mini: true,
             backgroundColor: Colors.blue[600],
             tooltip: 'Gerar Relatório PDF',
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    'Funcionalidade de relatório será implementada via API',
+            
+            onPressed: () async {
+              final pdfService = PdfServiceLista();
+              final _relatorioService = RelatorioService();
+              try {
+                final lista = await _relatorioService.getRelatorioSemente(); // Busca lista atualizada
+                await pdfService.gerarRelatorio(
+                  "Relatório de Sementes",
+                  lista,
+                );
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Relatório PDF de Agrotóxicos gerado com sucesso!',
+                    ),
+                    backgroundColor: Colors.green,
                   ),
-                  backgroundColor: Colors.orange,
-                ),
-              );
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Erro ao gerar relatório: $e'),
+                    backgroundColor: Colors.redAccent,
+                  ),
+                );
+              }
             },
+
             child: const Icon(Icons.picture_as_pdf),
           ),
           const SizedBox(height: 12),

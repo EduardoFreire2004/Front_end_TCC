@@ -11,8 +11,7 @@ class FornecedoresListView extends StatefulWidget {
       _FornecedorAgrotoxicoListViewState();
 }
 
-class _FornecedorAgrotoxicoListViewState
-    extends State<FornecedoresListView> {
+class _FornecedorAgrotoxicoListViewState extends State<FornecedoresListView> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedSearchType = 'nome'; // Valor padrão
 
@@ -272,10 +271,9 @@ class _FornecedorAgrotoxicoListViewState
                                         context,
                                         MaterialPageRoute(
                                           builder:
-                                              (_) =>
-                                                  FornecedoresFormView(
-                                                    fornecedor: fornecedor,
-                                                  ),
+                                              (_) => FornecedoresFormView(
+                                                fornecedor: fornecedor,
+                                              ),
                                         ),
                                       ),
                                 ),
@@ -303,9 +301,7 @@ class _FornecedorAgrotoxicoListViewState
         onPressed:
             () => Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => const FornecedoresFormView(),
-              ),
+              MaterialPageRoute(builder: (_) => const FornecedoresFormView()),
             ),
         tooltip: 'Adicionar Fornecedor',
         child: const Icon(Icons.add),
@@ -313,4 +309,3 @@ class _FornecedorAgrotoxicoListViewState
     );
   }
 }
-

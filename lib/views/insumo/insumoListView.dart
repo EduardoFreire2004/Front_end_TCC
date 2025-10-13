@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fgl_1/models/InsumoModel.dart';
+import 'package:flutter_fgl_1/services/RelatorioService.dart';
+import 'package:flutter_fgl_1/services/pdf_service.dart';
 import 'package:flutter_fgl_1/viewmodels/CategoriaInsumoViewModel.dart';
 import 'package:flutter_fgl_1/viewmodels/InsumoViewModel.dart';
 import 'package:flutter_fgl_1/viewmodels/FornecedoresViewmodel.dart';
@@ -308,16 +310,35 @@ class _InsumoListViewState extends State<InsumoListView> {
             mini: true,
             backgroundColor: Colors.blue[600],
             tooltip: 'Gerar Relatório PDF',
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    'Funcionalidade de relatório será implementada via API',
+            
+            onPressed: () async {
+              final pdfService = PdfServiceLista();
+              final _relatorioService = RelatorioService();
+              try {
+                final lista = await _relatorioService.getRelatorioInsumo(); // Busca lista atualizada
+                await pdfService.gerarRelatorio(
+                  "Relatório de Insumos",
+                  lista,
+                );
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Relatório PDF de Agrotóxicos gerado com sucesso!',
+                    ),
+                    backgroundColor: Colors.green,
                   ),
-                  backgroundColor: Colors.orange,
-                ),
-              );
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Erro ao gerar relatório: $e'),
+                    backgroundColor: Colors.redAccent,
+                  ),
+                );
+              }
             },
+
             child: const Icon(Icons.picture_as_pdf),
           ),
           const SizedBox(height: 12),

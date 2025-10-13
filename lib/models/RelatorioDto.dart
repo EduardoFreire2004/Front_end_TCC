@@ -202,4 +202,152 @@ class RelatorioMovimentacaoDTO {
     'quantidade': quantidade,
     'dataHora': dataHora.toIso8601String(),
   };
+
 }
+
+// -------------------------------------------------------------
+// RELATÓRIO DE AGROTÓXICOS
+// -------------------------------------------------------------
+
+class RelatorioAgrotoxicoDTO {
+  final int id;
+  final String nome;
+  final String tipo;
+  final String fornecedor;
+  final String unidadeMedida;
+  final double qtde;
+  final double preco;
+  final DateTime dataHora;
+
+  RelatorioAgrotoxicoDTO({
+    required this.id,
+    required this.nome,
+    required this.tipo,
+    required this.fornecedor,
+    required this.unidadeMedida,
+    required this.qtde,
+    required this.preco,
+    required this.dataHora,
+  });
+
+  factory RelatorioAgrotoxicoDTO.fromJson(Map<String, dynamic> json) {
+    return RelatorioAgrotoxicoDTO(
+      id: json['id'] ?? 0,
+      nome: json['nome'] ?? '',
+      tipo: json['tipo'] ?? '',
+      fornecedor: json['fonecedor'] ?? '', // Mantido igual ao backend
+      unidadeMedida: json['unidadeMedida'] ?? '',
+      qtde: (json['qtde'] ?? 0).toDouble(),
+      preco: (json['preco'] ?? 0).toDouble(),
+      dataHora: DateTime.parse(json['dataHora']),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'nome': nome,
+        'tipo': tipo,
+        'fonecedor': fornecedor,
+        'unidadeMedida': unidadeMedida,
+        'qtde': qtde,
+        'preco': preco,
+        'dataHora': dataHora.toIso8601String(),
+      };
+}
+
+// -------------------------------------------------------------
+// RELATÓRIO DE INSUMOS
+// -------------------------------------------------------------
+
+class RelatorioInsumoDTO {
+  final int id;
+  final String nome;
+  final String categoria;
+  final String fornecedor;
+  final String unidadeMedida;
+  final double qtde;
+  final double preco;
+  final DateTime dataHora;
+
+  RelatorioInsumoDTO({
+    required this.id,
+    required this.nome,
+    required this.categoria,
+    required this.fornecedor,
+    required this.unidadeMedida,
+    required this.qtde,
+    required this.preco,
+    required this.dataHora,
+  });
+
+  factory RelatorioInsumoDTO.fromJson(Map<String, dynamic> json) {
+    return RelatorioInsumoDTO(
+      id: json['id'] ?? 0,
+      nome: json['nome'] ?? '',
+      categoria: json['categoria'] ?? '',
+      fornecedor: json['fonecedor'] ?? '',
+      unidadeMedida: json['unidadeMedida'] ?? '',
+      qtde: (json['qtde'] ?? 0).toDouble(),
+      preco: (json['preco'] ?? 0).toDouble(),
+      dataHora: DateTime.parse(json['dataHora']),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'nome': nome,
+        'categoria': categoria,
+        'fonecedor': fornecedor,
+        'unidadeMedida': unidadeMedida,
+        'qtde': qtde,
+        'preco': preco,
+        'dataHora': dataHora.toIso8601String(),
+      };
+}
+
+// -------------------------------------------------------------
+// RELATÓRIO DE SEMENTES
+// -------------------------------------------------------------
+
+class RelatorioSementeDTO {
+  final int id;
+  final String nome;
+  final String tipo;
+  final String fornecedor;
+  final String marca;
+  final double preco;
+  final DateTime dataHora;
+
+  RelatorioSementeDTO({
+    required this.id,
+    required this.nome,
+    required this.tipo,
+    required this.fornecedor,
+    required this.marca,
+    required this.preco,
+    required this.dataHora,
+  });
+
+  factory RelatorioSementeDTO.fromJson(Map<String, dynamic> json) {
+    return RelatorioSementeDTO(
+      id: json['id'] ?? 0,
+      nome: json['nome'] ?? '',
+      tipo: json['tipo'] ?? '',
+      fornecedor: json['fonecedor'] ?? '',
+      marca: json['marca'] ?? '',
+      preco: (json['preco'] ?? 0).toDouble(),
+      dataHora: DateTime.parse(json['dataHora']),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'nome': nome,
+        'tipo': tipo,
+        'fonecedor': fornecedor,
+        'marca': marca,
+        'preco': preco,
+        'dataHora': dataHora.toIso8601String(),
+      };
+}
+

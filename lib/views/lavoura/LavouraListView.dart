@@ -19,6 +19,16 @@ class _LavouraListViewState extends State<LavouraListView> {
   int _currentPage = 0;
 
   @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final viewModel = Provider.of<LavouraViewModel>(context, listen: false);
+      viewModel.fetch();
+    });
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
     _pageController.dispose();
@@ -118,9 +128,7 @@ class _LavouraListViewState extends State<LavouraListView> {
 
   Widget _buildEstoqueSection() {
     return RefreshIndicator(
-      onRefresh: () async {
-
-      },
+      onRefresh: () async {},
       color: AppColors.primaryGreen,
       child: ListConfig.defaultListView(
         padding: const EdgeInsets.all(8.0),
@@ -131,7 +139,6 @@ class _LavouraListViewState extends State<LavouraListView> {
             icon: Icons.pest_control,
             color: Colors.red,
             onTap: () {
-
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Funcionalidade em desenvolvimento'),
@@ -146,7 +153,6 @@ class _LavouraListViewState extends State<LavouraListView> {
             icon: Icons.science,
             color: Colors.blue,
             onTap: () {
-
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Funcionalidade em desenvolvimento'),
@@ -161,7 +167,6 @@ class _LavouraListViewState extends State<LavouraListView> {
             icon: Icons.eco,
             color: Colors.green,
             onTap: () {
-
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Funcionalidade em desenvolvimento'),
@@ -176,7 +181,6 @@ class _LavouraListViewState extends State<LavouraListView> {
             icon: Icons.swap_horiz,
             color: Colors.orange,
             onTap: () {
-
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Funcionalidade em desenvolvimento'),
@@ -347,4 +351,3 @@ class _LavouraListViewState extends State<LavouraListView> {
     );
   }
 }
-

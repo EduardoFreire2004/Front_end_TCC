@@ -311,24 +311,7 @@ class _PlantioListViewState extends State<PlantioListView> {
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          FloatingActionButton(
-            heroTag: 'relatorioFAB',
-            mini: true,
-            backgroundColor: Colors.blue[600],
-            tooltip: 'Gerar Relatório PDF',
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    'Funcionalidade de relatório será implementada via API',
-                  ),
-                  backgroundColor: Colors.orange,
-                ),
-              );
-            },
-            child: const Icon(Icons.picture_as_pdf),
-          ),
+        children: [ 
           const SizedBox(height: 12),
           FloatingActionButton(
             heroTag: 'sementeFAB',

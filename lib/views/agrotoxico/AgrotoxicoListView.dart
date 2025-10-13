@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fgl_1/models/AgrotoxicoModel.dart';
 import 'package:flutter_fgl_1/repositories/AgrotoxicoRepo.dart';
+import 'package:flutter_fgl_1/services/RelatorioService.dart';
 import 'package:flutter_fgl_1/services/pdf_service.dart';
 import 'package:flutter_fgl_1/viewmodels/AgrotoxicoViewModel.dart';
 import 'package:flutter_fgl_1/viewmodels/FornecedoresViewmodel.dart';
@@ -406,8 +407,9 @@ class _AgrotoxicoListViewState extends State<AgrotoxicoListView> {
             
             onPressed: () async {
               final pdfService = PdfServiceLista();
+              final _relatorioService = RelatorioService();
               try {
-                final lista = await _repository.getAll(); // Busca lista atualizada
+                final lista = await _relatorioService.getRelatorioAgrotoxico(); // Busca lista atualizada
                 await pdfService.gerarRelatorio(
                   "Relatório de Agrotóxicos",
                   lista,

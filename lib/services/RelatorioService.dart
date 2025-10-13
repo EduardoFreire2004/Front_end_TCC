@@ -103,9 +103,21 @@ class RelatorioService {
     }
   }
 
-  Future<List<AgrotoxicoModel>> getRelatorioAgrotoxico() async {
+  Future<List<RelatorioAgrotoxicoDTO>> getRelatorioAgrotoxico() async {
     final endpoint = '/relatorios/agrotoxico';
     final data = await _fetchRelatorio(endpoint);
-    return data.map((e) => AgrotoxicoModel.fromJson(e)).toList();
+    return data.map((e) => RelatorioAgrotoxicoDTO.fromJson(e)).toList();
+  }
+
+  Future<List<RelatorioSementeDTO>> getRelatorioSemente() async {
+    final endpoint = '/relatorios/semente';
+    final data = await _fetchRelatorio(endpoint);
+    return data.map((e) => RelatorioSementeDTO.fromJson(e)).toList();
+  }
+
+  Future<List<RelatorioInsumoDTO>> getRelatorioInsumo() async {
+    final endpoint = '/relatorios/insumo';
+    final data = await _fetchRelatorio(endpoint);
+    return data.map((e) => RelatorioInsumoDTO.fromJson(e)).toList();
   }
 }
