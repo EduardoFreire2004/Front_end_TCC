@@ -27,19 +27,18 @@ class _MovimentacaoEstoqueListViewState
   }
 
   Future<void> _loadData() async {
-    final movimentacaoVM = Provider.of<MovimentacaoEstoqueViewModel>(
-      context,
-      listen: false,
-    );
+  final movimentacaoVM =
+      Provider.of<MovimentacaoEstoqueViewModel>(context, listen: false);
 
-    await movimentacaoVM.fetchByLavoura(widget.lavouraId);
+  await Future.wait([
+    Provider.of<AgrotoxicoViewModel>(context, listen: false).fetch(),
+    Provider.of<SementeViewModel>(context, listen: false).fetch(),
+    Provider.of<InsumoViewModel>(context, listen: false).fetch(),
+  ]);
 
-    await Future.wait([
-      Provider.of<AgrotoxicoViewModel>(context, listen: false).fetch(),
-      Provider.of<SementeViewModel>(context, listen: false).fetch(),
-      Provider.of<InsumoViewModel>(context, listen: false).fetch(),
-    ]);
-  }
+  await movimentacaoVM.fetchByLavoura(widget.lavouraId);
+}
+
 
   String _getItemNome(
     BuildContext context,
@@ -151,13 +150,6 @@ class _MovimentacaoEstoqueListViewState
         title: const Text('Movimentações de Estoque'),
         backgroundColor: Colors.green[700],
         foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadData,
-            tooltip: 'Atualizar',
-          ),
-        ],
       ),
       body: RefreshIndicator(
         onRefresh: _loadData,

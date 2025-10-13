@@ -38,7 +38,7 @@ class _AgrotoxicoListViewState extends State<AgrotoxicoListView> {
     final Color iconColor = Colors.green[700]!;
     final Color errorColor = Colors.redAccent;
     final Color scaffoldBgColor = Colors.grey[50]!;
-    
+
     final AgrotoxicoRepo _repository = AgrotoxicoRepo();
 
     void showDetailsDialog(
@@ -139,6 +139,14 @@ class _AgrotoxicoListViewState extends State<AgrotoxicoListView> {
                     Icons.scale,
                     'Quantidade',
                     Text('${agrotoxico.qtde} ${agrotoxico.unidade_Medida}'),
+                  ),
+                  buildDetailItem(
+                    Icons.attach_money,
+                    'Preço',
+                    Text(
+                      'R\$ ${agrotoxico.preco.toStringAsFixed(2).replaceAll('.', ',')}',
+                      style: const TextStyle(fontWeight: FontWeight.w500),
+                    ),
                   ),
                   if (agrotoxico.tipoID != null)
                     buildDetailItem(
@@ -404,12 +412,14 @@ class _AgrotoxicoListViewState extends State<AgrotoxicoListView> {
             mini: true,
             backgroundColor: Colors.blue[600],
             tooltip: 'Gerar Relatório PDF',
-            
+
             onPressed: () async {
               final pdfService = PdfServiceLista();
               final _relatorioService = RelatorioService();
               try {
-                final lista = await _relatorioService.getRelatorioAgrotoxico(); // Busca lista atualizada
+                final lista =
+                    await _relatorioService
+                        .getRelatorioAgrotoxico(); // Busca lista atualizada
                 await pdfService.gerarRelatorio(
                   "Relatório de Agrotóxicos",
                   lista,
@@ -481,4 +491,3 @@ class _AgrotoxicoListViewState extends State<AgrotoxicoListView> {
     );
   }
 }
-

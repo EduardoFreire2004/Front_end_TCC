@@ -22,7 +22,6 @@ class _SementeFormViewState extends State<SementeFormView> {
   final _dataCadastroController = TextEditingController();
   final _tipoController = TextEditingController();
   final _marcaController = TextEditingController();
-  final _qtdeController = TextEditingController();
   final _precoController = TextEditingController();
 
   int? _fornecedorID;
@@ -40,7 +39,6 @@ class _SementeFormViewState extends State<SementeFormView> {
       _nomeController.text = semente.nome;
       _tipoController.text = semente.tipo;
       _marcaController.text = semente.marca;
-      _qtdeController.text = semente.qtde.toString();
       _fornecedorID = semente.fornecedorSementeID;
       _selectedDate = semente.data_Cadastro;
       if (_selectedDate != null) {
@@ -64,7 +62,6 @@ class _SementeFormViewState extends State<SementeFormView> {
     _nomeController.dispose();
     _tipoController.dispose();
     _marcaController.dispose();
-    _qtdeController.dispose();
     _precoController.dispose();
     _dataCadastroController.dispose();
     super.dispose();
@@ -128,7 +125,7 @@ class _SementeFormViewState extends State<SementeFormView> {
       nome: _nomeController.text.trim(),
       tipo: _tipoController.text.trim(),
       marca: _marcaController.text.trim(),
-      qtde: double.tryParse(_qtdeController.text.replaceAll(',', '.')) ?? 0.0,
+      qtde: widget.semente?.qtde ?? 0.0,
       preco: preco,
       fornecedorSementeID: _fornecedorID!,
       data_Cadastro: _selectedDate!,
@@ -190,20 +187,6 @@ class _SementeFormViewState extends State<SementeFormView> {
                         _marcaController,
                         "Marca",
                         Icons.branding_watermark,
-                      ),
-                      const SizedBox(height: 16),
-                      _buildTextField(
-                        _qtdeController,
-                        "Quantidade",
-                        Icons.scale,
-                        inputType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        formatter: [
-                          FilteringTextInputFormatter.allow(
-                            RegExp(r'[0-9,\.]'),
-                          ),
-                        ],
                       ),
                       const SizedBox(height: 16),
                       _buildTextField(

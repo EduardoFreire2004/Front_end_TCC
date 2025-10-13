@@ -57,7 +57,10 @@ class _SementeListViewState extends State<SementeListView> {
                     Text("Tipo: ${semente.tipo}"),
                     Text("Marca: ${semente.marca}"),
                     Text("Quantidade: ${semente.qtde}"),
-                    Text("Preco: ${semente.preco}"),
+                    Text(
+                      "Preço: R\$ ${semente.preco.toStringAsFixed(2).replaceAll('.', ',')}",
+                      style: const TextStyle(fontWeight: FontWeight.w500),
+                    ),
                     Text("Fornecedor: ${fornecedor?.nome ?? "Não encontrado"}"),
                   ],
                 ),
@@ -231,16 +234,15 @@ class _SementeListViewState extends State<SementeListView> {
             mini: true,
             backgroundColor: Colors.blue[600],
             tooltip: 'Gerar Relatório PDF',
-            
+
             onPressed: () async {
               final pdfService = PdfServiceLista();
               final _relatorioService = RelatorioService();
               try {
-                final lista = await _relatorioService.getRelatorioSemente(); // Busca lista atualizada
-                await pdfService.gerarRelatorio(
-                  "Relatório de Sementes",
-                  lista,
-                );
+                final lista =
+                    await _relatorioService
+                        .getRelatorioSemente(); // Busca lista atualizada
+                await pdfService.gerarRelatorio("Relatório de Sementes", lista);
 
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(

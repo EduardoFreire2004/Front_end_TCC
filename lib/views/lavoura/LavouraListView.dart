@@ -126,147 +126,6 @@ class _LavouraListViewState extends State<LavouraListView> {
     );
   }
 
-  Widget _buildEstoqueSection() {
-    return RefreshIndicator(
-      onRefresh: () async {},
-      color: AppColors.primaryGreen,
-      child: ListConfig.defaultListView(
-        padding: const EdgeInsets.all(8.0),
-        children: [
-          _buildEstoqueCard(
-            title: 'Agrotóxicos',
-            subtitle: 'Gerenciar estoque de agrotóxicos',
-            icon: Icons.pest_control,
-            color: Colors.red,
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Funcionalidade em desenvolvimento'),
-                  backgroundColor: Colors.orange,
-                ),
-              );
-            },
-          ),
-          _buildEstoqueCard(
-            title: 'Insumos',
-            subtitle: 'Gerenciar estoque de insumos',
-            icon: Icons.science,
-            color: Colors.blue,
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Funcionalidade em desenvolvimento'),
-                  backgroundColor: Colors.orange,
-                ),
-              );
-            },
-          ),
-          _buildEstoqueCard(
-            title: 'Sementes',
-            subtitle: 'Gerenciar estoque de sementes',
-            icon: Icons.eco,
-            color: Colors.green,
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Funcionalidade em desenvolvimento'),
-                  backgroundColor: Colors.orange,
-                ),
-              );
-            },
-          ),
-          _buildEstoqueCard(
-            title: 'Movimentações',
-            subtitle: 'Histórico de movimentações',
-            icon: Icons.swap_horiz,
-            color: Colors.orange,
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Funcionalidade em desenvolvimento'),
-                  backgroundColor: Colors.orange,
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEstoqueCard({
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-      elevation: 3.0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(8.0),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Row(
-            children: [
-              CircleAvatar(
-                backgroundColor: color.withOpacity(0.1),
-                child: Icon(icon, color: color),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 18.0,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[800],
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 8.0),
-                    Text(
-                      subtitle,
-                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(Icons.chevron_right, color: Colors.grey[400]),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPageIndicator() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(2, (index) {
-        return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 4),
-          width: _currentPage == index ? 24 : 8,
-          height: 8,
-          decoration: BoxDecoration(
-            color:
-                _currentPage == index
-                    ? AppColors.primaryGreen
-                    : Colors.grey[300],
-            borderRadius: BorderRadius.circular(4),
-          ),
-        );
-      }),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<LavouraViewModel>(context);
@@ -319,7 +178,6 @@ class _LavouraListViewState extends State<LavouraListView> {
                 ),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: _buildPageIndicator(),
               ),
             ],
           ),
@@ -332,7 +190,7 @@ class _LavouraListViewState extends State<LavouraListView> {
             _currentPage = index;
           });
         },
-        children: [_buildLavouraSection(viewModel), _buildEstoqueSection()],
+        children: [_buildLavouraSection(viewModel)],
       ),
       floatingActionButton:
           _currentPage == 0

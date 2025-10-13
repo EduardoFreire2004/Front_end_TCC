@@ -23,7 +23,6 @@ class _AgrotoxicoFormViewState extends State<AgrotoxicoFormView> {
   final _nomeController = TextEditingController();
   final _unidadeController = TextEditingController();
   final _dataCadastroController = TextEditingController();
-  final _qtdeController = TextEditingController();
   final _precoController = TextEditingController();
 
   int? _fornecedorID;
@@ -44,7 +43,6 @@ class _AgrotoxicoFormViewState extends State<AgrotoxicoFormView> {
     if (widget.agrotoxico != null) {
       _nomeController.text = widget.agrotoxico!.nome;
       _unidadeController.text = widget.agrotoxico!.unidade_Medida;
-      _qtdeController.text = widget.agrotoxico!.qtde.toString();
       _precoController.text = widget.agrotoxico!.preco.toString();
       _fornecedorID = widget.agrotoxico!.fornecedorID;
       _tipoID = widget.agrotoxico!.tipoID;
@@ -61,7 +59,6 @@ class _AgrotoxicoFormViewState extends State<AgrotoxicoFormView> {
     _nomeController.dispose();
     _unidadeController.dispose();
     _dataCadastroController.dispose();
-    _qtdeController.dispose();
     _precoController.dispose();
     super.dispose();
   }
@@ -116,7 +113,7 @@ class _AgrotoxicoFormViewState extends State<AgrotoxicoFormView> {
       id: widget.agrotoxico?.id,
       nome: _nomeController.text.trim(),
       unidade_Medida: _unidadeController.text.trim(),
-      qtde: double.tryParse(_qtdeController.text.replaceAll(',', '.')) ?? 0.0,
+      qtde: widget.agrotoxico?.qtde ?? 0.0,
       preco: double.tryParse(_precoController.text.replaceAll(',', '.')) ?? 0.0,
       data_Cadastro: _selectedDate!,
       fornecedorID: _fornecedorID!,
@@ -309,32 +306,6 @@ class _AgrotoxicoFormViewState extends State<AgrotoxicoFormView> {
                       const SizedBox(height: 16),
                       Row(
                         children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: _qtdeController,
-                              decoration: const InputDecoration(
-                                labelText: 'Quantidade',
-                                prefixIcon: Icon(Icons.scale_outlined),
-                              ),
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                      decimal: true),
-                              inputFormatters: [
-                                FilteringTextInputFormatter.allow(
-                                  RegExp(r'^\d+[,.]?\d{0,2}'),
-                                ),
-                              ],
-                              validator: (value) {
-                                if (value == null || value.isEmpty)
-                                  return 'Informe a quantidade';
-                                if (double.tryParse(
-                                        value.replaceAll(',', '.')) ==
-                                    null) return 'Valor inválido';
-                                return null;
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 16),
                           Expanded(
                             child: TextFormField(
                               controller: _unidadeController,

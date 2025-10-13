@@ -73,7 +73,10 @@ class _InsumoListViewState extends State<InsumoListView> {
                     Text("Quantidade: ${insumo.qtde}"),
                     Text("Unidade: ${insumo.unidade_Medida}"),
                     Text("Cadastro: ${formatarData(insumo.data_Cadastro)}"),
-                    Text("Preco: ${insumo.preco}"),
+                    Text(
+                      "Preço: R\$ ${insumo.preco.toStringAsFixed(2).replaceAll('.', ',')}",
+                      style: const TextStyle(fontWeight: FontWeight.w500),
+                    ),
                     Text(
                       "Categoria: ${categoria?.descricao ?? 'Não encontrada'}",
                     ),
@@ -310,16 +313,15 @@ class _InsumoListViewState extends State<InsumoListView> {
             mini: true,
             backgroundColor: Colors.blue[600],
             tooltip: 'Gerar Relatório PDF',
-            
+
             onPressed: () async {
               final pdfService = PdfServiceLista();
               final _relatorioService = RelatorioService();
               try {
-                final lista = await _relatorioService.getRelatorioInsumo(); // Busca lista atualizada
-                await pdfService.gerarRelatorio(
-                  "Relatório de Insumos",
-                  lista,
-                );
+                final lista =
+                    await _relatorioService
+                        .getRelatorioInsumo(); // Busca lista atualizada
+                await pdfService.gerarRelatorio("Relatório de Insumos", lista);
 
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -387,4 +389,3 @@ class _InsumoListViewState extends State<InsumoListView> {
     );
   }
 }
-

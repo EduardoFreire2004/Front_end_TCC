@@ -44,7 +44,6 @@ class _LavouraDetalhesViewState extends State<LavouraDetalhesView> {
     );
 
     if (result == true) {
-
       setState(() {});
     }
   }
@@ -152,7 +151,6 @@ class _LavouraDetalhesViewState extends State<LavouraDetalhesView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           Text(
             widget.lavoura.nome,
             style: TextStyle(
@@ -246,68 +244,17 @@ class _LavouraDetalhesViewState extends State<LavouraDetalhesView> {
                   ),
                 ),
               ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder:
-                          (_) => RelatoriosMainScreen(
-                            lavouraId: widget.lavoura.id!,
-                            nomeLavoura: widget.lavoura.nome,
-                          ),
-                    ),
-                  );
-                },
-                child: Card(
-                  color: Colors.grey.shade50,
-                  elevation: 3,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Icon(
-                              Icons.assessment,
-                              size: 32,
-                              color: Colors.green[700],
-                            ),
-                            Positioned(
-                              right: 0,
-                              top: 0,
-                              child: Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color: Colors.green[800],
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.check,
-                                  size: 12,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ],
+              buildCard(
+                'Relatórios PDF',
+                Icons.assessment,
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (_) => RelatoriosMainScreen(
+                          lavouraId: widget.lavoura.id!,
+                          nomeLavoura: widget.lavoura.nome,
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Relatórios PDF',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green[800],
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                      ],
-                    ),
                   ),
                 ),
               ),
@@ -363,7 +310,6 @@ class _LavouraDetalhesViewState extends State<LavouraDetalhesView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           Text(
             widget.lavoura.nome,
             style: TextStyle(
@@ -591,4 +537,3 @@ class _LavouraDetalhesViewState extends State<LavouraDetalhesView> {
     );
   }
 }
-

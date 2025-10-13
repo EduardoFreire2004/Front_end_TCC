@@ -21,7 +21,6 @@ class _InsumoFormPageState extends State<InsumoFormView> {
   final _formKey = GlobalKey<FormState>();
   final _nomeController = TextEditingController();
   final _unidadeController = TextEditingController();
-  final _qtdeController = TextEditingController();
   final _precoController = TextEditingController();
 
   DateTime _dataCadastro = DateTime.now();
@@ -35,7 +34,6 @@ class _InsumoFormPageState extends State<InsumoFormView> {
     if (insumo != null) {
       _nomeController.text = insumo.nome;
       _unidadeController.text = insumo.unidade_Medida;
-      _qtdeController.text = insumo.qtde.toString();
       _dataCadastro = insumo.data_Cadastro;
       _categoriaID = insumo.categoriaID;
       _fornecedorID = insumo.fornecedorID;
@@ -61,7 +59,7 @@ class _InsumoFormPageState extends State<InsumoFormView> {
         id: widget.insumo?.id,
         nome: _nomeController.text.trim(),
         unidade_Medida: _unidadeController.text.trim(),
-        qtde: double.tryParse(_qtdeController.text.replaceAll(',', '.')) ?? 0.0,
+        qtde: widget.insumo?.qtde ?? 0.0,
         data_Cadastro: _dataCadastro,
         categoriaID: _categoriaID!,
         fornecedorID: _fornecedorID!,
@@ -88,7 +86,6 @@ class _InsumoFormPageState extends State<InsumoFormView> {
   void dispose() {
     _nomeController.dispose();
     _unidadeController.dispose();
-    _qtdeController.dispose();
     _precoController.dispose();
     super.dispose();
   }
@@ -129,20 +126,6 @@ class _InsumoFormPageState extends State<InsumoFormView> {
                         value == null || value.trim().isEmpty
                             ? 'Campo obrigatório'
                             : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _qtdeController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Quantidade'),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty)
-                    return 'Campo obrigatório';
-                  final numValue = double.tryParse(value.replaceAll(',', '.'));
-                  if (numValue == null || numValue <= 0)
-                    return 'Valor inválido';
-                  return null;
-                },
               ),
               const SizedBox(height: 16),
               TextFormField(

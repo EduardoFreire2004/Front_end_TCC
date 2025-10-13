@@ -166,11 +166,6 @@ class _FornecedorAgrotoxicoFormViewState extends State<FornecedoresFormView> {
                   if (tel.length < 10 || tel.length > 11) {
                     return 'Telefone deve ter 10 ou 11 dígitos';
                   }
-
-                  if (tel.length == 11 && tel[0] != '0') {
-                    return 'DDD deve começar com 0';
-                  }
-
                   return null;
                 },
               ),
