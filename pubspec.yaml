@@ -28,6 +28,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter 
   universal_html: ^2.2.4
+  mask_text_input_formatter: ^2.9.0
 
 
 dev_dependencies:

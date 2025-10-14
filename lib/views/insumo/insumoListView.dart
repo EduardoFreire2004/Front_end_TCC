@@ -268,9 +268,7 @@ class _InsumoListViewState extends State<InsumoListView> {
                                       ),
                                       const SizedBox(height: 4.0),
                                       Text(
-                                        DateFormat(
-                                          'dd/MM/yyyy',
-                                        ).format(item.data_Cadastro),
+                                        'Quantidade: ${item.qtde} ${item.unidade_Medida}',
                                         style: TextStyle(
                                           fontSize: 14,
                                           color: subtitleColor,

@@ -260,9 +260,6 @@ class _LavouraDetalhesViewState extends State<LavouraDetalhesView> {
               ),
             ],
           ),
-
-          const SizedBox(height: 32),
-          _buildNextSectionHint(),
         ],
       ),
     );
@@ -389,92 +386,10 @@ class _LavouraDetalhesViewState extends State<LavouraDetalhesView> {
               ),
             ],
           ),
-
-          const SizedBox(height: 32),
-          _buildPreviousSectionHint(),
         ],
       ),
     );
   }
-
-  Widget _buildNextSectionHint() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.orange[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.orange[200]!),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.swipe_left, color: Colors.orange[600], size: 24),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Deslize para a esquerda',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.orange[800],
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Acesse a gestão de estoque desta lavoura',
-                  style: TextStyle(fontSize: 12, color: Colors.orange[700]),
-                ),
-              ],
-            ),
-          ),
-          Icon(Icons.arrow_forward_ios, color: Colors.orange[600], size: 16),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPreviousSectionHint() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.blue[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue[200]!),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.arrow_back_ios, color: Colors.blue[600], size: 16),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Deslize para a direita',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue[800],
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Volte para as operações da lavoura',
-                  style: TextStyle(fontSize: 12, color: Colors.blue[700]),
-                ),
-              ],
-            ),
-          ),
-          Icon(Icons.swipe_right, color: Colors.blue[600], size: 24),
-        ],
-      ),
-    );
-  }
-
   Widget _buildPageIndicator() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,

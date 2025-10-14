@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../viewmodels/AuthViewModel.dart';
 import '../../config/app_colors.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -20,6 +21,11 @@ class _LoginViewState extends State<LoginView> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isLogin = true;
+
+  final _telefoneFormatter = MaskTextInputFormatter(
+    mask: '(##) #####-####',
+    filter: {"#": RegExp(r'[0-9]')},
+  );
 
   @override
   void dispose() {
@@ -52,7 +58,6 @@ class _LoginViewState extends State<LoginView> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -116,8 +121,9 @@ class _LoginViewState extends State<LoginView> {
                           TextFormField(
                             controller: _telefoneController,
                             keyboardType: TextInputType.phone,
+                            inputFormatters: [_telefoneFormatter],
                             decoration: InputDecoration(
-                              labelText: 'Telefone (opcional)',
+                              labelText: 'Telefone',
                               prefixIcon: const Icon(Icons.phone),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -131,11 +137,9 @@ class _LoginViewState extends State<LoginView> {
                               ),
                             ),
                             validator: (value) {
-                              if (value != null && value.isNotEmpty) {
-                                final tel = value.replaceAll(RegExp(r'\D'), '');
-                                if (tel.length < 10 || tel.length > 11) {
-                                  return 'Telefone deve ter 10 ou 11 dígitos';
-                                }
+                              final tel = _telefoneFormatter.getUnmaskedText();
+                              if (tel.length < 10 || tel.length > 11) {
+                                return 'Telefone deve ter 10 ou 11 dígitos';
                               }
                               return null;
                             },
@@ -381,15 +385,12 @@ class _LoginViewState extends State<LoginView> {
               );
 
       if (success && mounted) {
-
         _nomeController.clear();
         _emailController.clear();
         _senhaController.clear();
         _confirmarSenhaController.clear();
         _telefoneController.clear();
-
       }
     }
   }
 }
-

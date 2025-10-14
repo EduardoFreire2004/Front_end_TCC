@@ -338,7 +338,7 @@ class _AplicacaoListViewState extends State<AplicacaoListView> {
                 MaterialPageRoute(builder: (_) => const AgrotoxicoListView()),
               );
             },
-            child: const Icon(Icons.bug_report),
+            child: const Icon(Icons.science),
           ),
           const SizedBox(height: 12),
           FloatingActionButton(

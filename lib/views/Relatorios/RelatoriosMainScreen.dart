@@ -76,8 +76,7 @@ class _RelatoriosMainScreenState extends State<RelatoriosMainScreen> {
             _buildRelatorioGrid(),
             const SizedBox(height: 24),
             if (_tipoRelatorioSelecionado != null) _buildPeriodoRelatorio(),
-            const SizedBox(height: 24),
-            _buildInstrucoes(),
+           
           ],
         ),
       ),
@@ -146,14 +145,6 @@ class _RelatoriosMainScreenState extends State<RelatoriosMainScreen> {
       mainAxisSpacing: 16,
       childAspectRatio: 1.1,
       children: [
-        _buildRelatorioCard(
-          context,
-          icon: Icons.attach_money,
-          title: 'Relatório de Custos',
-          subtitle: 'Análise de custos',
-          color: Colors.green,
-          onTap: () => _selecionarTipoRelatorio('custos'),
-        ),
         _buildRelatorioCard(
           context,
           icon: Icons.inventory_2,
@@ -286,24 +277,6 @@ class _RelatoriosMainScreenState extends State<RelatoriosMainScreen> {
     );
   }
 
-  Widget _buildInstrucoes() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.blue[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue[200]!),
-      ),
-      child: const Text(
-        '1. Selecione o tipo de relatório\n'
-        '2. Escolha o período\n'
-        '3. Clique em "Gerar Relatório PDF"\n'
-        '4. O PDF será salvo nos documentos',
-        style: TextStyle(color: Colors.blue, fontSize: 14, height: 1.5),
-      ),
-    );
-  }
-
   Widget _buildRelatorioCard(
     BuildContext context, {
     required IconData icon,
@@ -428,7 +401,6 @@ class _RelatoriosMainScreenState extends State<RelatoriosMainScreen> {
   }
 
   String _getTipoRelatorioFromTitle(String title) {
-    if (title.contains('Custos')) return 'custos';
     if (title.contains('Insumos')) return 'insumos';
     if (title.contains('Movimentações')) return 'movimentacoes';
     if (title.contains('Agrotóxicos')) return 'agrotoxicos';
@@ -505,12 +477,6 @@ class _RelatoriosMainScreenState extends State<RelatoriosMainScreen> {
           await _pdfService.gerarRelatorio("Relatório de Movimentações", dados);
           break;
 
-        case 'custos':
-          setState(
-            () => _errorMessage = 'Relatório de custos ainda não implementado',
-          );
-          return;
-
         default:
           setState(() => _errorMessage = 'Tipo de relatório não reconhecido');
           return;
@@ -551,8 +517,6 @@ class _RelatoriosMainScreenState extends State<RelatoriosMainScreen> {
         return 'de Colheitas';
       case 'movimentacoes':
         return 'de Movimentações';
-      case 'custos':
-        return 'de Custos';
       default:
         return '';
     }

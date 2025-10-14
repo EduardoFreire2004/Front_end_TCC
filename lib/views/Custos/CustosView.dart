@@ -132,7 +132,6 @@ class _CustosViewState extends State<CustosView> with TickerProviderStateMixin {
         ),
         body: Column(
           children: [
-
             Container(
               padding: const EdgeInsets.all(16),
               color: Colors.white,
@@ -341,7 +340,6 @@ class _CustosViewState extends State<CustosView> with TickerProviderStateMixin {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               Card(
                 elevation: 4,
                 shape: RoundedRectangleBorder(
@@ -416,13 +414,6 @@ class _CustosViewState extends State<CustosView> with TickerProviderStateMixin {
                     Icons.eco,
                   ),
                   _buildCategoriaCard(
-                    'Movimentações',
-                    custo.custoMovimentacoes,
-                    viewModel.getPercentualCategoria(custo.custoMovimentacoes),
-                    Colors.green,
-                    Icons.inventory,
-                  ),
-                  _buildCategoriaCard(
                     'Plantios',
                     custo.custoPlantios,
                     viewModel.getPercentualCategoria(custo.custoPlantios),
@@ -431,66 +422,6 @@ class _CustosViewState extends State<CustosView> with TickerProviderStateMixin {
                   ),
                 ],
               ),
-
-              const SizedBox(height: 20),
-
-              if (custo.custoColheitas > 0)
-                Card(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.teal.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(
-                            Icons.agriculture,
-                            color: Colors.teal,
-                            size: 24,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Colheitas',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: titleColor,
-                                ),
-                              ),
-                              Text(
-                                viewModel.formatarMoeda(custo.custoColheitas),
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.teal,
-                                ),
-                              ),
-                              Text(
-                                '${viewModel.getPercentualCategoria(custo.custoColheitas).toStringAsFixed(1)}% do total',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: subtitleColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
             ],
           ),
         );
@@ -772,4 +703,3 @@ class _CustosViewState extends State<CustosView> with TickerProviderStateMixin {
     );
   }
 }
-

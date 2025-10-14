@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter_fgl_1/models/CustoCalculadoModel.dart';
 import 'package:flutter_fgl_1/models/ResumoCustosModel.dart';
 import 'package:flutter_fgl_1/models/HistoricoCustoModel.dart';
@@ -300,9 +301,10 @@ class CustoViewModel extends ChangeNotifier {
     }
   }
 
-  String formatarMoeda(double valor) {
-    return 'R\$ ${valor.toStringAsFixed(2).replaceAll('.', ',')}';
-  }
+
+String formatarMoeda(double valor) {
+  return NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(valor);
+}
 
   String formatarData(DateTime data) {
     return '${data.day.toString().padLeft(2, '0')}/${data.month.toString().padLeft(2, '0')}/${data.year}';

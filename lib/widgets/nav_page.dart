@@ -68,13 +68,13 @@ class NavBar extends StatelessWidget {
           ),
           _buildNavItem(
             context,
-            Icons.bug_report,
+            Icons.inventory_2,
             'Fornecedores',
             FornecedoresListView(),
           ),
           _buildNavItem(
             context,
-            Icons.bug_report,
+            Icons.science,
             'Agrotóxicos',
             AgrotoxicoListView(),
           ),
