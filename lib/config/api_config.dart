@@ -1,8 +1,7 @@
 class ApiConfig {
   static const String baseUrl =
-      'http://localhost:5209/api'; // Para web/desktop (funcionando)
-      //'https://unenticed-voncile-nondigestibly.ngrok-free.dev';
-  // Para web/desktop (funcionando)
+      'http://localhost:5209/api'; 
+  //'/https://unenticed-voncile-nondigestibly.ngrok-free.dev';
   static const String authBase = '/auth';
   static const String loginEndpoint = '$authBase/login';
   static const String registerEndpoint = '$authBase/cadastrar';
@@ -26,5 +25,5 @@ class ApiConfig {
 
   static const Duration tokenRefreshThreshold = Duration(
     minutes: 5,
-  ); // Renovar token 5 min antes de expirar
+  ); 
 }

@@ -82,9 +82,11 @@ class _PlantioListViewState extends State<PlantioListView> {
                   'Descrição',
                   plantio.descricao,
                 ),
-                buildDetailItem(Icons.scale, 
-                  'Quantidade', 
-                    '${plantio.qtde ?? 0}',),
+                buildDetailItem(
+                  Icons.scale,
+                  'Quantidade',
+                  '${plantio.qtde ?? 0}',
+                ),
                 buildDetailItem(
                   Icons.map,
                   'Área Plantada',
@@ -128,6 +130,7 @@ class _PlantioListViewState extends State<PlantioListView> {
             backgroundColor: errorColor,
           ),
         );
+        plantioVM.errorMessage = null; 
       });
     }
 
@@ -311,7 +314,7 @@ class _PlantioListViewState extends State<PlantioListView> {
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.end,
-        children: [ 
+        children: [
           const SizedBox(height: 12),
           FloatingActionButton(
             heroTag: 'sementeFAB',
@@ -345,4 +348,3 @@ class _PlantioListViewState extends State<PlantioListView> {
     );
   }
 }
-

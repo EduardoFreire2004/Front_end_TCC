@@ -76,7 +76,6 @@ class _RelatoriosMainScreenState extends State<RelatoriosMainScreen> {
             _buildRelatorioGrid(),
             const SizedBox(height: 24),
             if (_tipoRelatorioSelecionado != null) _buildPeriodoRelatorio(),
-           
           ],
         ),
       ),
@@ -148,8 +147,8 @@ class _RelatoriosMainScreenState extends State<RelatoriosMainScreen> {
         _buildRelatorioCard(
           context,
           icon: Icons.inventory_2,
-          title: 'Relatório de Insumos',
-          subtitle: 'Estoque e uso de insumos',
+          title: 'Relatório de Aplicações de Insumos',
+          subtitle: 'Histórico de Insumos',
           color: Colors.blue,
           onTap: () => _selecionarTipoRelatorio('insumos'),
         ),
@@ -164,8 +163,8 @@ class _RelatoriosMainScreenState extends State<RelatoriosMainScreen> {
         _buildRelatorioCard(
           context,
           icon: Icons.warning,
-          title: 'Relatório de Agrotóxicos',
-          subtitle: 'Aplicações de agrotóxicos',
+          title: 'Relatório de Aplicações de Agrotóxicos',
+          subtitle: 'Histórico de agrotóxicos',
           color: Colors.red,
           onTap: () => _selecionarTipoRelatorio('agrotoxicos'),
         ),
@@ -427,54 +426,47 @@ class _RelatoriosMainScreenState extends State<RelatoriosMainScreen> {
       final dataFim = _dataFim!;
       File? file;
 
+      List<dynamic> dados = [];
+
       switch (_tipoRelatorioSelecionado) {
         case 'plantios':
-          final dados = await _relatorioService.getRelatorioPlantio(
+          dados = await _relatorioService.getRelatorioPlantio(
             widget.lavouraId,
             dataInicio,
             dataFim,
           );
-          await _pdfService.gerarRelatorio("Relatório de Plantios", dados);
           break;
 
         case 'agrotoxicos':
-          final dados = await _relatorioService.getRelatorioAplicacao(
+          dados = await _relatorioService.getRelatorioAplicacao(
             widget.lavouraId,
             dataInicio,
             dataFim,
-          );
-          await _pdfService.gerarRelatorio(
-            "Relatório de Aplicações de Agrotóxicos",
-            dados,
           );
           break;
 
         case 'insumos':
-          final dados = await _relatorioService.getRelatorioAplicacaoInsumo(
+          dados = await _relatorioService.getRelatorioAplicacaoInsumo(
             widget.lavouraId,
             dataInicio,
             dataFim,
           );
-          await _pdfService.gerarRelatorio("Relatório de Insumos", dados);
-
           break;
 
         case 'colheitas':
-          final dados = await _relatorioService.getRelatorioColheita(
+          dados = await _relatorioService.getRelatorioColheita(
             widget.lavouraId,
             dataInicio,
             dataFim,
           );
-          await _pdfService.gerarRelatorio("Relatório de Colheitas", dados);
           break;
 
         case 'movimentacoes':
-          final dados = await _relatorioService.getRelatorioMovimentacaoEstoque(
+          dados = await _relatorioService.getRelatorioMovimentacaoEstoque(
             widget.lavouraId,
             dataInicio,
             dataFim,
           );
-          await _pdfService.gerarRelatorio("Relatório de Movimentações", dados);
           break;
 
         default:
@@ -482,26 +474,50 @@ class _RelatoriosMainScreenState extends State<RelatoriosMainScreen> {
           return;
       }
 
-      if (file != null) {
-        // Abre o PDF no app nativo de visualização
-        await OpenFilex.open(file.path);
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Relatório ${_getNomeRelatorio()} gerado com sucesso!',
-              ),
-              backgroundColor: Colors.green[600],
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
+      if (dados.isEmpty) {
+        setState(
+          () =>
+              _errorMessage =
+                  'Nenhum registro encontrado para o período selecionado.',
+        );
+        return; 
       }
+
+      await _pdfService.gerarRelatorio(
+        _getTituloRelatorio(),
+        dados,
+        dataInicio: dataInicio,
+        dataFim: dataFim,
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Relatório ${_getNomeRelatorio()} gerado com sucesso!'),
+          backgroundColor: Colors.green[600],
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     } catch (e) {
       setState(() => _errorMessage = 'Erro ao gerar relatório: $e');
     } finally {
       setState(() => _isGenerating = false);
+    }
+  }
+
+  String _getTituloRelatorio() {
+    switch (_tipoRelatorioSelecionado) {
+      case 'plantios':
+        return "Relatório de Plantios";
+      case 'agrotoxicos':
+        return "Relatório de Aplicações de Agrotóxicos";
+      case 'insumos':
+        return "Relatório de Insumos";
+      case 'colheitas':
+        return "Relatório de Colheitas";
+      case 'movimentacoes':
+        return "Relatório de Movimentações";
+      default:
+        return "";
     }
   }
 

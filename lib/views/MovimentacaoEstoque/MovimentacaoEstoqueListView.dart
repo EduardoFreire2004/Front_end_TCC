@@ -248,6 +248,7 @@ class _MovimentacaoEstoqueListViewState
 
   Widget _buildMovimentacoesList(MovimentacaoEstoqueViewModel movimentacaoVM) {
     return ListView.builder(
+      reverse: true,
       itemCount: movimentacaoVM.lista.length,
       itemBuilder: (context, index) {
         final mov = movimentacaoVM.lista[index];
@@ -356,51 +357,7 @@ class _MovimentacaoEstoqueListViewState
               ],
             ),
             trailing:
-                mov.movimentacao == 1
-                    ? PopupMenuButton<String>(
-                      onSelected: (value) async {
-                        if (value == 'edit') {
-                          final result = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (_) => MovimentacaoEstoqueFormView(
-                                    lavouraId: widget.lavouraId,
-                                    movimentacao: mov,
-                                  ),
-                            ),
-                          );
-                          if (result == true && mounted) {
-                            _loadData();
-                          }
-                        } else if (value == 'delete') {
-                          await _deleteMovimentacao(mov.id!);
-                        }
-                      },
-                      itemBuilder:
-                          (context) => [
-                            const PopupMenuItem(
-                              value: 'edit',
-                              child: Row(
-                                children: [
-                                  Icon(Icons.edit, color: Colors.blue),
-                                  SizedBox(width: 8),
-                                  Text('Editar'),
-                                ],
-                              ),
-                            ),
-                            const PopupMenuItem(
-                              value: 'delete',
-                              child: Row(
-                                children: [
-                                  Icon(Icons.delete, color: Colors.red),
-                                  Text('Excluir'),
-                                ],
-                              ),
-                            ),
-                          ],
-                    )
-                    : null,
+                 null,
           ),
         );
       },

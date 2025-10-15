@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/MovimentacaoEstoqueModel.dart';
-import '../../models/TipoMovimentacaoModel.dart';
 import '../../viewmodels/MovimentacaoEstoqueViewModel.dart';
 import '../../viewmodels/AgrotoxicoViewModel.dart';
 import '../../viewmodels/SementeViewModel.dart';
@@ -28,7 +27,7 @@ class _MovimentacaoEstoqueFormViewState
     extends State<MovimentacaoEstoqueFormView> {
   final _formKey = GlobalKey<FormState>();
 
-  int? _movimentacao; // 1 = Entrada, 2 = Saída
+  int? _movimentacao; 
   int? _selectedAgrotoxico;
   int? _selectedSemente;
   int? _selectedInsumo;
@@ -86,7 +85,6 @@ class _MovimentacaoEstoqueFormViewState
       return;
     }
 
-    // Saídas não são mais permitidas manualmente nesta tela; validação acima já cobre
 
     final movimentacaoModel = MovimentacaoEstoqueModel(
       id: widget.movimentacao?.id,

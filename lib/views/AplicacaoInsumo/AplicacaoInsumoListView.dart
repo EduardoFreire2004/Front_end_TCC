@@ -122,6 +122,7 @@ class _AplicacaoListViewState extends State<AplicacaoInsumoListView> {
             backgroundColor: errorColor,
           ),
         );
+        aplicacaoVM.errorMessage = null; // ✅ limpa o erro após exibir
       });
     }
 

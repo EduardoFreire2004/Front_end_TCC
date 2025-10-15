@@ -70,7 +70,8 @@ class _AplicacaoListViewState extends State<AplicacaoListView> {
 
       final agrotoxico = await agrotoxicoVM.getID(aplicacao.agrotoxicoID);
       final nomeAgrotoxico = agrotoxico?.nome ?? 'Não encontrado';
-      final unidadeMediadaAgrotoxico = agrotoxico?.unidade_Medida ?? 'Não Encontrado';
+      final unidadeMediadaAgrotoxico =
+          agrotoxico?.unidade_Medida ?? 'Não Encontrado';
 
       showDialog(
         context: context,
@@ -92,9 +93,11 @@ class _AplicacaoListViewState extends State<AplicacaoListView> {
                     'Descrição',
                     aplicacao.descricao ?? '',
                   ),
-                  buildDetailItem(Icons.scale, 
-                  'Quantidade', 
-                    '${aplicacao.qtde ?? 0} ${unidadeMediadaAgrotoxico ?? ''}',),
+                  buildDetailItem(
+                    Icons.scale,
+                    'Quantidade',
+                    '${aplicacao.qtde ?? 0} ${unidadeMediadaAgrotoxico ?? ''}',
+                  ),
                   buildDetailItem(
                     Icons.calendar_today,
                     'Data e Hora',
@@ -127,6 +130,7 @@ class _AplicacaoListViewState extends State<AplicacaoListView> {
             backgroundColor: errorColor,
           ),
         );
+        aplicacaoVM.errorMessage = null; 
       });
     }
 

@@ -1,17 +1,14 @@
 import 'dart:typed_data';
-import 'dart:io' show File, Process; // Apenas usado fora do Web
+import 'dart:io' show File, Process; 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
-// Compatibilidade com Web (usa download direto)
 import 'package:universal_html/html.dart' as html;
 
-// Compatibilidade com Android/iOS/Desktop (usa diretório do app)
 import 'package:path_provider/path_provider.dart';
 
 class PdfService {
-  /// Gera um relatório PDF compatível com Web e plataformas nativas.
   Future<void> gerarRelatorio<T>(
     String titulo,
     List<T> dados, {
@@ -25,7 +22,6 @@ class PdfService {
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(24),
 
-        // Cabeçalho
         header: (context) => pw.Container(
           alignment: pw.Alignment.center,
           margin: const pw.EdgeInsets.only(bottom: 10),
@@ -64,7 +60,6 @@ class PdfService {
           ),
         ),
 
-        // Rodapé
         footer: (context) => pw.Container(
           alignment: pw.Alignment.centerRight,
           margin: const pw.EdgeInsets.only(top: 10),
@@ -74,7 +69,6 @@ class PdfService {
           ),
         ),
 
-        // Conteúdo
         build: (pw.Context context) {
           if (dados.isEmpty) {
             return [
@@ -90,7 +84,6 @@ class PdfService {
             ];
           }
 
-          // Extrai colunas
           Map<String, dynamic> primeiro = {};
           try {
             final dynamic conv = (dados.first as dynamic).toJson();
@@ -101,7 +94,6 @@ class PdfService {
 
           final colunas = primeiro.keys.toList();
 
-          // Gera linhas
           final linhas = dados.map((item) {
             Map<String, dynamic> map = {};
             try {
@@ -123,7 +115,6 @@ class PdfService {
               border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
               columnWidths: columnWidths,
               children: [
-                // Cabeçalho da tabela
                 pw.TableRow(
                   decoration: const pw.BoxDecoration(color: PdfColors.green50),
                   children: [
@@ -142,7 +133,6 @@ class PdfService {
                   ],
                 ),
 
-                // Linhas alternadas (efeito zebra)
                 for (int i = 0; i < linhas.length; i++)
                   pw.TableRow(
                     decoration: pw.BoxDecoration(
@@ -174,11 +164,9 @@ class PdfService {
       ),
     );
 
-    // Gera bytes
     final bytes = await pdf.save();
 
     if (kIsWeb) {
-      // --- FLUTTER WEB ---
       final blob = html.Blob([bytes], 'application/pdf');
       final url = html.Url.createObjectUrlFromBlob(blob);
       final anchor = html.AnchorElement(href: url)
@@ -186,7 +174,6 @@ class PdfService {
         ..click();
       html.Url.revokeObjectUrl(url);
     } else {
-      // --- ANDROID / IOS / DESKTOP ---
       final dir = await getApplicationDocumentsDirectory();
       final safeTitle = titulo.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_');
       final file = File("${dir.path}/relatorio_$safeTitle.pdf");
@@ -195,18 +182,14 @@ class PdfService {
     }
   }
 
-  /// Abre o PDF no app nativo (somente plataformas móveis)
   Future<void> _abrirArquivo(File file) async {
     try {
-      // Tenta abrir com o app padrão
       final open = await Process.run('xdg-open', [file.path]);
       print(open);
     } catch (e) {
       print('Erro ao abrir arquivo: $e');
     }
   }
-
-  // ------------------ AUXILIARES ------------------
 
   String _formatValue(dynamic value) {
     if (value == null) return "-";
@@ -229,8 +212,6 @@ class PdfService {
 }
 
 class PdfServiceLista {
-  /// Gera um relatório PDF compatível com Web e plataformas nativas,
-  /// agora **sem precisar passar dataInicio e dataFim**.
   Future<void> gerarRelatorio<T>(
     String titulo,
     List<T> dados,
@@ -242,7 +223,6 @@ class PdfServiceLista {
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(24),
 
-        // Cabeçalho
         header: (context) => pw.Container(
           alignment: pw.Alignment.center,
           margin: const pw.EdgeInsets.only(bottom: 10),
@@ -271,7 +251,6 @@ class PdfServiceLista {
           ),
         ),
 
-        // Rodapé
         footer: (context) => pw.Container(
           alignment: pw.Alignment.centerRight,
           margin: const pw.EdgeInsets.only(top: 10),
@@ -281,7 +260,6 @@ class PdfServiceLista {
           ),
         ),
 
-        // Conteúdo
         build: (pw.Context context) {
           if (dados.isEmpty) {
             return [
@@ -297,7 +275,6 @@ class PdfServiceLista {
             ];
           }
 
-          // Extrai colunas dinamicamente
           Map<String, dynamic> primeiro = {};
           try {
             final dynamic conv = (dados.first as dynamic).toJson();
@@ -308,7 +285,6 @@ class PdfServiceLista {
 
           final colunas = primeiro.keys.toList();
 
-          // Gera linhas dinamicamente
           final linhas = dados.map((item) {
             Map<String, dynamic> map = {};
             try {
@@ -330,7 +306,6 @@ class PdfServiceLista {
               border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
               columnWidths: columnWidths,
               children: [
-                // Cabeçalho da tabela
                 pw.TableRow(
                   decoration: const pw.BoxDecoration(color: PdfColors.green50),
                   children: [
@@ -349,7 +324,6 @@ class PdfServiceLista {
                   ],
                 ),
 
-                // Linhas alternadas (efeito zebra)
                 for (int i = 0; i < linhas.length; i++)
                   pw.TableRow(
                     decoration: pw.BoxDecoration(
@@ -384,7 +358,6 @@ class PdfServiceLista {
     final bytes = await pdf.save();
 
     if (kIsWeb) {
-      // --- FLUTTER WEB ---
       final blob = html.Blob([bytes], 'application/pdf');
       final url = html.Url.createObjectUrlFromBlob(blob);
       final anchor = html.AnchorElement(href: url)
@@ -392,7 +365,6 @@ class PdfServiceLista {
         ..click();
       html.Url.revokeObjectUrl(url);
     } else {
-      // --- ANDROID / IOS / DESKTOP ---
       final dir = await getApplicationDocumentsDirectory();
       final safeTitle = titulo.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_');
       final file = File("${dir.path}/relatorio_$safeTitle.pdf");
@@ -411,18 +383,41 @@ class PdfServiceLista {
   }
 
   String _formatValue(dynamic value) {
-    if (value == null) return "-";
-    if (value is DateTime) return _formatDate(value);
-    if (value is num) return value.toStringAsFixed(2);
-    if (value is bool) return value ? "Sim" : "Não";
-    return value.toString();
+  if (value == null) return "-";
+
+  if (value is DateTime) return _formatDate(value);
+
+  if (value is num) {
+    if (value % 1 == 0) {
+      return value.toInt().toString();
+    }
+    return value.toStringAsFixed(2);
   }
 
+  if (value is bool) return value ? "Sim" : "Não";
+
+  return value.toString();
+}
+
+
   String _formatDate(DateTime data) {
-    return "${data.day.toString().padLeft(2, '0')}/"
-        "${data.month.toString().padLeft(2, '0')}/"
-        "${data.year}";
+  bool temHora = data.hour != 0 || data.minute != 0 || data.second != 0;
+
+  String dataFormatada =
+      "${data.day.toString().padLeft(2, '0')}/"
+      "${data.month.toString().padLeft(2, '0')}/"
+      "${data.year}";
+
+  if (temHora) {
+    String horaFormatada =
+        "${data.hour.toString().padLeft(2, '0')}:"
+        "${data.minute.toString().padLeft(2, '0')}";
+    return "$dataFormatada $horaFormatada";
   }
+
+  return dataFormatada;
+}
+
 
   String _capitalize(String text) {
     if (text.isEmpty) return text;
